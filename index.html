@@ -609,4 +609,36 @@ function closeModal(){document.getElementById("modalbg").style.display="none"}
 function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
 updateTexts();
 loadLiveJobs();
+  function filterJobs(){
+  const q = document.getElementById("q").value.toLowerCase().trim();
+  const c = document.getElementById("city").value.toLowerCase().trim();
+
+  const checked = [...document.querySelectorAll(".filters input:checked")];
+
+  const types = checked
+    .map(x => x.value)
+    .filter(x => ["Full-time", "Part-time", "Remote"].includes(x));
+
+  const fields = checked
+    .map(x => x.value)
+    .filter(x => ["Healthcare", "Admin", "Tech", "Engineering"].includes(x));
+
+  const results = data.filter(j => {
+    const jobText = [
+      j.title, j.en, j.company, j.companyEn,
+      j.field, j.desc
+    ].join(" ").toLowerCase();
+
+    const cityText = [j.city, j.cityEn].join(" ").toLowerCase();
+
+    const matchesSearch = !q || jobText.includes(q);
+    const matchesCity = !c || cityText.includes(c);
+    const matchesType = types.length === 0 || types.includes(j.type);
+    const matchesField = fields.length === 0 || fields.includes(j.field);
+
+    return matchesSearch && matchesCity && matchesType && matchesField;
+  });
+
+  render(results);
+}
 </script></body></html>
