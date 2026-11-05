@@ -762,8 +762,16 @@ loadLiveJobs();
 </style>
 
 <script>
-function openSignup() {
-  document.getElementById("signupModal").style.display = "flex";
+function openSignup{
+  const modal = document.getElementById("loginModal");
+
+  if (!modal) {
+    alert("Login window not found!");
+    return;
+  }
+
+  modal.style.display = "flex";
+  }
 }
 
 function closeSignup() {
