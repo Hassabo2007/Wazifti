@@ -544,7 +544,7 @@ footer {
 <body>
 <header><div class="nav"><div class="brand"><div class="logo">و</div><span data-t="brand">وظيفتي</span></div>
 <nav><a href="#jobs" data-t="navJobs">الوظائف</a><a href="#how" data-t="navHow">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout">عن وظيفتي</a></nav>
-<div class="actions"><button class="btn outline" onclick="toast(T.loginSoon)" data-t="login">دخول</button><button class="btn primary" onclick="toast('قريباً')" >إنشاء حساب</button> <button class="btn primary" onclick="toast(T.employerSoon)" data-t="postJob">أعلن عن وظيفة</button><button class="btn outline" id="lang" onclick="toggleLang()">EN</button></div></div></header>
+<div class="actions"><button class="btn primary" onclick="openSignup()">إنشاء حساب</button><button class="btn primary" onclick="toast('قريباً')" >إنشاء حساب</button> <button class="btn primary" onclick="toast(T.employerSoon)" data-t="postJob">أعلن عن وظيفة</button><button class="btn outline" id="lang" onclick="toggleLang()">EN</button></div></div></header>
 <section class="hero"><div class="hero-inner"><div><h1 data-t="headline">خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span></h1>
 <p data-t="sub">ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.</p>
 <div class="search"><input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة"><input id="city" data-ph="searchCity" placeholder="المدينة"><button class="btn primary" onclick="filterJobs()" data-t="search">ابحث عن وظيفة</button></div>
@@ -652,4 +652,125 @@ loadLiveJobs();
 
   filterJobs();
 }
-</script></body></html>
+</script>
+<div id="signupModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <button onclick="closeSignup()" class="close-btn">&times;</button>
+
+    <h2>إنشاء حساب جديد</h2>
+    <p>انضم إلى منصة وظيفتي</p>
+
+    <form id="signupForm">
+      <label>الاسم الكامل</label>
+      <input type="text" id="signupName" placeholder="أدخل اسمك الكامل" required>
+
+      <label>البريد الإلكتروني</label>
+      <input type="email" id="signupEmail" placeholder="example@email.com" required>
+
+      <label>كلمة المرور</label>
+      <input type="password" id="signupPassword" placeholder="6 أحرف على الأقل" minlength="6" required>
+
+      <label>تأكيد كلمة المرور</label>
+      <input type="password" id="confirmPassword" placeholder="أعد كتابة كلمة المرور" required>
+
+      <button type="submit" class="btn primary" style="width:100%;margin-top:15px;">
+        إنشاء الحساب
+      </button>
+
+      <p id="signupMessage"></p>
+    </form>
+  </div>
+</div>
+
+<style>
+#signupModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+}
+
+#signupModal .modal-content {
+  background: white;
+  color: #222;
+  width: 100%;
+  max-width: 420px;
+  padding: 25px;
+  border-radius: 16px;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+#signupModal input {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+#signupModal label {
+  display: block;
+  text-align: right;
+}
+
+#signupModal .close-btn {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  border: none;
+  background: none;
+  font-size: 26px;
+  cursor: pointer;
+}
+</style>
+
+<script>
+function openSignup() {
+  document.getElementById("signupModal").style.display = "flex";
+}
+
+function closeSignup() {
+  document.getElementById("signupModal").style.display = "none";
+}
+  document.getElementById("signupForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const name = document.getElementById("signupName").value.trim();
+  const email = document.getElementById("signupEmail").value.trim();
+  const password = document.getElementById("signupPassword").value;
+  const confirm = document.getElementById("confirmPassword").value;
+  const message = document.getElementById("signupMessage");
+
+  if (password !== confirm) {
+    message.textContent = "كلمتا المرور غير متطابقتين";
+    return;
+  }
+
+  message.textContent = "جارٍ إنشاء الحساب...";
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+      data: {
+        full_name: name
+      }
+    }
+  });
+
+  if (error) {
+    message.textContent = "حدث خطأ: " + error.message;
+    return;
+  }
+
+  message.textContent = "تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني إذا طُلب منك ذلك.";
+});
+</script>
+</body></html>
