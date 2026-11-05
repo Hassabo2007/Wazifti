@@ -802,5 +802,38 @@ function closeSignup() {
 
   message.textContent = "تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني إذا طُلب منك ذلك.";
 });
+  function openLogin() {
+  document.getElementById("loginModal").style.display = "flex";
+}
+
+function closeLogin() {
+  document.getElementById("loginModal").style.display = "none";
+}
+
+document.getElementById("loginForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const message = document.getElementById("loginMessage");
+
+  message.textContent = "جارٍ تسجيل الدخول...";
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  if (error) {
+    message.textContent = "تعذر تسجيل الدخول: " + error.message;
+    return;
+  }
+
+  message.textContent = "تم تسجيل الدخول بنجاح!";
+
+  setTimeout(() => {
+    closeLogin();
+  }, 1500);
+});
 </script>
 </body></html>
