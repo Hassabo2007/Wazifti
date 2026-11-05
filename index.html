@@ -551,7 +551,9 @@ footer {
 <div class="stats"><span><b>+120</b><span data-t="statJobs">فرصة تجريبية</span></span><span><b>+35</b><span data-t="statEmployers">جهة عمل</span></span><span><b>18</b><span data-t="statCities">مدينة</span></span></div></div>
 <div class="art"><div class="articon">💼</div><h3 data-t="artTitle">وظيفتك القادمة أقرب مما تتوقع</h3><p class="muted" data-t="artSub">فرص في مختلف القطاعات والمجالات في السودان.</p></div></div></section>
 <main class="wrap" id="jobs"><div class="head"><h2 data-t="latest">أحدث فرص العمل</h2><span class="muted" id="count"></span></div>
-<div class="layout"><aside class="filters"><h3 data-t="filters">تصفية النتائج</h3><div class="group"><strong data-t="jobType">نوع الوظيفة</strong><label><input type="checkbox" value="Full-time" onchange="filterJobs()"> <span data-t="full">دوام كامل</span></label><label><input type="checkbox" value="Part-time" onchange="filterJobs()"> <span data-t="part">دوام جزئي</span></label><label><input type="checkbox" value="Remote" onchange="filterJobs()"> <span data-t="remote">عن بُعد</span></label></div>
+<div class="layout"><aside class="filters"><button class="btn outline" onclick="clearFilters()" style="width:100%;margin-bottom:12px">
+  مسح جميع الفلاتر
+</button> <h3 data-t="filters">تصفية النتائج</h3><div class="group"><strong data-t="jobType">نوع الوظيفة</strong><label><input type="checkbox" value="Full-time" onchange="filterJobs()"> <span data-t="full">دوام كامل</span></label><label><input type="checkbox" value="Part-time" onchange="filterJobs()"> <span data-t="part">دوام جزئي</span></label><label><input type="checkbox" value="Remote" onchange="filterJobs()"> <span data-t="remote">عن بُعد</span></label></div>
 <div class="group"><strong data-t="sector">المجال</strong><label><input type="checkbox" value="Healthcare" onchange="filterJobs()"> <span data-t="health">طبي وصحي</span></label><label><input type="checkbox" value="Admin" onchange="filterJobs()"> <span data-t="admin">إداري</span></label><label><input type="checkbox" value="Tech" onchange="filterJobs()"> <span data-t="tech">تقنية المعلومات</span></label><label><input type="checkbox" value="Engineering" onchange="filterJobs()"> <span data-t="engineering">هندسي</span></label></div></aside><section class="list" id="list"></section></div></main>
 <section class="wrap" id="how" style="text-align:center"><h2 data-t="howTitle">كيف تعمل وظيفتي؟</h2><p class="muted" data-t="howSub">ابحث عن الفرصة المناسبة ← اقرأ التفاصيل ← تواصل مع جهة العمل.</p></section>
 <footer id="about"><b data-t="brand">وظيفتي</b> — <span data-t="footerLine">منصة سودانية للبحث عن فرص العمل</span><br><span data-t="disclaimer">نموذج أولي؛ الوظائف المعروضة بيانات توضيحية وليست إعلانات حقيقية.</span></footer>
@@ -640,5 +642,14 @@ loadLiveJobs();
   });
 
   render(results);
+} function clearFilters(){
+  document.getElementById("q").value = "";
+  document.getElementById("city").value = "";
+
+  document.querySelectorAll(".filters input").forEach(input => {
+    input.checked = false;
+  });
+
+  filterJobs();
 }
 </script></body></html>
