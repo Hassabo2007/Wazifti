@@ -544,7 +544,14 @@ footer {
 <body>
 <header><div class="nav"><div class="brand"><div class="logo">و</div><span data-t="brand">وظيفتي</span></div>
 <nav><a href="#jobs" data-t="navJobs">الوظائف</a><a href="#how" data-t="navHow">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout">عن وظيفتي</a></nav>
-<div class="actions"><button class="btn primary" onclick="openSignup()">إنشاء حساب</button> <button class="btn primary" onclick="toast(T.employerSoon)" data-t="postJob">أعلن عن وظيفة</button><button class="btn outline" id="lang" onclick="toggleLang()">EN</button></div></div></header>
+```html
+<div class="actions">
+<button class="btn outline" onclick="openLogin()">دخول</button>
+<button class="btn primary" onclick="openSignup()">إنشاء حساب</button>
+<button class="btn primary" onclick="toast(T.employerSoon)" data-t="postJob">أعلن عن وظيفة</button>
+<button class="btn outline" id="lang" onclick="toggleLang()">EN</button>
+</div></div>
+```</header>
 <section class="hero"><div class="hero-inner"><div><h1 data-t="headline">خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span></h1>
 <p data-t="sub">ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.</p>
 <div class="search"><input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة"><input id="city" data-ph="searchCity" placeholder="المدينة"><button class="btn primary" onclick="filterJobs()" data-t="search">ابحث عن وظيفة</button></div>
