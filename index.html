@@ -750,8 +750,11 @@ loadLiveJobs();
       <input id="employerWebsite" type="url" maxlength="250" placeholder="https://example.com">
       <label id="employerDescriptionLabel" for="employerDescription">نبذة عن الشركة (اختياري)</label>
       <textarea id="employerDescription" rows="4" maxlength="1200"></textarea>
+      <label id="employerDocumentLabel" for="employerDocumentFile">مستند تسجيل الشركة (PDF، حتى 5 ميجابايت) *</label>
+      <input id="employerDocumentFile" type="file" accept="application/pdf,.pdf" required>
+      <p id="employerDocumentHint" class="muted">يُقبل ملف PDF فقط، بحد أقصى 5 ميجابايت.</p>
       <p id="employerRegistrationMessage" role="status" aria-live="polite"></p>
-      <button id="employerRegistrationSubmit" type="submit" class="btn primary" style="width:100%;margin-top:12px">إرسال طلب التسجيل</button>
+      <button id="employerRegistrationSubmit" type="submit" class="btn primary" style="width:100%;margin-top:12px">إرسال الطلب والمستند</button>
     </form>
   </div>
 </div>
@@ -1120,6 +1123,7 @@ const employerFormText = {
     description:"نبذة عن الشركة (اختياري)", submit:"إرسال طلب التسجيل",
     sending:"جارٍ إرسال طلب التسجيل...", success:"تم إرسال بيانات الشركة بنجاح. حالة الطلب: قيد المراجعة.",
     failed:"تعذر تسجيل بيانات صاحب العمل: ", login:"يرجى تسجيل الدخول أولاً بحسابك.",
+    fileRequired:"يرجى إرفاق مستند تسجيل الشركة بصيغة PDF.", pdfOnly:"نوع الملف غير مدعوم. يرجى اختيار ملف PDF.", fileTooLarge:"حجم الملف أكبر من 5 ميجابايت.", companySavedUploadFailed:"تم حفظ بيانات الشركة، لكن تعذر رفع المستند. أعد اختيار الملف واضغط لإعادة المحاولة: ", retryUpload:"إعادة محاولة رفع المستند",
     required:"يرجى إدخال اسم الشركة أو المؤسسة.", invalidUrl:"يرجى إدخال رابط صحيح يبدأ بـ https:// أو http://.",
     roleWarning:"تم تسجيل الشركة، لكن تعذر تحديث نوع الحساب. يمكنك متابعة طلب الشركة."
   },
@@ -1129,6 +1133,7 @@ const employerFormText = {
     description:"Company description (optional)", submit:"Submit registration",
     sending:"Submitting your registration...", success:"Company details submitted successfully. Status: Pending review.",
     failed:"Could not register employer details: ", login:"Please log in first.",
+    fileRequired:"Please attach the company registration document as a PDF.", pdfOnly:"Unsupported file type. Please choose a PDF.", fileTooLarge:"The file exceeds 5 MB.", companySavedUploadFailed:"Company details were saved, but document upload failed. Select the file again and retry: ", retryUpload:"Retry document upload",
     required:"Please enter a company or organization name.", invalidUrl:"Enter a valid URL beginning with https:// or http://.",
     roleWarning:"Company registered, but the account type could not be updated. Your company request is still saved."
   }
@@ -1155,6 +1160,7 @@ function closeEmployerRegistration() {
 }
 
 const employerRegistrationForm = document.getElementById("employerRegistrationForm");
+let employerPendingCompanyId = null;
 if (employerRegistrationForm) {
   employerRegistrationForm.addEventListener("submit", async function(event) {
     event.preventDefault();
@@ -1164,6 +1170,8 @@ if (employerRegistrationForm) {
     const companyName = document.getElementById("employerCompanyName").value.trim();
     const websiteRaw = document.getElementById("employerWebsite").value.trim();
     const description = document.getElementById("employerDescription").value.trim();
+    const fileInput = document.getElementById("employerDocumentFile");
+    const file = fileInput.files && fileInput.files[0];
 
     if (!currentAuthUser) {
       message.textContent = t.login;
@@ -1171,6 +1179,18 @@ if (employerRegistrationForm) {
     }
     if (!companyName) {
       message.textContent = t.required;
+      return;
+    }
+    if (!file) {
+      message.textContent = t.fileRequired;
+      return;
+    }
+    if (file.type !== "application/pdf" || !file.name.toLowerCase().endsWith(".pdf")) {
+      message.textContent = t.pdfOnly;
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      message.textContent = t.fileTooLarge;
       return;
     }
 
@@ -1189,27 +1209,47 @@ if (employerRegistrationForm) {
     message.textContent = t.sending;
     button.disabled = true;
     try {
-      const { data: company, error } = await supabaseClient
-        .from("companies")
-        .insert({
-          owner_id: currentAuthUser.id,
-          company_name: companyName,
-          description: description || null,
-          website,
-          status: "pending"
-        })
-        .select("id, company_name, status")
-        .single();
-      if (error) throw error;
+      // Create the company once. If file upload fails, retain its ID so retrying
+      // uploads the document to the same company instead of creating duplicates.
+      if (!employerPendingCompanyId) {
+        const { data: company, error } = await supabaseClient
+          .from("companies")
+          .insert({
+            owner_id: currentAuthUser.id,
+            company_name: companyName,
+            description: description || null,
+            website,
+            status: "pending"
+          })
+          .select("id, company_name, status")
+          .single();
+        if (error) throw error;
+        employerPendingCompanyId = company.id;
+        sessionStorage.setItem("wazifti_pending_company_" + currentAuthUser.id, employerPendingCompanyId);
+        console.info("Wazifti employer registration saved:", company.id, company.status);
+      }
 
-      // Do not change profiles.account_type from the browser.
-      // Employer permissions are derived from ownership of the pending company record.
+      const safeName = file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]+/g, "_").replace(/^_+|_+$/g, "") || "company-document.pdf";
+      const filePath = employerPendingCompanyId + "/" + Date.now() + "-" + safeName;
+      const { data: uploaded, error: uploadError } = await supabaseClient
+        .storage
+        .from("company-documents")
+        .upload(filePath, file, {
+          contentType: "application/pdf",
+          cacheControl: "3600",
+          upsert: false
+        });
+      if (uploadError) throw uploadError;
+
       message.textContent = t.success;
       employerRegistrationForm.reset();
-      console.info("Wazifti employer registration saved:", company?.id, company?.status);
+      sessionStorage.removeItem("wazifti_pending_company_" + currentAuthUser.id);
+      employerPendingCompanyId = null;
+      console.info("Wazifti company document uploaded:", uploaded?.path);
     } catch (error) {
-      console.error("Employer registration failed:", error);
-      message.textContent = t.failed + (error.message || "Unexpected error");
+      console.error("Employer registration/document upload failed:", error);
+      message.textContent = (employerPendingCompanyId ? t.companySavedUploadFailed : t.failed) + (error.message || "Unexpected error");
+      if (employerPendingCompanyId) button.textContent = t.retryUpload;
     } finally {
       button.disabled = false;
     }
