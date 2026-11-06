@@ -727,12 +727,12 @@ loadLiveJobs();
     <h2>تسجيل الدخول</h2>
     <p>مرحباً بعودتك إلى وظيفتي</p>
 
-    <form id="loginForm">
+    <form id="loginForm" autocomplete="off">
       <label>البريد الإلكتروني</label>
-      <input type="email" id="loginEmail" placeholder="example@email.com" required>
+      <input type="email" id="loginEmail" placeholder="example@email.com" autocomplete="off" autocapitalize="none" required>
 
       <label>كلمة المرور</label>
-      <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور" required>
+      <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور" autocomplete="new-password" required>
 
       <button type="submit" class="btn primary" style="width:100%;margin-top:15px;">
         دخول
@@ -877,6 +877,13 @@ function closeSignup() {
   if (modal) modal.style.display = "none";
 }
 
+function clearLoginCredentials() {
+  const form = document.getElementById("loginForm");
+  if (form) form.reset();
+  const message = document.getElementById("loginMessage");
+  if (message) message.textContent = "";
+}
+
 function openLogin() {
   const modal = document.getElementById("loginModal");
   if (modal) modal.style.display = "flex";
@@ -885,6 +892,7 @@ function openLogin() {
 function closeLogin() {
   const modal = document.getElementById("loginModal");
   if (modal) modal.style.display = "none";
+  clearLoginCredentials();
 }
 
 
@@ -1030,6 +1038,26 @@ async function refreshAdminAccess(user) {
   }
 }
 
+let pdfJsLoaderPromise = null;
+
+function loadPdfJs() {
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (pdfJsLoaderPromise) return pdfJsLoaderPromise;
+  pdfJsLoaderPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    script.onload = () => {
+      if (!window.pdfjsLib) return reject(new Error("PDF.js لم يتم تحميله"));
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      resolve(window.pdfjsLib);
+    };
+    script.onerror = () => reject(new Error("تعذر تحميل مكتبة عرض PDF"));
+    document.head.appendChild(script);
+  });
+  return pdfJsLoaderPromise;
+}
+
 async function previewAdminPdf(event, signedUrl, companyId) {
   event.preventDefault();
   const panel = document.getElementById("adminPdfPreview-" + companyId);
@@ -1047,22 +1075,55 @@ async function previewAdminPdf(event, signedUrl, companyId) {
     if (String.fromCharCode(...header) !== "%PDF-") {
       throw new Error("الملف المستلم ليس ملف PDF صالحاً");
     }
+
     window.adminPdfPreviewUrls = window.adminPdfPreviewUrls || {};
     if (window.adminPdfPreviewUrls[companyId]) {
       URL.revokeObjectURL(window.adminPdfPreviewUrls[companyId]);
     }
-    const previewUrl = URL.createObjectURL(new Blob([pdfBlob], {type:"application/pdf"}));
+    const previewUrl = URL.createObjectURL(pdfBlob);
     window.adminPdfPreviewUrls[companyId] = previewUrl;
+
     panel.innerHTML =
       '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0">' +
       '<strong>معاينة المستند</strong>' +
       '<a class="btn outline small" href="' + previewUrl + '" download="company-document.pdf">تنزيل PDF</a>' +
       '<button class="btn outline small" type="button" onclick="closeAdminPdfPreview(\'' + companyId + '\')">إغلاق المعاينة</button></div>' +
-      '<iframe title="معاينة مستند الشركة" src="' + previewUrl + '" style="display:block;width:100%;height:70vh;min-height:420px;border:1px solid #d8e2dc;border-radius:10px;background:#fff"></iframe>';
+      '<div id="adminPdfPages-' + companyId + '" style="display:grid;gap:14px;justify-items:center;background:#f3f5f4;padding:10px;border-radius:10px;min-height:160px"><p class="muted">جارٍ تجهيز صفحات المستند...</p></div>';
+
+    const pdfjsLib = await loadPdfJs();
+    const bytes = new Uint8Array(await pdfBlob.arrayBuffer());
+    const pdf = await pdfjsLib.getDocument({data:bytes}).promise;
+    const pagesContainer = document.getElementById("adminPdfPages-" + companyId);
+    if (!pagesContainer) return false;
+    pagesContainer.innerHTML = "";
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+      const page = await pdf.getPage(pageNumber);
+      const baseViewport = page.getViewport({scale:1});
+      const availableWidth = Math.max(280, Math.min(900, (pagesContainer.clientWidth || 340) - 24));
+      const scale = Math.min(1.6, availableWidth / baseViewport.width);
+      const viewport = page.getViewport({scale});
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d", {alpha:false});
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      canvas.style.width = "100%";
+      canvas.style.maxWidth = Math.ceil(viewport.width) + "px";
+      canvas.style.height = "auto";
+      canvas.style.background = "#fff";
+      canvas.style.boxShadow = "0 1px 5px rgba(0,0,0,.15)";
+      pagesContainer.appendChild(canvas);
+      await page.render({canvasContext:context,viewport}).promise;
+    }
     panel.scrollIntoView({behavior:"smooth",block:"nearest"});
   } catch (error) {
-    console.error("Inline PDF preview failed:", error);
-    panel.innerHTML = '<p class="muted">تعذرت معاينة الملف. يمكنك تنزيله من الزر السابق.</p>';
+    console.error("PDF.js preview failed:", error);
+    const pagesContainer = document.getElementById("adminPdfPages-" + companyId);
+    if (pagesContainer) {
+      pagesContainer.innerHTML = '<p class="muted">تعذرت المعاينة داخل الصفحة. يمكنك استخدام زر تنزيل PDF.</p>';
+    } else {
+      panel.innerHTML = '<p class="muted">تعذرت معاينة الملف. يرجى المحاولة مرة أخرى أو تنزيله.</p>';
+    }
     toast("تعذرت معاينة مستند PDF.");
   }
   return false;
@@ -1122,8 +1183,8 @@ async function loadAdminCompanies() {
           const { data: signed, error: signedError } = await supabaseClient
             .storage.from("company-documents").createSignedUrl(path, 300);
           if (signedError) throw signedError;
-          return '<a class="btn outline small" target="_blank" rel="noopener noreferrer" href="' +
-            escapeAdminHtml(signed.signedUrl) + '" onclick="return previewAdminPdf(event, this.href, \'' + company.id + '\')">معاينة مستند PDF</a>';
+          return '<a class="btn outline small" href="' +
+            escapeAdminHtml(signed.signedUrl) + '" onclick="return previewAdminPdf(event, this.href, \'' + company.id + '\')">معاينة: ' + escapeAdminHtml(file.name) + '</a>';
         }));
         documentLinks = links.join(" ");
       } catch (docError) {
@@ -1229,6 +1290,7 @@ async function logoutUser() {
     const { error } = await supabaseClient.auth.signOut();
     if (error) throw error;
     renderAuthUI(null);
+    clearLoginCredentials();
     toast(lang === "ar" ? "تم تسجيل الخروج بنجاح" : "You have signed out successfully");
   } catch (error) {
     console.error("Sign out failed:", error);
@@ -1306,7 +1368,7 @@ if (loginForm) {
 </script>
 
 <script>
-// Wazifti V1.5.2 — inline PDF viewer inside the admin dashboard.
+// Wazifti V1.5.3 — PDF.js preview and login form reset.
 const employerFormText = {
   ar: {
     title:"تسجيل جهة العمل", intro:"أدخل بيانات شركتك لإرسالها للمراجعة والتحقق.",
