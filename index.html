@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>وظيفتي | Wazifti</title>
+<meta name="wazifti-version" content="1.1">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -544,14 +545,13 @@ footer {
 <body>
 <header><div class="nav"><div class="brand"><div class="logo">و</div><span data-t="brand">وظيفتي</span></div>
 <nav><a href="#jobs" data-t="navJobs">الوظائف</a><a href="#how" data-t="navHow">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout">عن وظيفتي</a></nav>
-```html
 <div class="actions">
 <button class="btn outline" onclick="openLogin()">دخول</button>
 <button class="btn primary" onclick="openSignup()">إنشاء حساب</button>
 <button class="btn primary" onclick="toast(T.employerSoon)" data-t="postJob">أعلن عن وظيفة</button>
 <button class="btn outline" id="lang" onclick="toggleLang()">EN</button>
 </div></div>
-```</header>
+</header>
 <section class="hero"><div class="hero-inner"><div><h1 data-t="headline">خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span></h1>
 <p data-t="sub">ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.</p>
 <div class="search"><input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة"><input id="city" data-ph="searchCity" placeholder="المدينة"><button class="btn primary" onclick="filterJobs()" data-t="search">ابحث عن وظيفة</button></div>
@@ -612,7 +612,6 @@ function toggleLang(){lang=lang==="ar"?"en":"ar";updateTexts()}
 function typeName(t){return T[t==="Full-time"?"full":t==="Part-time"?"part":"remote"]}
 function fieldName(f){return T[f==="Healthcare"?"health":f==="Admin"?"admin":f==="Tech"?"tech":"engineering"]}
 function render(items){document.getElementById("list").innerHTML=items.length?items.map(j=>`<article class="job"><div class="company"><div class="icon">${j.icon}</div><div><h3>${lang==="ar"?j.title:j.en}</h3><div class="muted">${lang==="ar"?j.company:j.companyEn}</div><div class="meta"><span>📍 ${lang==="ar"?j.city:j.cityEn}</span><span>◷ ${typeName(j.type)}</span></div><span class="tag">${fieldName(j.field)}</span></div></div><div class="side"><span class="salary">${lang==="ar"?j.salary:j.salaryEn}</span><button class="btn primary small" onclick="showJob(${data.indexOf(j)})">${T.details}</button></div></article>`).join(""):`<div class="empty" style="padding:28px;text-align:center;color:#718078">${T.empty}</div>`;document.getElementById("count").textContent=items.length+" "+T.count}
-function filterJobs(){let q=document.getElementById("q").value.toLowerCase(),c=document.getElementById("city").value.toLowerCase(),checks=[...document.querySelectorAll(".filters input:checked")].map(x=>x.value);render(data.filter(j=>(!q||(j.title+j.en+j.company+j.companyEn+j.field).toLowerCase().includes(q))&&(!c||(j.city+j.cityEn).toLowerCase().includes(c))&&checks.every(x=>j.type===x||j.field===x)))}
 function showJob(i){let j=data[i];document.getElementById("modalContent").innerHTML=`<div style="font-size:34px">${j.icon}</div><h2>${lang==="ar"?j.title:j.en}</h2><p class="muted">${lang==="ar"?j.company:j.companyEn}</p><p><b>${T.location}:</b> ${lang==="ar"?j.city:j.cityEn}</p><p><b>${T.type}:</b> ${typeName(j.type)}</p><p><b>${T.salary}:</b> ${lang==="ar"?j.salary:j.salaryEn}</p><hr style="border:0;border-top:1px solid #e5eee8"><h3>${T.description}</h3><p style="line-height:1.9">${lang==="ar"?j.desc:j.descEn}</p><button class="btn primary" onclick="toast(T.demo);closeModal()">${T.apply}</button>`;document.getElementById("modalbg").style.display="flex"}
 function closeModal(){document.getElementById("modalbg").style.display="none"}
 function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
@@ -660,7 +659,7 @@ loadLiveJobs();
   filterJobs();
 }
 </script>
-<div id="signupModal" class="modal" style="display:none;">
+<div id="signupModal" class="modal" style="display:none;" onclick="if(event.target===this)closeSignup()">
   <div class="modal-content">
     <button onclick="closeSignup()" class="close-btn">&times;</button>
 
@@ -688,8 +687,7 @@ loadLiveJobs();
     </form>
   </div>
 </div>
-```html
-<div id="loginModal" class="modal" style="display:none;">
+<div id="loginModal" class="modal" style="display:none;" onclick="if(event.target===this)closeLogin()">
   <div class="modal-content">
     <button onclick="closeLogin()" class="close-btn">&times;</button>
 
@@ -711,9 +709,10 @@ loadLiveJobs();
     </form>
   </div>
 </div>
-```
+
 <style>
-#signupModal {
+#signupModal,
+#loginModal {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.65);
@@ -723,7 +722,8 @@ loadLiveJobs();
   padding: 15px;
 }
 
-#signupModal .modal-content {
+#signupModal .modal-content,
+#loginModal .modal-content {
   background: white;
   color: #222;
   width: 100%;
@@ -735,7 +735,8 @@ loadLiveJobs();
   overflow-y: auto;
 }
 
-#signupModal input {
+#signupModal input,
+#loginModal input {
   display: block;
   width: 100%;
   padding: 12px;
@@ -745,12 +746,14 @@ loadLiveJobs();
   box-sizing: border-box;
 }
 
-#signupModal label {
+#signupModal label,
+#loginModal label {
   display: block;
   text-align: right;
 }
 
-#signupModal .close-btn {
+#signupModal .close-btn,
+#loginModal .close-btn {
   position: absolute;
   left: 12px;
   top: 10px;
@@ -762,86 +765,88 @@ loadLiveJobs();
 </style>
 
 <script>
-function openSignup{
-  const modal = document.getElementById("loginModal");
-
-  if (!modal) {
-    alert("Login window not found!");
-    return;
-  }
-
-  modal.style.display = "flex";
-  }
+function openSignup() {
+  const modal = document.getElementById("signupModal");
+  if (modal) modal.style.display = "flex";
 }
 
 function closeSignup() {
-  document.getElementById("signupModal").style.display = "none";
+  const modal = document.getElementById("signupModal");
+  if (modal) modal.style.display = "none";
 }
-  document.getElementById("signupForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
 
-  const name = document.getElementById("signupName").value.trim();
-  const email = document.getElementById("signupEmail").value.trim();
-  const password = document.getElementById("signupPassword").value;
-  const confirm = document.getElementById("confirmPassword").value;
-  const message = document.getElementById("signupMessage");
-
-  if (password !== confirm) {
-    message.textContent = "كلمتا المرور غير متطابقتين";
-    return;
-  }
-
-  message.textContent = "جارٍ إنشاء الحساب...";
-
-  const { data, error } = await supabaseClient.auth.signUp({
-    email: email,
-    password: password,
-    options: {
-      data: {
-        full_name: name
-      }
-    }
-  });
-
-  if (error) {
-    message.textContent = "حدث خطأ: " + error.message;
-    return;
-  }
-
-  message.textContent = "تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني إذا طُلب منك ذلك.";
-});
-  function openLogin() {
-  document.getElementById("loginModal").style.display = "flex";
+function openLogin() {
+  const modal = document.getElementById("loginModal");
+  if (modal) modal.style.display = "flex";
 }
 
 function closeLogin() {
-  document.getElementById("loginModal").style.display = "none";
+  const modal = document.getElementById("loginModal");
+  if (modal) modal.style.display = "none";
 }
 
-document.getElementById("loginForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
+const signupForm = document.getElementById("signupForm");
+if (signupForm) {
+  signupForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
 
-  const email = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPassword").value;
-  const message = document.getElementById("loginMessage");
+    const name = document.getElementById("signupName").value.trim();
+    const email = document.getElementById("signupEmail").value.trim();
+    const password = document.getElementById("signupPassword").value;
+    const confirm = document.getElementById("confirmPassword").value;
+    const message = document.getElementById("signupMessage");
+    const submitButton = signupForm.querySelector('button[type="submit"]');
 
-  message.textContent = "جارٍ تسجيل الدخول...";
+    if (password !== confirm) {
+      message.textContent = "كلمتا المرور غير متطابقتين";
+      return;
+    }
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email: email,
-    password: password
+    message.textContent = "جارٍ إنشاء الحساب...";
+    if (submitButton) submitButton.disabled = true;
+
+    try {
+      const { error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name } }
+      });
+
+      if (error) throw error;
+      message.textContent = "تم إرسال طلب إنشاء الحساب. تحقق من بريدك الإلكتروني لإكمال التسجيل إذا طُلب منك ذلك.";
+      signupForm.reset();
+    } catch (error) {
+      message.textContent = "تعذر إنشاء الحساب: " + (error.message || "حدث خطأ غير متوقع");
+    } finally {
+      if (submitButton) submitButton.disabled = false;
+    }
   });
+}
 
-  if (error) {
-    message.textContent = "تعذر تسجيل الدخول: " + error.message;
-    return;
-  }
+const loginForm = document.getElementById("loginForm");
+if (loginForm) {
+  loginForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
 
-  message.textContent = "تم تسجيل الدخول بنجاح!";
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    const message = document.getElementById("loginMessage");
+    const submitButton = loginForm.querySelector('button[type="submit"]');
 
-  setTimeout(() => {
-    closeLogin();
-  }, 1500);
-});
+    message.textContent = "جارٍ تسجيل الدخول...";
+    if (submitButton) submitButton.disabled = true;
+
+    try {
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      message.textContent = "تم تسجيل الدخول بنجاح!";
+      setTimeout(closeLogin, 1000);
+    } catch (error) {
+      message.textContent = "تعذر تسجيل الدخول: " + (error.message || "حدث خطأ غير متوقع");
+    } finally {
+      if (submitButton) submitButton.disabled = false;
+    }
+  });
+}
 </script>
 </body></html>
