@@ -572,6 +572,7 @@ footer {
 <div id="accountArea" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
   <span id="accountName" style="font-size:13px;font-weight:700;color:var(--d);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
   <button class="btn primary small" id="profileBtn" type="button" onclick="openProfile()">ملفي الشخصي</button>
+   <button class="btn outline small" id="adminBtn" type="button" style="display:none" onclick="openAdminDashboard()">لوحة الإدارة</button>
   <button class="btn outline small" id="logoutBtn" type="button" onclick="logoutUser()">تسجيل الخروج</button>
 </div>
 <button class="btn primary" onclick="openEmployerRegistration()" data-t="postJob">أعلن عن وظيفة</button>
@@ -588,6 +589,12 @@ footer {
   مسح جميع الفلاتر
 </button> <h3 data-t="filters">تصفية النتائج</h3><div class="group"><strong data-t="jobType">نوع الوظيفة</strong><label><input type="checkbox" value="Full-time" onchange="filterJobs()"> <span data-t="full">دوام كامل</span></label><label><input type="checkbox" value="Part-time" onchange="filterJobs()"> <span data-t="part">دوام جزئي</span></label><label><input type="checkbox" value="Remote" onchange="filterJobs()"> <span data-t="remote">عن بُعد</span></label></div>
 <div class="group"><strong data-t="sector">المجال</strong><label><input type="checkbox" value="Healthcare" onchange="filterJobs()"> <span data-t="health">طبي وصحي</span></label><label><input type="checkbox" value="Admin" onchange="filterJobs()"> <span data-t="admin">إداري</span></label><label><input type="checkbox" value="Tech" onchange="filterJobs()"> <span data-t="tech">تقنية المعلومات</span></label><label><input type="checkbox" value="Engineering" onchange="filterJobs()"> <span data-t="engineering">هندسي</span></label></div></aside><section class="list" id="list"></section></div></main>
+<section class="wrap" id="adminDashboard" style="display:none">
+  <div class="head"><h2>لوحة إدارة وظيفتي</h2><button class="btn outline" type="button" onclick="loadAdminCompanies()">تحديث القائمة</button></div>
+  <p class="muted">مراجعة طلبات تسجيل الشركات والتحقق من مستنداتها قبل اعتمادها.</p>
+  <div id="adminDashboardMessage" role="status" aria-live="polite" class="muted" style="margin:12px 0"></div>
+  <div id="adminCompaniesList"></div>
+</section>
 <section class="wrap" id="how" style="text-align:center"><h2 data-t="howTitle">كيف تعمل وظيفتي؟</h2><p class="muted" data-t="howSub">ابحث عن الفرصة المناسبة ← اقرأ التفاصيل ← تواصل مع جهة العمل.</p></section>
 <footer id="about"><b data-t="brand">وظيفتي</b> — <span data-t="footerLine">منصة سودانية للبحث عن فرص العمل</span><br><span data-t="disclaimer">نموذج أولي؛ الوظائف المعروضة بيانات توضيحية وليست إعلانات حقيقية.</span></footer>
 <div class="modalbg" id="modalbg" onclick="if(event.target===this)closeModal()"><div class="modal"><button class="close" onclick="closeModal()" data-t="close">إغلاق ✕</button><div id="modalContent"></div></div></div><div class="toast" id="toastbox"></div>
@@ -986,9 +993,142 @@ if (profileForm) {
 }
 
 // User session management (V1.2): restore the saved Supabase session and update the header.
+let adminCheckUserId = null;
+let isAdminUser = false;
+
+function escapeAdminHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+
+async function refreshAdminAccess(user) {
+  const button = document.getElementById("adminBtn");
+  if (!user) {
+    adminCheckUserId = null;
+    isAdminUser = false;
+    if (button) button.style.display = "none";
+    const panel = document.getElementById("adminDashboard");
+    if (panel) panel.style.display = "none";
+    return;
+  }
+  if (adminCheckUserId === user.id && isAdminUser) {
+    if (button) button.style.display = "inline-flex";
+    return;
+  }
+  adminCheckUserId = user.id;
+  isAdminUser = false;
+  if (button) button.style.display = "none";
+  try {
+    const { data, error } = await supabaseClient.rpc("is_admin");
+    if (error) throw error;
+    if (currentAuthUser?.id !== user.id) return;
+    isAdminUser = data === true;
+    if (button) button.style.display = isAdminUser ? "inline-flex" : "none";
+  } catch (error) {
+    console.error("Admin access check failed:", error);
+    isAdminUser = false;
+    if (button) button.style.display = "none";
+  }
+}
+
+function openAdminDashboard() {
+  if (!currentAuthUser || !isAdminUser) {
+    toast("ليس لديك صلاحية الوصول إلى لوحة الإدارة.");
+    return;
+  }
+  const panel = document.getElementById("adminDashboard");
+  if (panel) {
+    panel.style.display = "block";
+    panel.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  loadAdminCompanies();
+}
+
+async function loadAdminCompanies() {
+  if (!currentAuthUser || !isAdminUser) return;
+  const list = document.getElementById("adminCompaniesList");
+  const message = document.getElementById("adminDashboardMessage");
+  if (!list || !message) return;
+  message.textContent = "جارٍ تحميل طلبات الشركات...";
+  list.innerHTML = "";
+  try {
+    const { data: companies, error } = await supabaseClient
+      .from("companies")
+      .select("id, company_name, description, website, status, created_at, owner_id")
+      .order("created_at", {ascending:false});
+    if (error) throw error;
+    if (!companies || !companies.length) {
+      message.textContent = "لا توجد طلبات شركات حتى الآن.";
+      return;
+    }
+    const cards = await Promise.all(companies.map(async company => {
+      let documentLinks = "";
+      try {
+        const { data: files, error: filesError } = await supabaseClient
+          .storage.from("company-documents").list(company.id, {limit:100});
+        if (filesError) throw filesError;
+        const pdfs = (files || []).filter(file => file.name && file.id);
+        const links = await Promise.all(pdfs.map(async file => {
+          const path = company.id + "/" + file.name;
+          const { data: signed, error: signedError } = await supabaseClient
+            .storage.from("company-documents").createSignedUrl(path, 300);
+          if (signedError) throw signedError;
+          return '<a class="btn outline small" target="_blank" rel="noopener noreferrer" href="' +
+            escapeAdminHtml(signed.signedUrl) + '">عرض مستند PDF</a>';
+        }));
+        documentLinks = links.join(" ");
+      } catch (docError) {
+        console.warn("Could not load company document:", company.id, docError);
+        documentLinks = '<span class="muted">تعذر تحميل المستند أو لا يوجد مستند مرفق.</span>';
+      }
+      const statusLabel = ({pending:"قيد المراجعة",verified:"معتمدة",rejected:"مرفوضة",suspended:"موقوفة"})[company.status] || company.status;
+      const actions = company.status === "pending"
+        ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">' +
+          '<button class="btn primary" type="button" onclick="adminSetCompanyStatus(\'' + company.id + '\',\'verified\')">اعتماد الشركة</button>' +
+          '<button class="btn outline" type="button" onclick="adminSetCompanyStatus(\'' + company.id + '\',\'rejected\')">رفض الطلب</button></div>'
+        : '<div style="margin-top:12px"><button class="btn outline small" type="button" onclick="adminSetCompanyStatus(\'' + company.id + '\',\'pending\')">إعادة إلى قيد المراجعة</button></div>';
+      return '<article class="job" style="display:block;margin:12px 0;padding:18px;background:#fff;border:1px solid #e5eee8;border-radius:14px">' +
+        '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3 style="margin:0">' + escapeAdminHtml(company.company_name) + '</h3>' +
+        '<span class="tag">' + escapeAdminHtml(statusLabel) + '</span></div>' +
+        '<p class="muted" style="line-height:1.8">' + escapeAdminHtml(company.description || "لا يوجد وصف للشركة.") + '</p>' +
+        (company.website ? '<p><a href="' + escapeAdminHtml(company.website) + '" target="_blank" rel="noopener noreferrer">الموقع الإلكتروني</a></p>' : '') +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (documentLinks || '<span class="muted">لا يوجد مستند مرفق.</span>') + '</div>' +
+        '<small class="muted">تاريخ التسجيل: ' + escapeAdminHtml(new Date(company.created_at).toLocaleString("ar")) + '</small>' +
+        actions + '</article>';
+    }));
+    list.innerHTML = cards.join("");
+    const pendingCount = companies.filter(c => c.status === "pending").length;
+    message.textContent = "إجمالي الشركات: " + companies.length + " — طلبات قيد المراجعة: " + pendingCount;
+  } catch (error) {
+    console.error("Admin companies load failed:", error);
+    message.textContent = "تعذر تحميل طلبات الشركات: " + (error.message || "خطأ غير معروف");
+  }
+}
+
+async function adminSetCompanyStatus(companyId, status) {
+  if (!currentAuthUser || !isAdminUser) {
+    toast("ليس لديك صلاحية تنفيذ هذا الإجراء.");
+    return;
+  }
+  const labels = {verified:"اعتماد الشركة",rejected:"رفض الطلب",pending:"إعادة الطلب للمراجعة"};
+  if (!window.confirm("هل أنت متأكد من " + labels[status] + "؟")) return;
+  try {
+    const { error } = await supabaseClient
+      .from("companies")
+      .update({status})
+      .eq("id", companyId);
+    if (error) throw error;
+    toast("تم تحديث حالة الشركة بنجاح.");
+    await loadAdminCompanies();
+  } catch (error) {
+    console.error("Company status update failed:", error);
+    toast("تعذر تحديث حالة الشركة: " + (error.message || ""));
+  }
+}
+
 function renderAuthUI(user) {
   // Keep the profile editor synchronized with the latest Supabase session.
   currentAuthUser = user || null;
+  refreshAdminAccess(currentAuthUser);
 
   const loginBtn = document.getElementById("loginBtn");
   const signupBtn = document.getElementById("signupBtn");
