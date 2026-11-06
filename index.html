@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>وظيفتي | Wazifti</title>
 <meta name="description" content="منصة وظيفتي السودانية للبحث عن فرص العمل.">
-<meta name="wazifti-version" content="1.2">
+<meta name="wazifti-version" content="1.3">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -562,6 +562,7 @@ footer {
 <button class="btn primary" id="signupBtn" onclick="openSignup()">إنشاء حساب</button>
 <div id="accountArea" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
   <span id="accountName" style="font-size:13px;font-weight:700;color:var(--d);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+  <button class="btn primary small" id="profileBtn" type="button" onclick="openProfile()">ملفي الشخصي</button>
   <button class="btn outline small" id="logoutBtn" type="button" onclick="logoutUser()">تسجيل الخروج</button>
 </div>
 <button class="btn primary" onclick="toast(T.employerSoon)" data-t="postJob">أعلن عن وظيفة</button>
@@ -621,9 +622,9 @@ async function loadLiveJobs(){
   }
 }
 const words={
-ar:{brand:"وظيفتي",navJobs:"الوظائف",navHow:"كيف تعمل المنصة؟",navAbout:"عن وظيفتي",login:"دخول",signup:"إنشاء حساب",logout:"تسجيل الخروج",postJob:"أعلن عن وظيفة",headline:'خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span>',sub:"ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.",searchJob:"المسمى الوظيفي أو المهارة",searchCity:"المدينة",search:"ابحث عن وظيفة",statJobs:"فرصة تجريبية",statEmployers:"جهة عمل",statCities:"مدينة",artTitle:"وظيفتك القادمة أقرب مما تتوقع",artSub:"فرص في مختلف القطاعات والمجالات في السودان.",latest:"أحدث فرص العمل",filters:"تصفية النتائج",jobType:"نوع الوظيفة",full:"دوام كامل",part:"دوام جزئي",remote:"عن بُعد",sector:"المجال",health:"طبي وصحي",admin:"إداري",tech:"تقنية المعلومات",engineering:"هندسي",howTitle:"كيف تعمل وظيفتي؟",howSub:"ابحث عن الفرصة المناسبة ← اقرأ التفاصيل ← تواصل مع جهة العمل.",footerLine:"منصة سودانية للبحث عن فرص العمل",disclaimer:"نموذج أولي؛ الوظائف المعروضة بيانات توضيحية وليست إعلانات حقيقية.",close:"إغلاق ✕",details:"تفاصيل الوظيفة",company:"جهة العمل",location:"الموقع",type:"نوع العمل",salary:"الراتب",description:"وصف الوظيفة",apply:"تقديم تجريبي",empty:"لا توجد وظائف مطابقة لبحثك.",loginSoon:"ميزة تسجيل الدخول ستكون متاحة قريباً",employerSoon:"نموذج تسجيل صاحب العمل سيكون متاحاً قريباً",demo:"هذه وظيفة تجريبية؛ التقديم الإلكتروني غير مفعّل بعد",count:"وظائف معروضة"},
-en:{brand:"Wazifti",navJobs:"Jobs",navHow:"How it works",navAbout:"About Wazifti",login:"Log in",signup:"Create account",logout:"Log out",postJob:"Post a job",headline:'Your first step toward<br><span style="color:var(--g)">a better opportunity</span>',sub:"Find suitable jobs across Sudan and connect with employers in one place.",searchJob:"Job title or skill",searchCity:"City",search:"Find jobs",statJobs:"sample jobs",statEmployers:"employers",statCities:"cities",artTitle:"Your next opportunity is closer than you think",artSub:"Opportunities across sectors and industries in Sudan.",latest:"Latest opportunities",filters:"Filter results",jobType:"Job type",full:"Full-time",part:"Part-time",remote:"Remote",sector:"Sector",health:"Healthcare",admin:"Administration",tech:"Technology",engineering:"Engineering",howTitle:"How does Wazifti work?",howSub:"Find an opportunity ← Review the details ← Contact the employer.",footerLine:"A Sudanese job-search platform",disclaimer:"Prototype only; listed jobs are illustrative, not real vacancies.",close:"Close ✕",details:"Job details",company:"Employer",location:"Location",type:"Job type",salary:"Salary",description:"Description",apply:"Demo application",empty:"No jobs match your search.",loginSoon:"Login will be available soon",employerSoon:"Employer registration will be available soon",demo:"This is a sample job; online applications are not enabled yet",count:"jobs shown"}};
-function updateTexts(){T=words[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";document.querySelectorAll("[data-t]").forEach(e=>e.innerHTML=T[e.dataset.t]);document.querySelectorAll("[data-ph]").forEach(e=>e.placeholder=T[e.dataset.ph]);document.getElementById("lang").textContent=lang==="ar"?"EN":"عربي";const lb=document.getElementById("loginBtn");if(lb)lb.textContent=T.login;const sb=document.getElementById("signupBtn");if(sb)sb.textContent=T.signup;const ob=document.getElementById("logoutBtn");if(ob)ob.textContent=T.logout;filterJobs()}
+ar:{brand:"وظيفتي",navJobs:"الوظائف",navHow:"كيف تعمل المنصة؟",navAbout:"عن وظيفتي",login:"دخول",signup:"إنشاء حساب",logout:"تسجيل الخروج",profile:"ملفي الشخصي",postJob:"أعلن عن وظيفة",headline:'خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span>',sub:"ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.",searchJob:"المسمى الوظيفي أو المهارة",searchCity:"المدينة",search:"ابحث عن وظيفة",statJobs:"فرصة تجريبية",statEmployers:"جهة عمل",statCities:"مدينة",artTitle:"وظيفتك القادمة أقرب مما تتوقع",artSub:"فرص في مختلف القطاعات والمجالات في السودان.",latest:"أحدث فرص العمل",filters:"تصفية النتائج",jobType:"نوع الوظيفة",full:"دوام كامل",part:"دوام جزئي",remote:"عن بُعد",sector:"المجال",health:"طبي وصحي",admin:"إداري",tech:"تقنية المعلومات",engineering:"هندسي",howTitle:"كيف تعمل وظيفتي؟",howSub:"ابحث عن الفرصة المناسبة ← اقرأ التفاصيل ← تواصل مع جهة العمل.",footerLine:"منصة سودانية للبحث عن فرص العمل",disclaimer:"نموذج أولي؛ الوظائف المعروضة بيانات توضيحية وليست إعلانات حقيقية.",close:"إغلاق ✕",details:"تفاصيل الوظيفة",company:"جهة العمل",location:"الموقع",type:"نوع العمل",salary:"الراتب",description:"وصف الوظيفة",apply:"تقديم تجريبي",empty:"لا توجد وظائف مطابقة لبحثك.",loginSoon:"ميزة تسجيل الدخول ستكون متاحة قريباً",employerSoon:"نموذج تسجيل صاحب العمل سيكون متاحاً قريباً",demo:"هذه وظيفة تجريبية؛ التقديم الإلكتروني غير مفعّل بعد",count:"وظائف معروضة"},
+en:{brand:"Wazifti",navJobs:"Jobs",navHow:"How it works",navAbout:"About Wazifti",login:"Log in",signup:"Create account",logout:"Log out",profile:"My profile",postJob:"Post a job",headline:'Your first step toward<br><span style="color:var(--g)">a better opportunity</span>',sub:"Find suitable jobs across Sudan and connect with employers in one place.",searchJob:"Job title or skill",searchCity:"City",search:"Find jobs",statJobs:"sample jobs",statEmployers:"employers",statCities:"cities",artTitle:"Your next opportunity is closer than you think",artSub:"Opportunities across sectors and industries in Sudan.",latest:"Latest opportunities",filters:"Filter results",jobType:"Job type",full:"Full-time",part:"Part-time",remote:"Remote",sector:"Sector",health:"Healthcare",admin:"Administration",tech:"Technology",engineering:"Engineering",howTitle:"How does Wazifti work?",howSub:"Find an opportunity ← Review the details ← Contact the employer.",footerLine:"A Sudanese job-search platform",disclaimer:"Prototype only; listed jobs are illustrative, not real vacancies.",close:"Close ✕",details:"Job details",company:"Employer",location:"Location",type:"Job type",salary:"Salary",description:"Description",apply:"Demo application",empty:"No jobs match your search.",loginSoon:"Login will be available soon",employerSoon:"Employer registration will be available soon",demo:"This is a sample job; online applications are not enabled yet",count:"jobs shown"}};
+function updateTexts(){T=words[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";document.querySelectorAll("[data-t]").forEach(e=>e.innerHTML=T[e.dataset.t]);document.querySelectorAll("[data-ph]").forEach(e=>e.placeholder=T[e.dataset.ph]);document.getElementById("lang").textContent=lang==="ar"?"EN":"عربي";const lb=document.getElementById("loginBtn");if(lb)lb.textContent=T.login;const sb=document.getElementById("signupBtn");if(sb)sb.textContent=T.signup;const ob=document.getElementById("logoutBtn");if(ob)ob.textContent=T.logout;const pb=document.getElementById("profileBtn");if(pb)pb.textContent=T.profile;filterJobs()}
 function toggleLang(){lang=lang==="ar"?"en":"ar";updateTexts()}
 function typeName(t){return T[t==="Full-time"?"full":t==="Part-time"?"part":"remote"]}
 function fieldName(f){return T[f==="Healthcare"?"health":f==="Admin"?"admin":f==="Tech"?"tech":"engineering"]}
@@ -726,6 +727,42 @@ loadLiveJobs();
   </div>
 </div>
 
+
+<div id="profileModal" class="modal" style="display:none;" onclick="if(event.target===this)closeProfile()">
+  <div class="modal-content">
+    <button onclick="closeProfile()" class="close-btn" aria-label="Close">&times;</button>
+    <h2 id="profileTitle">الملف الشخصي</h2>
+    <p id="profileIntro">أكمل بياناتك لتسهيل تواصلك مع أصحاب العمل.</p>
+    <form id="profileForm">
+      <label id="profileNameLabel" for="profileName">الاسم الكامل</label>
+      <input id="profileName" type="text" maxlength="100" autocomplete="name" required>
+      <label id="profileEmailLabel" for="profileEmail">البريد الإلكتروني</label>
+      <input id="profileEmail" type="email" disabled>
+      <label id="profilePhoneLabel" for="profilePhone">رقم الهاتف</label>
+      <input id="profilePhone" type="tel" maxlength="30" autocomplete="tel" placeholder="+249">
+      <label id="profileStateLabel" for="profileState">الولاية</label>
+      <select id="profileState">
+        <option value="">اختر الولاية</option>
+        <option>الخرطوم</option><option>الجزيرة</option><option>البحر الأحمر</option><option>كسلا</option>
+        <option>القضارف</option><option>سنار</option><option>النيل الأبيض</option><option>النيل الأزرق</option>
+        <option>نهر النيل</option><option>الشمالية</option><option>شمال كردفان</option><option>جنوب كردفان</option>
+        <option>غرب كردفان</option><option>شمال دارفور</option><option>جنوب دارفور</option><option>غرب دارفور</option>
+        <option>وسط دارفور</option><option>شرق دارفور</option>
+      </select>
+      <label id="profileCityLabel" for="profileCity">المدينة / المنطقة</label>
+      <input id="profileCity" type="text" maxlength="80">
+      <label id="profileSpecialtyLabel" for="profileSpecialty">التخصص أو المجال المهني</label>
+      <input id="profileSpecialty" type="text" maxlength="120">
+      <label id="profileQualificationLabel" for="profileQualification">المؤهل العلمي</label>
+      <input id="profileQualification" type="text" maxlength="120">
+      <label id="profileBioLabel" for="profileBio">نبذة مهنية مختصرة</label>
+      <textarea id="profileBio" rows="4" maxlength="700" style="display:block;width:100%;padding:12px;margin:8px 0 15px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;font:inherit;resize:vertical"></textarea>
+      <button id="saveProfileBtn" type="submit" class="btn primary" style="width:100%;margin-top:10px">حفظ البيانات</button>
+      <p id="profileMessage" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</div>
+
 <style>
 #signupModal,
 #loginModal {
@@ -799,6 +836,111 @@ function openLogin() {
 function closeLogin() {
   const modal = document.getElementById("loginModal");
   if (modal) modal.style.display = "none";
+}
+
+
+// Wazifti V1.3: user profile stored in Supabase Auth user metadata.
+let currentAuthUser = null;
+
+const profileLabels = {
+  ar: {
+    title:"الملف الشخصي", intro:"أكمل بياناتك لتسهيل تواصلك مع أصحاب العمل.",
+    name:"الاسم الكامل", email:"البريد الإلكتروني", phone:"رقم الهاتف",
+    state:"الولاية", city:"المدينة / المنطقة", specialty:"التخصص أو المجال المهني",
+    qualification:"المؤهل العلمي", bio:"نبذة مهنية مختصرة", save:"حفظ البيانات",
+    choose:"اختر الولاية", saving:"جارٍ حفظ البيانات...", saved:"تم حفظ بيانات ملفك الشخصي بنجاح.",
+    failed:"تعذر حفظ البيانات: ", required:"يرجى إدخال الاسم الكامل.",
+    states:["الخرطوم","الجزيرة","البحر الأحمر","كسلا","القضارف","سنار","النيل الأبيض","النيل الأزرق","نهر النيل","الشمالية","شمال كردفان","جنوب كردفان","غرب كردفان","شمال دارفور","جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور"]
+  },
+  en: {
+    title:"My profile", intro:"Complete your details to help employers contact you.",
+    name:"Full name", email:"Email address", phone:"Phone number",
+    state:"State", city:"City / Area", specialty:"Professional field or specialty",
+    qualification:"Education / Qualification", bio:"Short professional summary", save:"Save profile",
+    choose:"Select a state", saving:"Saving your profile...", saved:"Your profile has been saved successfully.",
+    failed:"Could not save profile: ", required:"Please enter your full name.",
+    states:["Khartoum","Al Jazirah","Red Sea","Kassala","Al Qadarif","Sennar","White Nile","Blue Nile","River Nile","Northern","North Kordofan","South Kordofan","West Kordofan","North Darfur","South Darfur","West Darfur","Central Darfur","East Darfur"]
+  }
+};
+
+function openProfile() {
+  if (!currentAuthUser) {
+    toast(lang === "ar" ? "يرجى تسجيل الدخول أولاً" : "Please log in first");
+    return;
+  }
+  const m = profileLabels[lang];
+  document.getElementById("profileTitle").textContent = m.title;
+  document.getElementById("profileIntro").textContent = m.intro;
+  document.getElementById("profileNameLabel").textContent = m.name;
+  document.getElementById("profileEmailLabel").textContent = m.email;
+  document.getElementById("profilePhoneLabel").textContent = m.phone;
+  document.getElementById("profileStateLabel").textContent = m.state;
+  document.getElementById("profileCityLabel").textContent = m.city;
+  document.getElementById("profileSpecialtyLabel").textContent = m.specialty;
+  document.getElementById("profileQualificationLabel").textContent = m.qualification;
+  document.getElementById("profileBioLabel").textContent = m.bio;
+  document.getElementById("saveProfileBtn").textContent = m.save;
+
+  const stateSelect = document.getElementById("profileState");
+  const savedState = currentAuthUser.user_metadata?.state || "";
+  stateSelect.innerHTML = `<option value="">${m.choose}</option>` +
+    m.states.map(s => `<option value="${s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}">${s}</option>`).join("");
+
+  const meta = currentAuthUser.user_metadata || {};
+  document.getElementById("profileName").value = meta.full_name || meta.name || "";
+  document.getElementById("profileEmail").value = currentAuthUser.email || "";
+  document.getElementById("profilePhone").value = meta.phone || "";
+  stateSelect.value = savedState;
+  document.getElementById("profileCity").value = meta.city || "";
+  document.getElementById("profileSpecialty").value = meta.specialty || "";
+  document.getElementById("profileQualification").value = meta.qualification || "";
+  document.getElementById("profileBio").value = meta.professional_bio || "";
+  document.getElementById("profileMessage").textContent = "";
+  document.getElementById("profileModal").style.display = "flex";
+}
+
+function closeProfile() {
+  const modal = document.getElementById("profileModal");
+  if (modal) modal.style.display = "none";
+}
+
+const profileForm = document.getElementById("profileForm");
+if (profileForm) {
+  profileForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    if (!currentAuthUser) return;
+    const m = profileLabels[lang];
+    const name = document.getElementById("profileName").value.trim();
+    const message = document.getElementById("profileMessage");
+    const button = document.getElementById("saveProfileBtn");
+    if (!name) {
+      message.textContent = m.required;
+      return;
+    }
+    const updates = {
+      full_name: name,
+      phone: document.getElementById("profilePhone").value.trim(),
+      state: document.getElementById("profileState").value,
+      city: document.getElementById("profileCity").value.trim(),
+      specialty: document.getElementById("profileSpecialty").value.trim(),
+      qualification: document.getElementById("profileQualification").value.trim(),
+      professional_bio: document.getElementById("profileBio").value.trim()
+    };
+    message.textContent = m.saving;
+    button.disabled = true;
+    try {
+      const { data, error } = await supabaseClient.auth.updateUser({ data: updates });
+      if (error) throw error;
+      currentAuthUser = data.user || currentAuthUser;
+      renderAuthUI(currentAuthUser);
+      message.textContent = m.saved;
+    } catch (error) {
+      console.error("Profile update failed:", error);
+      message.textContent = m.failed + (error.message || "");
+    } finally {
+      button.disabled = false;
+    }
+  });
 }
 
 // User session management (V1.2): restore the saved Supabase session and update the header.
