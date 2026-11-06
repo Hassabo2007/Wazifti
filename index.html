@@ -1212,21 +1212,38 @@ if (employerRegistrationForm) {
       // Create the company once. If file upload fails, retain its ID so retrying
       // uploads the document to the same company instead of creating duplicates.
       if (!employerPendingCompanyId) {
-        const { data: company, error } = await supabaseClient
+        // Reuse this user's latest pending company (including after a page reload)
+        // so retrying a document upload does not create duplicate company records.
+        const { data: existingCompany, error: lookupError } = await supabaseClient
           .from("companies")
-          .insert({
-            owner_id: currentAuthUser.id,
-            company_name: companyName,
-            description: description || null,
-            website,
-            status: "pending"
-          })
           .select("id, company_name, status")
-          .single();
-        if (error) throw error;
-        employerPendingCompanyId = company.id;
+          .eq("owner_id", currentAuthUser.id)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (lookupError) throw lookupError;
+
+        if (existingCompany) {
+          employerPendingCompanyId = existingCompany.id;
+          console.info("Wazifti reusing pending company:", existingCompany.id);
+        } else {
+          const { data: company, error } = await supabaseClient
+            .from("companies")
+            .insert({
+              owner_id: currentAuthUser.id,
+              company_name: companyName,
+              description: description || null,
+              website,
+              status: "pending"
+            })
+            .select("id, company_name, status")
+            .single();
+          if (error) throw error;
+          employerPendingCompanyId = company.id;
+          console.info("Wazifti employer registration saved:", company.id, company.status);
+        }
         sessionStorage.setItem("wazifti_pending_company_" + currentAuthUser.id, employerPendingCompanyId);
-        console.info("Wazifti employer registration saved:", company.id, company.status);
       }
 
       const safeName = file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]+/g, "_").replace(/^_+|_+$/g, "") || "company-document.pdf";
