@@ -496,8 +496,15 @@ footer {
     max-width: 115px !important;
   }
 
-  .actions .outline:not(#lang) {
+  .actions .outline:not(#lang):not(#logoutBtn) {
     display: none;
+  }
+
+  #logoutBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
   }
 
   #lang {
