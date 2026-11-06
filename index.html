@@ -1202,17 +1202,9 @@ if (employerRegistrationForm) {
         .single();
       if (error) throw error;
 
-      let roleUpdated = true;
-      const { error: profileError } = await supabaseClient
-        .from("profiles")
-        .update({ account_type: "employer" })
-        .eq("id", currentAuthUser.id);
-      if (profileError) {
-        roleUpdated = false;
-        console.warn("Company was saved but profile account_type update failed:", profileError);
-      }
-
-      message.textContent = roleUpdated ? t.success : t.success + " " + t.roleWarning;
+      // Do not change profiles.account_type from the browser.
+      // Employer permissions are derived from ownership of the pending company record.
+      message.textContent = t.success;
       employerRegistrationForm.reset();
       console.info("Wazifti employer registration saved:", company?.id, company?.status);
     } catch (error) {
