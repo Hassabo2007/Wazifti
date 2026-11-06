@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>وظيفتي | Wazifti</title>
 <meta name="description" content="منصة وظيفتي السودانية للبحث عن فرص العمل.">
-<meta name="wazifti-version" content="1.5.1">
+<meta name="wazifti-version" content="1.5.2">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -1030,31 +1030,54 @@ async function refreshAdminAccess(user) {
   }
 }
 
-async function previewAdminPdf(event, signedUrl) {
+async function previewAdminPdf(event, signedUrl, companyId) {
   event.preventDefault();
-  // Open a tab immediately to avoid popup blockers, then load the PDF as a Blob.
-  const previewTab = window.open("about:blank", "_blank");
-  if (!previewTab) {
-    toast("يرجى السماح بفتح النوافذ المنبثقة لمعاينة المستند.");
+  const panel = document.getElementById("adminPdfPreview-" + companyId);
+  if (!panel) {
+    toast("تعذر فتح مساحة معاينة المستند.");
     return false;
   }
-  previewTab.document.write("<!doctype html><html lang='ar'><meta charset='utf-8'><title>معاينة مستند PDF</title><body style='font-family:Tahoma,Arial;text-align:center;padding:30px'>جارٍ تحميل المستند للمعاينة...</body></html>");
+  panel.style.display = "block";
+  panel.innerHTML = '<p class="muted">جارٍ تحميل المستند للمعاينة...</p>';
   try {
     const response = await fetch(signedUrl);
     if (!response.ok) throw new Error("تعذر جلب ملف PDF");
     const pdfBlob = await response.blob();
-    if (pdfBlob.type && pdfBlob.type !== "application/pdf") {
-      throw new Error("الملف المستلم ليس بصيغة PDF");
+    const header = new Uint8Array(await pdfBlob.slice(0, 5).arrayBuffer());
+    if (String.fromCharCode(...header) !== "%PDF-") {
+      throw new Error("الملف المستلم ليس ملف PDF صالحاً");
+    }
+    window.adminPdfPreviewUrls = window.adminPdfPreviewUrls || {};
+    if (window.adminPdfPreviewUrls[companyId]) {
+      URL.revokeObjectURL(window.adminPdfPreviewUrls[companyId]);
     }
     const previewUrl = URL.createObjectURL(new Blob([pdfBlob], {type:"application/pdf"}));
-    previewTab.location.replace(previewUrl);
+    window.adminPdfPreviewUrls[companyId] = previewUrl;
+    panel.innerHTML =
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0">' +
+      '<strong>معاينة المستند</strong>' +
+      '<a class="btn outline small" href="' + previewUrl + '" download="company-document.pdf">تنزيل PDF</a>' +
+      '<button class="btn outline small" type="button" onclick="closeAdminPdfPreview(\'' + companyId + '\')">إغلاق المعاينة</button></div>' +
+      '<iframe title="معاينة مستند الشركة" src="' + previewUrl + '" style="display:block;width:100%;height:70vh;min-height:420px;border:1px solid #d8e2dc;border-radius:10px;background:#fff"></iframe>';
+    panel.scrollIntoView({behavior:"smooth",block:"nearest"});
   } catch (error) {
-    console.error("PDF preview failed:", error);
-    previewTab.close();
-    toast("تعذرت المعاينة؛ يمكنك فتح رابط المستند أو تنزيله.");
-    window.open(signedUrl, "_blank", "noopener");
+    console.error("Inline PDF preview failed:", error);
+    panel.innerHTML = '<p class="muted">تعذرت معاينة الملف. يمكنك تنزيله من الزر السابق.</p>';
+    toast("تعذرت معاينة مستند PDF.");
   }
   return false;
+}
+
+function closeAdminPdfPreview(companyId) {
+  const panel = document.getElementById("adminPdfPreview-" + companyId);
+  if (panel) {
+    panel.style.display = "none";
+    panel.innerHTML = "";
+  }
+  if (window.adminPdfPreviewUrls && window.adminPdfPreviewUrls[companyId]) {
+    URL.revokeObjectURL(window.adminPdfPreviewUrls[companyId]);
+    delete window.adminPdfPreviewUrls[companyId];
+  }
 }
 
 function openAdminDashboard() {
@@ -1100,7 +1123,7 @@ async function loadAdminCompanies() {
             .storage.from("company-documents").createSignedUrl(path, 300);
           if (signedError) throw signedError;
           return '<a class="btn outline small" target="_blank" rel="noopener noreferrer" href="' +
-            escapeAdminHtml(signed.signedUrl) + '" onclick="return previewAdminPdf(event, this.href)">معاينة مستند PDF</a>';
+            escapeAdminHtml(signed.signedUrl) + '" onclick="return previewAdminPdf(event, this.href, \'' + company.id + '\')">معاينة مستند PDF</a>';
         }));
         documentLinks = links.join(" ");
       } catch (docError) {
@@ -1119,6 +1142,7 @@ async function loadAdminCompanies() {
         '<p class="muted" style="line-height:1.8">' + escapeAdminHtml(company.description || "لا يوجد وصف للشركة.") + '</p>' +
         (company.website ? '<p><a href="' + escapeAdminHtml(company.website) + '" target="_blank" rel="noopener noreferrer">الموقع الإلكتروني</a></p>' : '') +
         '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (documentLinks || '<span class="muted">لا يوجد مستند مرفق.</span>') + '</div>' +
+        '<div id="adminPdfPreview-' + company.id + '" style="display:none;margin-top:14px;padding:12px;border:1px solid #d8e2dc;border-radius:12px;background:#f8fbf9"></div>' +
         '<small class="muted">تاريخ التسجيل: ' + escapeAdminHtml(new Date(company.created_at).toLocaleString("ar")) + '</small>' +
         actions + '</article>';
     }));
@@ -1282,7 +1306,7 @@ if (loginForm) {
 </script>
 
 <script>
-// Wazifti V1.5.1 — inline PDF preview for admin company documents.
+// Wazifti V1.5.2 — inline PDF viewer inside the admin dashboard.
 const employerFormText = {
   ar: {
     title:"تسجيل جهة العمل", intro:"أدخل بيانات شركتك لإرسالها للمراجعة والتحقق.",
