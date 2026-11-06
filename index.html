@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>وظيفتي | Wazifti</title>
 <meta name="description" content="منصة وظيفتي السودانية للبحث عن فرص العمل.">
-<meta name="wazifti-version" content="1.3.1">
+<meta name="wazifti-version" content="1.4.0">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -574,7 +574,7 @@ footer {
   <button class="btn primary small" id="profileBtn" type="button" onclick="openProfile()">ملفي الشخصي</button>
   <button class="btn outline small" id="logoutBtn" type="button" onclick="logoutUser()">تسجيل الخروج</button>
 </div>
-<button class="btn primary" onclick="toast(T.employerSoon)" data-t="postJob">أعلن عن وظيفة</button>
+<button class="btn primary" onclick="openEmployerRegistration()" data-t="postJob">أعلن عن وظيفة</button>
 <button class="btn outline" id="lang" onclick="toggleLang()">EN</button>
 </div></div>
 </header>
@@ -736,6 +736,36 @@ loadLiveJobs();
   </div>
 </div>
 
+
+
+<div id="employerRegistrationModal" class="modalbg" onclick="if(event.target===this)closeEmployerRegistration()">
+  <div class="modal employer-modal">
+    <button class="close" type="button" onclick="closeEmployerRegistration()">إغلاق ✕</button>
+    <h2 id="employerFormTitle">تسجيل جهة العمل</h2>
+    <p id="employerFormIntro" class="muted">أدخل بيانات شركتك لإرسالها للمراجعة والتحقق.</p>
+    <form id="employerRegistrationForm">
+      <label id="employerCompanyNameLabel" for="employerCompanyName">اسم الشركة / المؤسسة *</label>
+      <input id="employerCompanyName" type="text" maxlength="150" required autocomplete="organization">
+      <label id="employerWebsiteLabel" for="employerWebsite">الموقع الإلكتروني (اختياري)</label>
+      <input id="employerWebsite" type="url" maxlength="250" placeholder="https://example.com">
+      <label id="employerDescriptionLabel" for="employerDescription">نبذة عن الشركة (اختياري)</label>
+      <textarea id="employerDescription" rows="4" maxlength="1200"></textarea>
+      <p id="employerRegistrationMessage" role="status" aria-live="polite"></p>
+      <button id="employerRegistrationSubmit" type="submit" class="btn primary" style="width:100%;margin-top:12px">إرسال طلب التسجيل</button>
+    </form>
+  </div>
+</div>
+<style>
+#employerRegistrationModal .employer-modal {max-width:520px}
+#employerRegistrationModal label {display:block;margin:12px 0 6px;font-weight:700;font-size:14px}
+#employerRegistrationModal input,#employerRegistrationModal textarea {
+  display:block;width:100%;padding:12px;margin:6px 0 14px;border:1px solid #d7e4dc;border-radius:9px;
+  box-sizing:border-box;font:inherit;background:#fff;color:#17372a
+}
+#employerRegistrationModal textarea {resize:vertical}
+#employerRegistrationModal input:focus,#employerRegistrationModal textarea:focus {outline:2px solid #b8dec7;border-color:#087a4b}
+#employerRegistrationMessage {line-height:1.8;font-size:14px}
+</style>
 
 <div id="profileModal" class="modal" style="display:none;" onclick="if(event.target===this)closeProfile()">
   <div class="modal-content">
@@ -1080,4 +1110,119 @@ if (loginForm) {
   });
 }
 </script>
+
+<script>
+// Wazifti V1.4.0 — employer registration using the existing companies schema.
+const employerFormText = {
+  ar: {
+    title:"تسجيل جهة العمل", intro:"أدخل بيانات شركتك لإرسالها للمراجعة والتحقق.",
+    company:"اسم الشركة / المؤسسة *", website:"الموقع الإلكتروني (اختياري)",
+    description:"نبذة عن الشركة (اختياري)", submit:"إرسال طلب التسجيل",
+    sending:"جارٍ إرسال طلب التسجيل...", success:"تم إرسال بيانات الشركة بنجاح. حالة الطلب: قيد المراجعة.",
+    failed:"تعذر تسجيل بيانات صاحب العمل: ", login:"يرجى تسجيل الدخول أولاً بحسابك.",
+    required:"يرجى إدخال اسم الشركة أو المؤسسة.", invalidUrl:"يرجى إدخال رابط صحيح يبدأ بـ https:// أو http://.",
+    roleWarning:"تم تسجيل الشركة، لكن تعذر تحديث نوع الحساب. يمكنك متابعة طلب الشركة."
+  },
+  en: {
+    title:"Employer registration", intro:"Enter your company details to submit them for review and verification.",
+    company:"Company / organization name *", website:"Website (optional)",
+    description:"Company description (optional)", submit:"Submit registration",
+    sending:"Submitting your registration...", success:"Company details submitted successfully. Status: Pending review.",
+    failed:"Could not register employer details: ", login:"Please log in first.",
+    required:"Please enter a company or organization name.", invalidUrl:"Enter a valid URL beginning with https:// or http://.",
+    roleWarning:"Company registered, but the account type could not be updated. Your company request is still saved."
+  }
+};
+
+function openEmployerRegistration() {
+  if (!currentAuthUser) {
+    toast(employerFormText[lang].login);
+    openLogin();
+    return;
+  }
+  const t = employerFormText[lang];
+  document.getElementById("employerFormTitle").textContent = t.title;
+  document.getElementById("employerFormIntro").textContent = t.intro;
+  document.getElementById("employerCompanyNameLabel").textContent = t.company;
+  document.getElementById("employerWebsiteLabel").textContent = t.website;
+  document.getElementById("employerDescriptionLabel").textContent = t.description;
+  document.getElementById("employerRegistrationSubmit").textContent = t.submit;
+  document.getElementById("employerRegistrationMessage").textContent = "";
+  document.getElementById("employerRegistrationModal").style.display = "flex";
+}
+function closeEmployerRegistration() {
+  document.getElementById("employerRegistrationModal").style.display = "none";
+}
+
+const employerRegistrationForm = document.getElementById("employerRegistrationForm");
+if (employerRegistrationForm) {
+  employerRegistrationForm.addEventListener("submit", async function(event) {
+    event.preventDefault();
+    const t = employerFormText[lang];
+    const message = document.getElementById("employerRegistrationMessage");
+    const button = document.getElementById("employerRegistrationSubmit");
+    const companyName = document.getElementById("employerCompanyName").value.trim();
+    const websiteRaw = document.getElementById("employerWebsite").value.trim();
+    const description = document.getElementById("employerDescription").value.trim();
+
+    if (!currentAuthUser) {
+      message.textContent = t.login;
+      return;
+    }
+    if (!companyName) {
+      message.textContent = t.required;
+      return;
+    }
+
+    let website = null;
+    if (websiteRaw) {
+      try {
+        const parsed = new URL(websiteRaw);
+        if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("Invalid protocol");
+        website = parsed.href;
+      } catch (_) {
+        message.textContent = t.invalidUrl;
+        return;
+      }
+    }
+
+    message.textContent = t.sending;
+    button.disabled = true;
+    try {
+      const { data: company, error } = await supabaseClient
+        .from("companies")
+        .insert({
+          owner_id: currentAuthUser.id,
+          company_name: companyName,
+          description: description || null,
+          website,
+          status: "pending"
+        })
+        .select("id, company_name, status")
+        .single();
+      if (error) throw error;
+
+      let roleUpdated = true;
+      const { error: profileError } = await supabaseClient
+        .from("profiles")
+        .update({ account_type: "employer" })
+        .eq("id", currentAuthUser.id);
+      if (profileError) {
+        roleUpdated = false;
+        console.warn("Company was saved but profile account_type update failed:", profileError);
+      }
+
+      message.textContent = roleUpdated ? t.success : t.success + " " + t.roleWarning;
+      employerRegistrationForm.reset();
+      console.info("Wazifti employer registration saved:", company?.id, company?.status);
+    } catch (error) {
+      console.error("Employer registration failed:", error);
+      message.textContent = t.failed + (error.message || "Unexpected error");
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+</script>
+
 </body></html>
