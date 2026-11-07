@@ -2868,10 +2868,17 @@ updateTexts();
     <button type="button" class="close" onclick="closeMyApplications()" aria-label="إغلاق">✕</button>
     <div class="head" style="margin:0 0 14px"><h2 id="myApplicationsTitle">طلباتي</h2><button class="btn outline small" type="button" onclick="loadMyApplications()">↻ تحديث</button></div>
     <p class="muted">تابع الوظائف التي تقدمت إليها وحالة كل طلب.</p>
-    <div class="push-settings" style="margin:12px 0 16px;padding:12px;border:1px solid #dcebe1;border-radius:12px;background:#f7fbf8">
-      <button id="pushNotificationsToggle" class="btn outline small" type="button" onclick="togglePushNotifications()">تفعيل إشعارات حالة الطلب</button>
-      <p id="pushNotificationsMessage" class="muted" role="status" aria-live="polite" style="margin:8px 0 0;font-size:13px">احصل على تنبيه عندما تتغير حالة طلبك.</p>
-    </div>
+    <section id="inAppNotificationsPanel" aria-labelledby="inAppNotificationsTitle" style="margin:12px 0 18px;padding:14px;border:1px solid #dcebe1;border-radius:13px;background:#f7fbf8">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <h3 id="inAppNotificationsTitle" style="margin:0;color:var(--d);font-size:17px">الإشعارات <span id="inAppUnreadCount" class="my-application-status">0 جديد</span></h3>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <button class="btn outline small" type="button" onclick="loadInAppNotifications()">تحديث</button>
+          <button id="markAllNotificationsReadBtn" class="btn outline small" type="button" onclick="markAllInAppNotificationsRead()">قراءة الكل</button>
+        </div>
+      </div>
+      <p id="inAppNotificationsMessage" class="muted" role="status" aria-live="polite" style="margin:8px 0">ستظهر هنا تحديثات حالة طلباتك.</p>
+      <div id="inAppNotificationsList"></div>
+    </section>
     <div id="myApplicationsMessage" class="muted" role="status" aria-live="polite" style="margin:12px 0">جارٍ تحميل طلباتك...</div>
     <div id="myApplicationsList"></div>
   </div>
@@ -2881,6 +2888,11 @@ updateTexts();
 .my-application-card{background:#fff;border:1px solid #e5eee8;border-radius:13px;padding:15px;margin:10px 0;box-shadow:var(--shadow-card)}
 .my-application-status{display:inline-block;padding:6px 10px;border-radius:8px;background:#e9f6ee;color:#087a4b;font-size:12px;font-weight:700}
 .my-application-card p{line-height:1.8;white-space:pre-wrap}
+.in-app-notification{padding:12px;margin:9px 0;border:1px solid #e3eee7;border-radius:11px;background:#fff}
+.in-app-notification.is-unread{border-right:4px solid var(--g);background:#fafffb}
+.in-app-notification p{line-height:1.8}
+.notification-dot{width:9px;height:9px;flex:0 0 9px;border-radius:50%;background:var(--g);margin-top:5px}
+.is-read .notification-dot{background:#cbd6cf}
 @media(max-width:600px){#myApplicationsModal{padding:9px}#myApplicationsModal .modal{max-height:96vh;padding:17px}}
 </style>
 <div id="jobApplicationModal" class="modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="jobApplicationTitle" onclick="if(event.target===this)closeJobApplication()">
@@ -3001,7 +3013,7 @@ function openMyApplications(){
   const modal=document.getElementById("myApplicationsModal");
   modal.style.display="flex";
   document.body.classList.add("modal-open");
-  refreshPushNotificationUI();
+  loadInAppNotifications();
   loadMyApplications();
 }
 function closeMyApplications(){
@@ -3103,6 +3115,80 @@ async function togglePushNotifications(){
   }finally{
     if(button) button.disabled=false;
     await refreshPushNotificationUI();
+  }
+}
+
+async function loadInAppNotifications(){
+  const message=document.getElementById("inAppNotificationsMessage");
+  const list=document.getElementById("inAppNotificationsList");
+  const count=document.getElementById("inAppUnreadCount");
+  const markAll=document.getElementById("markAllNotificationsReadBtn");
+  if(!message||!list||!currentAuthUser) return;
+  message.textContent="جارٍ تحميل الإشعارات...";
+  list.innerHTML="";
+  try{
+    const {data:items,error}=await supabaseClient.from("in_app_notifications")
+      .select("id,application_id,job_title,message,new_status,created_at,read_at")
+      .eq("user_id",currentAuthUser.id)
+      .order("created_at",{ascending:false})
+      .limit(30);
+    if(error) throw error;
+    const notifications=items||[];
+    const unread=notifications.filter(item=>!item.read_at).length;
+    if(count) count.textContent=unread+" جديد";
+    if(markAll) markAll.disabled=unread===0;
+    if(!notifications.length){
+      message.textContent="لا توجد إشعارات حتى الآن. ستظهر هنا التحديثات الجديدة على طلباتك.";
+      return;
+    }
+    message.textContent="آخر "+notifications.length+" إشعار"+(unread?" — لديك "+unread+" غير مقروء":"");
+    list.innerHTML=notifications.map(item=>{
+      const date=item.created_at?new Date(item.created_at).toLocaleString("ar-SD"):"—";
+      return '<article class="in-app-notification '+(item.read_at?'is-read':'is-unread')+'">'+
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">'+
+          '<strong style="color:var(--d)">'+escapeAdminHtml(item.job_title||"طلب تقديم")+'</strong>'+
+          '<span class="notification-dot" aria-label="'+(item.read_at?'مقروء':'جديد')+'"></span>'+
+        '</div>'+
+        '<p style="margin:8px 0">'+escapeAdminHtml(item.message||"تم تحديث حالة طلبك.")+'</p>'+
+        '<small class="muted">'+escapeAdminHtml(date)+'</small>'+
+        (!item.read_at?'<div style="margin-top:9px"><button class="btn outline small" type="button" onclick="markInAppNotificationRead(\''+item.id+'\')">تحديد كمقروء</button></div>':'')+
+      '</article>';
+    }).join("");
+  }catch(error){
+    console.error("In-app notifications load failed:",error);
+    message.textContent="تعذر تحميل الإشعارات حالياً: "+(error.message||"حدث خطأ غير متوقع");
+  }
+}
+async function markInAppNotificationRead(notificationId){
+  if(!currentAuthUser||!notificationId) return;
+  try{
+    const {error}=await supabaseClient.from("in_app_notifications")
+      .update({read_at:new Date().toISOString()})
+      .eq("id",notificationId)
+      .eq("user_id",currentAuthUser.id);
+    if(error) throw error;
+    await loadInAppNotifications();
+  }catch(error){
+    console.error("Mark notification read failed:",error);
+    toast("تعذر تحديث الإشعار.");
+  }
+}
+async function markAllInAppNotificationsRead(){
+  if(!currentAuthUser) return;
+  const button=document.getElementById("markAllNotificationsReadBtn");
+  if(button) button.disabled=true;
+  try{
+    const {error}=await supabaseClient.from("in_app_notifications")
+      .update({read_at:new Date().toISOString()})
+      .eq("user_id",currentAuthUser.id)
+      .is("read_at",null);
+    if(error) throw error;
+    await loadInAppNotifications();
+    toast("تم تحديد الإشعارات كمقروءة.");
+  }catch(error){
+    console.error("Mark all notifications read failed:",error);
+    toast("تعذر تحديث الإشعارات.");
+    if(button) button.disabled=false;
   }
 }
 
