@@ -2672,20 +2672,24 @@ function renderAuthUI(user) {
   }
 }
 
-async function restoreUserSession() {
-  try {
-    const { data, error } = await supabaseClient.auth.getSession();
-    if (error) throw error;
-    renderAuthUI(data.session?.user || null);
-  } catch (error) {
-    console.error("Could not restore user session:", error);
-    renderAuthUI(null);
-  }
-}
-
-// Supabase persists the session in this browser; listen for sign-in, sign-out and refresh events.
+// Restore and track the persisted Supabase session from auth events.
+// Defer UI work until after the auth callback returns; renderAuthUI starts
+// database requests (admin check and dashboards), which should not run while
+// Supabase is holding its auth-state lock.
 supabaseClient.auth.onAuthStateChange((event, session) => {
-  renderAuthUI(session?.user || null);
+  window.setTimeout(() => {
+    if (event === "SIGNED_OUT") {
+      renderAuthUI(null);
+      return;
+    }
+    if (session?.user) {
+      renderAuthUI(session.user);
+      return;
+    }
+    if (event === "INITIAL_SESSION") {
+      renderAuthUI(null);
+    }
+  }, 0);
 });
 
 async function logoutUser() {
