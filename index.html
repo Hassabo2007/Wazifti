@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>وظيفتي | Wazifti</title>
 <meta name="description" content="منصة وظيفتي السودانية للبحث عن فرص العمل.">
-<meta name="wazifti-version" content="1.6.0">
+<meta name="wazifti-version" content="1.6.1">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -824,6 +824,9 @@ loadLiveJobs();
       <input id="profileQualification" type="text" maxlength="120">
       <label id="profileBioLabel" for="profileBio">نبذة مهنية مختصرة</label>
       <textarea id="profileBio" rows="4" maxlength="700" style="display:block;width:100%;padding:12px;margin:8px 0 15px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;font:inherit;resize:vertical"></textarea>
+      <button id="saveProfileBtn" type="submit" class="btn primary" style="width:100%;margin-top:10px">حفظ البيانات</button>
+      <p id="profileMessage" role="status" aria-live="polite"></p>
+    </form>
       <section id="candidateExperienceSection" style="margin:18px 0;padding:14px;border:1px solid #e5eee8;border-radius:12px">
         <h3 id="experienceHeading" style="margin:0 0 12px">الخبرات العملية</h3>
         <div id="candidateExperiencesList" aria-live="polite" class="muted">جارٍ تحميل الخبرات...</div>
@@ -835,13 +838,10 @@ loadLiveJobs();
           <label for="experienceEnd">تاريخ النهاية</label><input id="experienceEnd" type="date">
           <label style="display:flex;gap:8px;align-items:center"><input id="experienceCurrent" type="checkbox" style="width:auto"> أعمل هنا حالياً</label>
           <label for="experienceDescription">وصف المهام (اختياري)</label><textarea id="experienceDescription" rows="3" maxlength="700"></textarea>
-          <button id="addExperienceBtn" type="submit" class="btn outline" style="width:100%">إضافة الخبرة</button>
+          <button id="addExperienceBtn" type="button" class="btn outline" style="width:100%">إضافة الخبرة</button>
           <p id="experienceMessage" role="status" aria-live="polite"></p>
         </div>
       </section>
-      <button id="saveProfileBtn" type="submit" class="btn primary" style="width:100%;margin-top:10px">حفظ البيانات</button>
-      <p id="profileMessage" role="status" aria-live="polite"></p>
-    </form>
   </div>
 </div>
 
@@ -1073,6 +1073,16 @@ async function loadCandidateExperiences() {
 }
 const experienceForm=document.getElementById("candidateExperienceForm");
 const addExperienceButton=document.getElementById("addExperienceBtn");
+const experienceCurrentCheckbox=document.getElementById("experienceCurrent");
+const experienceEndInput=document.getElementById("experienceEnd");
+if(experienceCurrentCheckbox && experienceEndInput) {
+  const syncExperienceEndDate=()=>{
+    experienceEndInput.disabled=experienceCurrentCheckbox.checked;
+    if(experienceCurrentCheckbox.checked) experienceEndInput.value="";
+  };
+  experienceCurrentCheckbox.addEventListener("change",syncExperienceEndDate);
+  syncExperienceEndDate();
+}
 if(experienceForm && addExperienceButton) {
   addExperienceButton.addEventListener("click",async event=>{
     event.preventDefault();
