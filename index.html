@@ -1976,7 +1976,7 @@ async function loadAdminPendingJobs() {
   list.innerHTML = "";
   try {
     const { data: jobs, error } = await supabaseClient.from("jobs")
-      .select("id,title,description,location,employment_type,salary_min,salary_max,currency,status,created_at,company_id,category_id,specialty_id")
+      .select("id,title,description,location,employment_type,salary_min,salary_max,currency,status,created_at,company_id,posted_by_user_id,poster_type,category_id,specialty_id")
       .eq("status", "pending").order("created_at", {ascending:false});
     if (error) throw error;
     const rows = jobs || [];
@@ -2008,7 +2008,7 @@ async function loadAdminPendingJobs() {
         : "غير محدد";
       return "<article class='job' style='display:block;margin:12px 0;padding:18px;background:#fff;border:1px solid #e5eee8;border-radius:14px'>" +
         "<div style='display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap'><h3 style='margin:0'>" + escapeAdminHtml(job.title) + "</h3><span class='tag'>قيد المراجعة</span></div>" +
-        "<p class='muted' style='margin:8px 0'><strong>جهة العمل:</strong> " + escapeAdminHtml(companyMap.get(job.company_id) || "شركة غير معروفة") + "</p>" +
+        "<p class='muted' style='margin:8px 0'><strong>" + (job.poster_type === "individual" ? "نوع المعلن:" : "جهة العمل:") + "</strong> " + escapeAdminHtml(job.poster_type === "individual" ? "معلن فردي" : (companyMap.get(job.company_id) || "شركة غير معروفة")) + "</p>" +
         "<p style='white-space:pre-wrap;line-height:1.8'>" + escapeAdminHtml(job.description || "لا يوجد وصف.") + "</p>" +
         "<div class='muted' style='display:grid;gap:5px'>" +
           "<span>الموقع: " + escapeAdminHtml(job.location || "غير محدد") + "</span>" +
