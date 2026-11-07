@@ -661,11 +661,11 @@ function mapLiveJob(row){
   const category = (row.category || "").toLowerCase();
   const field = /health|medical|healthcare|طبي|صحي/.test(category) ? "Healthcare" : /admin|human|إدار/.test(category) ? "Admin" : /tech|it|تقن/.test(category) ? "Tech" : /engineer|هندس/.test(category) ? "Engineering" : "Admin";
   const salary = row.salary_min != null || row.salary_max != null ? `${row.salary_min ?? ""}${row.salary_min != null && row.salary_max != null ? " - " : ""}${row.salary_max ?? ""} ${row.currency || ""}`.trim() : "حسب الاتفاق";
-  return {id:row.id,categoryId:row.category_id||null,specialtyId:row.specialty_id||null,title:row.title||"",en:row.title_en||row.title||"",company:company?.name||company?.company_name||"جهة العمل",companyEn:company?.name_en||company?.company_name||"Employer",city:row.city||row.state||row.location||"غير محدد",cityEn:row.city||row.state||row.location||"Not specified",type:typeMap[String(row.employment_type||"").toLowerCase().replace(/[ -]/g,"_")]||"Full-time",field,salary,salaryEn:salary,icon:"💼",desc:row.description||"",descEn:row.description_en||row.description||""};
+  return {id:row.id,categoryId:row.category_id||null,specialtyId:row.specialty_id||null,title:row.title||"",en:row.title_en||row.title||"",company:company?.name||company?.company_name||"جهة العمل",companyEn:company?.name_en||company?.company_name||"Employer",companyDescription:company?.description||"",city:row.city||row.state||row.location||"غير محدد",cityEn:row.city||row.state||row.location||"Not specified",type:typeMap[String(row.employment_type||"").toLowerCase().replace(/[ -]/g,"_")]||"Full-time",field,salary,salaryEn:salary,icon:"💼",desc:row.description||"",descEn:row.description_en||row.description||""};
 }
 async function loadLiveJobs(){
   try {
-    const {data:rows,error} = await supabaseClient.from("jobs").select("*, companies(company_name)").eq("status","published").order("created_at",{ascending:false});
+    const {data:rows,error} = await supabaseClient.from("jobs").select("*, companies(company_name,description)").eq("status","published").order("created_at",{ascending:false});
     if(error) throw error;
     data.splice(0,data.length,...(rows||[]).map(mapLiveJob));
     filterJobs();
@@ -688,7 +688,7 @@ function typeName(t){return T[t==="Full-time"?"full":t==="Part-time"?"part":"rem
 function fieldName(f){return T[f==="Healthcare"?"health":f==="Admin"?"admin":f==="Tech"?"tech":"engineering"]}
 function jobCategoryName(job){const category=waziftiTaxonomy.categories.find(item=>item.id===job.categoryId);return category?(lang==="ar"?category.name_ar:(category.name_en||category.name_ar)):fieldName(job.field)}
 function render(items){document.getElementById("list").innerHTML=items.length?items.map(j=>`<article class="job"><div class="company"><div class="icon">${j.icon}</div><div><h3>${lang==="ar"?j.title:j.en}</h3><div class="muted">${lang==="ar"?j.company:j.companyEn}</div><div class="meta"><span>📍 ${lang==="ar"?j.city:j.cityEn}</span><span>◷ ${typeName(j.type)}</span></div><span class="tag">${jobCategoryName(j)}</span></div></div><div class="side"><span class="salary">${lang==="ar"?j.salary:j.salaryEn}</span><button class="btn primary small" onclick="showJob(${data.indexOf(j)})">${T.details}</button></div></article>`).join(""):`<div class="empty" style="padding:28px;text-align:center;color:#718078">${T.empty}</div>`;document.getElementById("count").textContent=items.length+" "+T.count}
-function showJob(i){let j=data[i];document.getElementById("modalContent").innerHTML=`<div style="font-size:34px">${j.icon}</div><h2>${lang==="ar"?j.title:j.en}</h2><p class="muted">${lang==="ar"?j.company:j.companyEn}</p><p><b>${T.location}:</b> ${lang==="ar"?j.city:j.cityEn}</p><p><b>${T.type}:</b> ${typeName(j.type)}</p><p><b>${T.salary}:</b> ${lang==="ar"?j.salary:j.salaryEn}</p><hr style="border:0;border-top:1px solid #e5eee8"><h3>${T.description}</h3><p style="line-height:1.9">${lang==="ar"?j.desc:j.descEn}</p><button class="btn primary" onclick="toast(T.demo);closeModal()">${T.apply}</button>`;document.getElementById("modalbg").style.display="flex"}
+function showJob(i){let j=data[i];document.getElementById("modalContent").innerHTML=`<div style="font-size:34px">${j.icon}</div><h2>${lang==="ar"?j.title:j.en}</h2><p class="muted">${lang==="ar"?j.company:j.companyEn}</p>${j.companyDescription?`<div style="margin:12px 0;padding:12px;background:#f7fbf8;border:1px solid #e5eee8;border-radius:10px;line-height:1.8"><b>نبذة عن جهة العمل</b><p style="margin:6px 0 0;white-space:pre-wrap">${escapeAdminHtml(j.companyDescription)}</p></div>`:""}<p><b>${T.location}:</b> ${lang==="ar"?j.city:j.cityEn}</p><p><b>${T.type}:</b> ${typeName(j.type)}</p><p><b>${T.salary}:</b> ${lang==="ar"?j.salary:j.salaryEn}</p><hr style="border:0;border-top:1px solid #e5eee8"><h3>${T.description}</h3><p style="line-height:1.9">${lang==="ar"?j.desc:j.descEn}</p><button class="btn primary" onclick="toast(T.demo);closeModal()">${T.apply}</button>`;document.getElementById("modalbg").style.display="flex"}
 function closeModal(){document.getElementById("modalbg").style.display="none"}
 function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
 updateTexts();
@@ -1674,6 +1674,11 @@ async function loadEmployerDashboard() {
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">'+escapeAdminHtml(company.company_name)+'</h3>'+
       '<span class="tag" style="color:'+statusColor+'">'+escapeAdminHtml(statusLabel)+'</span></div>'+
       '<p class="muted" style="line-height:1.8">'+escapeAdminHtml(company.description||"لا يوجد وصف مضاف لجهة العمل.")+'</p>'+
+      '<form id="employerCompanyDescriptionForm" onsubmit="saveEmployerCompanyDescription(event)" style="margin:14px 0;padding:14px;background:#f7fbf8;border:1px solid #e5eee8;border-radius:12px">'+
+      '<label for="employerCompanyDescription" style="display:block;font-weight:700;margin-bottom:8px">نبذة عن الشركة / وصف صاحب العمل</label>'+
+      '<textarea id="employerCompanyDescription" rows="4" maxlength="1500" placeholder="عرّف الباحثين عن العمل بشركتك ونشاطها ومجالات عملها..." style="width:100%;padding:12px;border:1px solid #d7e4dc;border-radius:9px;font:14px Tahoma,Arial;resize:vertical">'+escapeAdminHtml(company.description||"")+'</textarea>'+
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px"><button class="btn primary small" id="saveEmployerCompanyDescriptionBtn" type="submit">حفظ نبذة الشركة</button><small class="muted">حتى 1500 حرف</small></div>'+
+      '<p id="employerCompanyDescriptionMessage" role="status" aria-live="polite" class="muted" style="margin:8px 0 0"></p></form>'+
       (company.website?'<p><a href="'+escapeAdminHtml(company.website)+'" target="_blank" rel="noopener noreferrer">الموقع الإلكتروني</a></p>':'')+
       '<small class="muted">تاريخ التسجيل: '+escapeAdminHtml(new Date(company.created_at).toLocaleDateString("ar"))+'</small></article>';
     if(company.status!=="verified") {
@@ -1713,6 +1718,40 @@ async function loadEmployerDashboard() {
     if(message) message.textContent="تعذر تحميل لوحة صاحب العمل: "+(error.message||"خطأ غير معروف");
   }
 }
+async function saveEmployerCompanyDescription(event) {
+  event.preventDefault();
+  if (!currentAuthUser || !employerDashboardCompany?.id) {
+    toast("تعذر تحديد جهة العمل الحالية.");
+    return;
+  }
+  const textarea = document.getElementById("employerCompanyDescription");
+  const message = document.getElementById("employerCompanyDescriptionMessage");
+  const button = document.getElementById("saveEmployerCompanyDescriptionBtn");
+  const description = (textarea?.value || "").trim();
+  if (description.length > 1500) {
+    if (message) message.textContent = "الحد الأقصى للوصف هو 1500 حرف.";
+    return;
+  }
+  if (button) button.disabled = true;
+  if (message) message.textContent = "جارٍ حفظ نبذة الشركة...";
+  try {
+    const { error } = await supabaseClient.rpc("update_owned_company_description", {
+      p_company_id: employerDashboardCompany.id,
+      p_description: description
+    });
+    if (error) throw error;
+    employerDashboardCompany.description = description;
+    if (message) message.textContent = "تم حفظ نبذة الشركة بنجاح.";
+    toast("تم تحديث وصف جهة العمل.");
+    await loadEmployerDashboard();
+    await loadLiveJobs();
+  } catch (error) {
+    console.error("Company description update failed:", error);
+    if (message) message.textContent = "تعذر حفظ الوصف: " + (error.message || "خطأ غير معروف");
+    if (button) button.disabled = false;
+  }
+}
+
 function openEmployerDashboard() {
   if (!currentAuthUser) { toast("يرجى تسجيل الدخول أولاً."); openLogin(); return; }
   const panel = document.getElementById("employerDashboard");
