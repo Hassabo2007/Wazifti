@@ -795,6 +795,7 @@ body.modal-open { overflow: hidden; }
 <div id="accountArea" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
   <span id="accountName" style="font-size:13px;font-weight:700;color:var(--d);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
   <button class="btn primary small" id="profileBtn" type="button" onclick="openProfile()">ملفي الشخصي</button>
+  <button class="btn outline small" id="myApplicationsBtn" type="button" onclick="openMyApplications()">طلباتي</button>
   <button class="btn outline small" id="employerDashboardBtn" type="button" style="display:none" onclick="openEmployerDashboard()">لوحة صاحب العمل</button>
    <button class="btn outline small" id="adminBtn" type="button" style="display:none" onclick="openAdminDashboard()">لوحة الإدارة</button>
   <button class="btn outline small" id="logoutBtn" type="button" onclick="logoutUser()">تسجيل الخروج</button>
@@ -2771,6 +2772,22 @@ updateTexts();
 </script>
 
  
+<div id="myApplicationsModal" class="modalbg" role="dialog" aria-modal="true" aria-labelledby="myApplicationsTitle" onclick="if(event.target===this)closeMyApplications()" style="z-index:10030">
+  <div class="modal" style="max-width:760px;max-height:92vh;overflow:auto">
+    <button type="button" class="close" onclick="closeMyApplications()" aria-label="إغلاق">✕</button>
+    <div class="head" style="margin:0 0 14px"><h2 id="myApplicationsTitle">طلباتي</h2><button class="btn outline small" type="button" onclick="loadMyApplications()">↻ تحديث</button></div>
+    <p class="muted">تابع الوظائف التي تقدمت إليها وحالة كل طلب.</p>
+    <div id="myApplicationsMessage" class="muted" role="status" aria-live="polite" style="margin:12px 0">جارٍ تحميل طلباتك...</div>
+    <div id="myApplicationsList"></div>
+  </div>
+</div>
+<style>
+#myApplicationsModal .modal{width:100%;box-sizing:border-box}
+.my-application-card{background:#fff;border:1px solid #e5eee8;border-radius:13px;padding:15px;margin:10px 0;box-shadow:var(--shadow-card)}
+.my-application-status{display:inline-block;padding:6px 10px;border-radius:8px;background:#e9f6ee;color:#087a4b;font-size:12px;font-weight:700}
+.my-application-card p{line-height:1.8;white-space:pre-wrap}
+@media(max-width:600px){#myApplicationsModal{padding:9px}#myApplicationsModal .modal{max-height:96vh;padding:17px}}
+</style>
 <div id="jobApplicationModal" class="modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="jobApplicationTitle" onclick="if(event.target===this)closeJobApplication()">
   <div class="modal-content">
     <button type="button" class="close-btn" onclick="closeJobApplication()" aria-label="إغلاق">&times;</button>
@@ -2875,4 +2892,66 @@ async function submitJobApplication(event) {
   }
 }
 </script>
+
+<script>
+const myApplicationStatusLabels = {
+  submitted:"تم استلام الطلب",
+  reviewing:"قيد المراجعة",
+  shortlisted:"ضمن القائمة المختصرة",
+  rejected:"لم يتم الاختيار",
+  accepted:"تم القبول"
+};
+function openMyApplications(){
+  if(!currentAuthUser){toast("يرجى تسجيل الدخول أولاً.");openLogin();return;}
+  const modal=document.getElementById("myApplicationsModal");
+  modal.style.display="flex";
+  document.body.classList.add("modal-open");
+  loadMyApplications();
+}
+function closeMyApplications(){
+  const modal=document.getElementById("myApplicationsModal");
+  if(modal) modal.style.display="none";
+  const profile=document.getElementById("profileModal");
+  const employer=document.getElementById("employerDashboardModal");
+  const application=document.getElementById("jobApplicationModal");
+  const otherOpen=[profile,employer,application].some(x=>x&&x.style.display==="flex");
+  if(!otherOpen) document.body.classList.remove("modal-open");
+}
+async function loadMyApplications(){
+  const message=document.getElementById("myApplicationsMessage");
+  const list=document.getElementById("myApplicationsList");
+  if(!currentAuthUser){message.textContent="يرجى تسجيل الدخول لعرض طلباتك.";list.innerHTML="";return;}
+  message.textContent="جارٍ تحميل طلباتك...";
+  list.innerHTML="";
+  try{
+    const {data:apps,error}=await supabaseClient.from("applications")
+      .select("id,status,created_at,cover_letter,jobs(title,location,companies(company_name))")
+      .eq("candidate_id",currentAuthUser.id)
+      .order("created_at",{ascending:false});
+    if(error) throw error;
+    if(!apps||apps.length===0){
+      message.textContent="لم تتقدم إلى أي وظيفة حتى الآن. ابدأ باستكشاف الوظائف المتاحة!";
+      return;
+    }
+    message.textContent="لديك "+apps.length+" طلب تقديم.";
+    list.innerHTML=apps.map(app=>{
+      const job=Array.isArray(app.jobs)?app.jobs[0]:app.jobs;
+      const company=job?(Array.isArray(job.companies)?job.companies[0]:job.companies):null;
+      const status=myApplicationStatusLabels[app.status]||app.status||"غير محددة";
+      const date=app.created_at?new Date(app.created_at).toLocaleString("ar-SD"):"—";
+      return '<article class="my-application-card">'+
+        '<h3 style="margin:0 0 7px;color:var(--d)">'+escapeAdminHtml(job?.title||"وظيفة")+'</h3>'+
+        '<div class="muted">'+escapeAdminHtml(company?.company_name||"جهة العمل")+(job?.location?" • "+escapeAdminHtml(job.location):"")+'</div>'+
+        '<p style="margin:12px 0"><span class="my-application-status">'+escapeAdminHtml(status)+'</span></p>'+
+        '<small class="muted">تاريخ التقديم: '+escapeAdminHtml(date)+'</small>'+
+        (app.cover_letter?'<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--g);font-weight:700">عرض خطاب التقديم</summary><p>'+escapeAdminHtml(app.cover_letter)+'</p></details>':"")+
+        '</article>';
+    }).join("");
+  }catch(error){
+    console.error("Candidate applications load failed:",error);
+    message.textContent="تعذر تحميل طلباتك حالياً: "+(error.message||"حدث خطأ غير متوقع");
+  }
+}
+</script>
+
 </body></html>
