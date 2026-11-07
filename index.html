@@ -894,7 +894,7 @@ function typeName(t){return T[t==="Full-time"?"full":t==="Part-time"?"part":"rem
 function fieldName(f){return T[f==="Healthcare"?"health":f==="Admin"?"admin":f==="Tech"?"tech":"engineering"]}
 function jobCategoryName(job){const category=waziftiTaxonomy.categories.find(item=>item.id===job.categoryId);return category?(lang==="ar"?category.name_ar:(category.name_en||category.name_ar)):fieldName(job.field)}
 function render(items){document.getElementById("list").innerHTML=items.length?items.map(j=>`<article class="job"><div class="company"><div class="icon">${j.icon}</div><div><h3>${lang==="ar"?j.title:j.en}</h3><div class="muted">${lang==="ar"?j.company:j.companyEn}</div><div class="meta"><span>📍 ${lang==="ar"?j.city:j.cityEn}</span><span>◷ ${typeName(j.type)}</span></div><span class="tag">${jobCategoryName(j)}</span></div></div><div class="side"><span class="salary">${lang==="ar"?j.salary:j.salaryEn}</span><button class="btn primary small" onclick="showJob(${data.indexOf(j)})">${T.details}</button></div></article>`).join(""):`<div class="empty" style="padding:28px;text-align:center;color:#718078">${T.empty}</div>`;document.getElementById("count").textContent=items.length+" "+T.count}
-function showJob(i){let j=data[i];document.getElementById("modalContent").innerHTML=`<div style="font-size:34px">${j.icon}</div><h2>${lang==="ar"?j.title:j.en}</h2><p class="muted">${lang==="ar"?j.company:j.companyEn}</p>${j.companyDescription?`<div style="margin:12px 0;padding:12px;background:#f7fbf8;border:1px solid #e5eee8;border-radius:10px;line-height:1.8"><b>نبذة عن جهة العمل</b><p style="margin:6px 0 0;white-space:pre-wrap">${escapeAdminHtml(j.companyDescription)}</p></div>`:""}<p><b>${T.location}:</b> ${lang==="ar"?j.city:j.cityEn}</p><p><b>${T.type}:</b> ${typeName(j.type)}</p><p><b>${T.salary}:</b> ${lang==="ar"?j.salary:j.salaryEn}</p><hr style="border:0;border-top:1px solid #e5eee8"><h3>${T.description}</h3><p style="line-height:1.9">${lang==="ar"?j.desc:j.descEn}</p><button class="btn primary" onclick="toast(T.demo);closeModal()">${T.apply}</button>`;document.getElementById("modalbg").style.display="flex"}
+function showJob(i){let j=data[i];document.getElementById("modalContent").innerHTML=`<div style="font-size:34px">${j.icon}</div><h2>${lang==="ar"?j.title:j.en}</h2><p class="muted">${lang==="ar"?j.company:j.companyEn}</p>${j.companyDescription?`<div style="margin:12px 0;padding:12px;background:#f7fbf8;border:1px solid #e5eee8;border-radius:10px;line-height:1.8"><b>نبذة عن جهة العمل</b><p style="margin:6px 0 0;white-space:pre-wrap">${escapeAdminHtml(j.companyDescription)}</p></div>`:""}<p><b>${T.location}:</b> ${lang==="ar"?j.city:j.cityEn}</p><p><b>${T.type}:</b> ${typeName(j.type)}</p><p><b>${T.salary}:</b> ${lang==="ar"?j.salary:j.salaryEn}</p><hr style="border:0;border-top:1px solid #e5eee8"><h3>${T.description}</h3><p style="line-height:1.9">${lang==="ar"?j.desc:j.descEn}</p><button class="btn primary" onclick="openJobApplication('${j.id}')">${lang==="ar"?"تقديم الآن":"Apply now"}</button>`;document.getElementById("modalbg").style.display="flex"}
 function closeModal(){document.getElementById("modalbg").style.display="none"}
 function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
   function filterJobs(){
@@ -2184,17 +2184,33 @@ async function toggleEmployerApplications(jobId) {
   target.innerHTML='<p class="muted">جارٍ تحميل طلبات التقديم...</p>';
   try {
     const {data:apps,error}=await supabaseClient.from("applications")
-      .select("id,candidate_id,cover_letter,status,created_at,cv_url")
+      .select("id,candidate_id,cover_letter,status,created_at,resume_id,candidate_resumes(id,file_name,file_path)")
       .eq("job_id",jobId).order("created_at",{ascending:false});
     if(error) throw error;
-    target.innerHTML=apps?.length?apps.map(app=>
-      '<article style="padding:12px;margin:8px 0;background:#fff;border:1px solid #e5eee8;border-radius:9px">'+
-      '<strong>طلب تقديم</strong><div class="muted">معرّف المتقدم: '+escapeAdminHtml(app.candidate_id)+'</div>'+
-      '<div class="muted">الحالة: '+escapeAdminHtml(app.status)+'</div>'+
-      (app.cover_letter?'<p style="white-space:pre-wrap;line-height:1.8">'+escapeAdminHtml(app.cover_letter)+'</p>':'')+
-      (app.cv_url?'<p><a href="'+escapeAdminHtml(app.cv_url)+'" target="_blank" rel="noopener noreferrer">رابط السيرة الذاتية</a></p>':'')+
-      '<small class="muted">'+escapeAdminHtml(new Date(app.created_at).toLocaleString("ar"))+'</small></article>'
-    ).join(""):'<p class="muted">لا توجد طلبات تقديم لهذه الوظيفة بعد.</p>';
+    if(!apps?.length) {
+      target.innerHTML='<p class="muted">لا توجد طلبات تقديم لهذه الوظيفة بعد.</p>';
+      return;
+    }
+    const cards=await Promise.all(apps.map(async app=>{
+      const resume=Array.isArray(app.candidate_resumes)?app.candidate_resumes[0]:app.candidate_resumes;
+      let resumeActions='<p class="muted">لم تُرفق سيرة ذاتية بهذا الطلب.</p>';
+      if(resume?.file_path) {
+        const {data:signed,error:signedError}=await supabaseClient.storage.from(CANDIDATE_CV_BUCKET).createSignedUrl(resume.file_path,600);
+        if(signedError) {
+          resumeActions='<p class="muted">تعذر إنشاء رابط السيرة الذاتية: '+escapeAdminHtml(signedError.message||"")+'</p>';
+        } else {
+          const url=escapeAdminHtml(signed.signedUrl);
+          resumeActions='<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><a class="btn outline small" href="'+url+'" target="_blank" rel="noopener noreferrer">معاينة السيرة الذاتية</a><a class="btn primary small" href="'+url+'" download="'+escapeAdminHtml(resume.file_name||"resume.pdf")+'">تنزيل السيرة الذاتية</a></div><small class="muted">'+escapeAdminHtml(resume.file_name||"")+'</small>';
+        }
+      }
+      return '<article style="padding:12px;margin:8px 0;background:#fff;border:1px solid #e5eee8;border-radius:9px">'+
+        '<strong>طلب تقديم</strong><div class="muted">معرّف المتقدم: '+escapeAdminHtml(app.candidate_id)+'</div>'+
+        '<div class="muted">الحالة: '+escapeAdminHtml(app.status)+'</div>'+
+        (app.cover_letter?'<p style="white-space:pre-wrap;line-height:1.8">'+escapeAdminHtml(app.cover_letter)+'</p>':'')+
+        resumeActions+
+        '<small class="muted">'+escapeAdminHtml(new Date(app.created_at).toLocaleString("ar"))+'</small></article>';
+    }));
+    target.innerHTML=cards.join("");
   } catch(error) {
     target.innerHTML='<p class="muted">تعذر تحميل الطلبات: '+escapeAdminHtml(error.message||"")+'</p>';
   }
@@ -2654,4 +2670,106 @@ updateTexts();
 })();
 </script>
 
+ 
+<div id="jobApplicationModal" class="modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="jobApplicationTitle" onclick="if(event.target===this)closeJobApplication()">
+  <div class="modal-content">
+    <button type="button" class="close-btn" onclick="closeJobApplication()" aria-label="إغلاق">&times;</button>
+    <h2 id="jobApplicationTitle">التقديم على الوظيفة</h2>
+    <p id="jobApplicationJobTitle" class="muted"></p>
+    <form id="jobApplicationForm" onsubmit="submitJobApplication(event)">
+      <div style="padding:12px;background:#f4faf6;border:1px solid #dcebe1;border-radius:10px;margin:12px 0">
+        <strong>السيرة الذاتية المرفقة</strong>
+        <p id="jobApplicationResumeName" style="margin:6px 0 0">جارٍ التحقق...</p>
+      </div>
+      <label for="jobApplicationCoverLetter" style="display:block;margin:12px 0 6px;font-weight:700">خطاب التقديم (اختياري)</label>
+      <textarea id="jobApplicationCoverLetter" rows="5" maxlength="3000" placeholder="اكتب رسالة مختصرة لصاحب العمل..." style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #d7e4dc;border-radius:9px;font:inherit;resize:vertical"></textarea>
+      <p id="jobApplicationMessage" role="status" aria-live="polite" class="muted"></p>
+      <button id="jobApplicationSubmit" type="submit" class="btn primary" style="width:100%">إرسال طلب التقديم</button>
+    </form>
+  </div>
+</div>
+<script>
+let activeApplicationJobId=null;
+let activeApplicationResume=null;
+async function openJobApplication(jobId) {
+  if(!currentAuthUser) {
+    closeModal();
+    toast("يرجى تسجيل الدخول أولاً للتقديم على الوظيفة.");
+    openLogin();
+    return;
+  }
+  const modal=document.getElementById("jobApplicationModal");
+  const message=document.getElementById("jobApplicationMessage");
+  const resumeName=document.getElementById("jobApplicationResumeName");
+  const submit=document.getElementById("jobApplicationSubmit");
+  activeApplicationJobId=jobId;
+  activeApplicationResume=null;
+  document.getElementById("jobApplicationJobTitle").textContent=(data.find(j=>j.id===jobId)?.title)||"";
+  document.getElementById("jobApplicationCoverLetter").value="";
+  message.textContent="جارٍ تجهيز نموذج التقديم...";
+  resumeName.textContent="جارٍ تحميل السيرة الافتراضية...";
+  submit.disabled=true;
+  modal.style.display="flex";
+  document.body.classList.add("modal-open");
+  try {
+    const {data:job,error:jobError}=await supabaseClient.from("jobs").select("id,company_id,status").eq("id",jobId).eq("status","published").single();
+    if(jobError) throw jobError;
+    const {data:ownCompany,error:companyError}=await supabaseClient.from("companies").select("id").eq("id",job.company_id).eq("owner_id",currentAuthUser.id).maybeSingle();
+    if(companyError) throw companyError;
+    if(ownCompany) throw new Error("لا يمكنك التقديم على وظيفة نشرتها جهة العمل التابعة لحسابك.");
+    const {data:existing,error:existingError}=await supabaseClient.from("applications").select("id").eq("job_id",jobId).eq("candidate_id",currentAuthUser.id).maybeSingle();
+    if(existingError) throw existingError;
+    if(existing) throw new Error("سبق أن قدمت طلباً لهذه الوظيفة.");
+    const {data:resume,error:resumeError}=await supabaseClient.from("candidate_resumes").select("id,file_name").eq("candidate_id",currentAuthUser.id).eq("is_default",true).maybeSingle();
+    if(resumeError) throw resumeError;
+    if(!resume) {
+      resumeName.textContent="لا توجد سيرة ذاتية افتراضية. افتح ملفك الشخصي وارفع سيرة ذاتية وحددها كافتراضية.";
+      message.textContent="يلزم رفع سيرة ذاتية وتعيينها كافتراضية قبل التقديم.";
+      submit.disabled=true;
+      return;
+    }
+    activeApplicationResume=resume;
+    resumeName.textContent=resume.file_name+" — السيرة الافتراضية";
+    message.textContent="راجع البيانات ثم أرسل طلبك.";
+    submit.disabled=false;
+  } catch(error) {
+    message.textContent=error.message||"تعذر تجهيز طلب التقديم.";
+    submit.disabled=true;
+  }
+}
+function closeJobApplication() {
+  const modal=document.getElementById("jobApplicationModal");
+  if(modal) modal.style.display="none";
+  document.body.classList.remove("modal-open");
+  activeApplicationJobId=null;
+  activeApplicationResume=null;
+}
+async function submitJobApplication(event) {
+  event.preventDefault();
+  if(!currentAuthUser || !activeApplicationJobId || !activeApplicationResume) return;
+  const button=document.getElementById("jobApplicationSubmit");
+  const message=document.getElementById("jobApplicationMessage");
+  button.disabled=true;
+  message.textContent="جارٍ إرسال طلب التقديم...";
+  try {
+    const {error}=await supabaseClient.from("applications").insert({
+      job_id:activeApplicationJobId,
+      candidate_id:currentAuthUser.id,
+      resume_id:activeApplicationResume.id,
+      cover_letter:document.getElementById("jobApplicationCoverLetter").value.trim()||null,
+      status:"submitted"
+    });
+    if(error) {
+      if(error.code==="23505") throw new Error("سبق أن قدمت طلباً لهذه الوظيفة.");
+      throw error;
+    }
+    message.textContent="تم إرسال طلب التقديم بنجاح!";
+    toast("تم إرسال طلب التقديم بنجاح.");
+    setTimeout(closeJobApplication,1100);
+  } catch(error) {
+    message.textContent="تعذر إرسال الطلب: "+(error.message||"حدث خطأ غير متوقع");
+    button.disabled=false;
+  }
+}
+</script>
 </body></html>
