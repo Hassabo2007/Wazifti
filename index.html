@@ -1150,6 +1150,7 @@ async function loadJobCategoryFilters() {
     await loadWaziftiTaxonomy();
     const select=document.getElementById("jobCategoryFilter");
     if(select) addSelectOptions(select,waziftiTaxonomy.categories,lang==="ar"?"كل التصنيفات":"All categories","");
+    filterJobs();
   } catch(error) { console.error("Job category filters unavailable:",error); }
 }
 function onJobCategoryFilterChange() {
