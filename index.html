@@ -612,7 +612,7 @@ footer small { display: inline-block; margin-top: 8px; color: #b7d8c4; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
 </style></head>
 <body>
-<header><div class="nav"><div class="brand"><div class="logo">و</div><span data-t="brand">وظيفتي</span></div>
+<header><div class="nav"><a class="brand" href="/" aria-label="Wazifti home" style="text-decoration:none;color:inherit"><div class="logo">و</div><span data-t="brand">وظيفتي</span></a>
 <nav><a href="#jobs" data-t="navJobs">الوظائف</a><a href="#how" data-t="navHow">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout">عن وظيفتي</a></nav>
 <div class="actions">
 <button class="btn outline" id="loginBtn" onclick="openLogin()">دخول</button>
@@ -766,7 +766,7 @@ function startLiveJobsUpdates(){
 const words={
 ar:{brand:"وظيفتي",navJobs:"الوظائف",navHow:"كيف تعمل المنصة؟",navAbout:"عن وظيفتي",login:"دخول",signup:"إنشاء حساب",logout:"تسجيل الخروج",profile:"ملفي الشخصي",postJob:"أعلن عن وظيفة",headline:'خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span>',sub:"ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.",searchJob:"المسمى الوظيفي أو المهارة",searchCity:"المدينة",search:"ابحث عن وظيفة",statJobs:"وظيفة منشورة",reviewNote:"وظائف تُراجع قبل النشر",statEmployers:"جهة عمل",statCities:"مدينة",artTitle:"وظيفتك القادمة أقرب مما تتوقع",artSub:"فرص في مختلف القطاعات والمجالات في السودان.",latest:"أحدث فرص العمل",filters:"تصفية النتائج",jobType:"نوع الوظيفة",full:"دوام كامل",part:"دوام جزئي",remote:"عن بُعد",sector:"المجال",health:"طبي وصحي",admin:"إداري",tech:"تقنية المعلومات",engineering:"هندسي",howTitle:"كيف تعمل وظيفتي؟",howIntro:"ثلاث خطوات بسيطة تقرّبك من فرصتك القادمة.",howStep1Title:"ابحث عن فرصتك",howStep1Text:"استخدم البحث والتصنيفات للوصول إلى الوظائف المناسبة لمهاراتك.",howStep2Title:"راجع التفاصيل",howStep2Text:"اقرأ وصف الوظيفة ومتطلباتها ومعلومات جهة العمل بعناية.",howStep3Title:"تواصل مع جهة العمل",howStep3Text:"اتبع طريقة التقديم الموضحة في إعلان الوظيفة.",footerLine:"منصة سودانية للبحث عن فرص العمل",disclaimer:"تُراجع الوظائف قبل نشرها للعامة.",brandLine:"الأمل يبدأ بفرصة.",close:"إغلاق ✕",details:"تفاصيل الوظيفة",company:"جهة العمل",location:"الموقع",type:"نوع العمل",salary:"الراتب",description:"وصف الوظيفة",apply:"تقديم تجريبي",empty:"لا توجد وظائف مطابقة لبحثك.",loginSoon:"ميزة تسجيل الدخول ستكون متاحة قريباً",employerSoon:"نموذج تسجيل صاحب العمل سيكون متاحاً قريباً",demo:"هذه وظيفة تجريبية؛ التقديم الإلكتروني غير مفعّل بعد",count:"وظائف معروضة",clearFilters:"مسح جميع الفلاتر",refreshJobs:"↻ تحديث الوظائف",categorySpecialty:"التصنيف والتخصص",mainCategoryLabel:"التصنيف الرئيسي",allCategories:"كل التصنيفات",subCategoryLabel:"التخصص الفرعي",allSpecialties:"كل التخصصات"},
 en:{brand:"Wazifti",navJobs:"Jobs",navHow:"How it works",navAbout:"About Wazifti",login:"Log in",signup:"Create account",logout:"Log out",profile:"My profile",postJob:"Post a job",headline:'Your first step toward<br><span style="color:var(--g)">a better opportunity</span>',sub:"Find suitable jobs across Sudan and connect with employers in one place.",searchJob:"Job title or skill",searchCity:"City",search:"Find jobs",statJobs:"published jobs",reviewNote:"Jobs reviewed before publishing",statEmployers:"employers",statCities:"cities",artTitle:"Your next opportunity is closer than you think",artSub:"Opportunities across sectors and industries in Sudan.",latest:"Latest opportunities",filters:"Filter results",jobType:"Job type",full:"Full-time",part:"Part-time",remote:"Remote",sector:"Sector",health:"Healthcare",admin:"Administration",tech:"Technology",engineering:"Engineering",howTitle:"How does Wazifti work?",howIntro:"Three simple steps to move closer to your next opportunity.",howStep1Title:"Find an opportunity",howStep1Text:"Use search and categories to find jobs that match your skills.",howStep2Title:"Review the details",howStep2Text:"Read the job description, requirements, and employer information carefully.",howStep3Title:"Contact the employer",howStep3Text:"Follow the application instructions included in the job listing.",footerLine:"A Sudanese job-search platform",disclaimer:"Jobs are reviewed before appearing publicly.",brandLine:"Hope starts with an opportunity.",close:"Close ✕",details:"Job details",company:"Employer",location:"Location",type:"Job type",salary:"Salary",description:"Description",apply:"Demo application",empty:"No jobs match your search.",loginSoon:"Login will be available soon",employerSoon:"Employer registration will be available soon",demo:"This is a sample job; online applications are not enabled yet",count:"jobs shown",clearFilters:"Clear all filters",refreshJobs:"↻ Refresh jobs",categorySpecialty:"Categories and specialties",mainCategoryLabel:"Main category",allCategories:"All categories",subCategoryLabel:"Specialty",allSpecialties:"All specialties"}};
-function updateTexts(){T=words[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";document.querySelectorAll("[data-t]").forEach(e=>e.innerHTML=T[e.dataset.t]);document.querySelectorAll("[data-ph]").forEach(e=>e.placeholder=T[e.dataset.ph]);document.getElementById("lang").textContent=lang==="ar"?"EN":"عربي";const lb=document.getElementById("loginBtn");if(lb)lb.textContent=T.login;const sb=document.getElementById("signupBtn");if(sb)sb.textContent=T.signup;const ob=document.getElementById("logoutBtn");if(ob)ob.textContent=T.logout;const pb=document.getElementById("profileBtn");if(pb)pb.textContent=T.profile;filterJobs()}
+function updateTexts(){T=words[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";document.querySelectorAll("[data-t]").forEach(e=>{if(T[e.dataset.t]!==undefined)e.innerHTML=T[e.dataset.t]});document.querySelectorAll("[data-ph]").forEach(e=>e.placeholder=T[e.dataset.ph]);document.getElementById("lang").textContent=lang==="ar"?"EN":"عربي";const lb=document.getElementById("loginBtn");if(lb)lb.textContent=T.login;const sb=document.getElementById("signupBtn");if(sb)sb.textContent=T.signup;const ob=document.getElementById("logoutBtn");if(ob)ob.textContent=T.logout;const pb=document.getElementById("profileBtn");if(pb)pb.textContent=T.profile;refreshTaxonomySelectLanguage();filterJobs()}
 function toggleLang(){lang=lang==="ar"?"en":"ar";updateTexts()}
 function typeName(t){return T[t==="Full-time"?"full":t==="Part-time"?"part":"remote"]}
 function fieldName(f){return T[f==="Healthcare"?"health":f==="Admin"?"admin":f==="Tech"?"tech":"engineering"]}
@@ -1655,14 +1655,27 @@ function employerJobStatusLabel(status) {
   return ({pending:"قيد المراجعة",published:"منشورة",closed:"مغلقة",rejected:"مرفوضة"})[status] || status || "غير معروفة";
 }
 
+function refreshTaxonomySelectLanguage(){
+  const categoryFilter=document.getElementById("jobCategoryFilter");
+  const specialtyFilter=document.getElementById("jobSpecialtyFilter");
+  if(categoryFilter){const selected=categoryFilter.value;addSelectOptions(categoryFilter,waziftiTaxonomy.categories,lang==="ar"?"كل التصنيفات":"All categories",selected);}
+  if(specialtyFilter){const selected=specialtyFilter.value;const rows=waziftiTaxonomy.specialties.filter(x=>x.category_id===categoryFilter?.value);addSelectOptions(specialtyFilter,rows,lang==="ar"?"كل التخصصات":"All specialties",selected);specialtyFilter.disabled=!categoryFilter?.value;}
+  const profileCategory=document.getElementById("profileCategory");
+  if(profileCategory){const selected=profileCategory.value;addSelectOptions(profileCategory,waziftiTaxonomy.categories,lang==="ar"?"اختر التصنيف الرئيسي":"Select a main category",selected);}
+  const profileSpecialty=document.getElementById("profileSpecialty");
+  if(profileSpecialty){const selected=profileSpecialty.value;const rows=waziftiTaxonomy.specialties.filter(x=>x.category_id===profileCategory?.value);addSelectOptions(profileSpecialty,rows,lang==="ar"?"اختر التخصص الفرعي":"Select a specialty",selected);profileSpecialty.disabled=!profileCategory?.value||!rows.length;}
+  const employerCategory=document.getElementById("employerJobCategory");
+  if(employerCategory){const selectedCategory=employerCategory.value;const selectedSpecialty=document.getElementById("employerJobSpecialty")?.value||"";populateEmployerJobCategories(selectedCategory,selectedSpecialty);}
+}
+
 function populateEmployerJobCategories(selectedCategory="", selectedSpecialty="") {
   const categorySelect=document.getElementById("employerJobCategory");
   const specialtySelect=document.getElementById("employerJobSpecialty");
   if(!categorySelect || !specialtySelect) return;
-  addSelectOptions(categorySelect,waziftiTaxonomy.categories,"اختر التصنيف","");
+  addSelectOptions(categorySelect,waziftiTaxonomy.categories,lang==="ar"?"اختر التصنيف":"Select a category","");
   categorySelect.value=selectedCategory||"";
   const rows=waziftiTaxonomy.specialties.filter(x=>x.category_id===categorySelect.value);
-  addSelectOptions(specialtySelect,rows,"اختر التخصص","");
+  addSelectOptions(specialtySelect,rows,lang==="ar"?"اختر التخصص":"Select a specialty","");
   specialtySelect.disabled=!categorySelect.value;
   specialtySelect.value=selectedSpecialty||"";
 }
