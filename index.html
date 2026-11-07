@@ -590,7 +590,7 @@ footer {
 <section class="hero"><div class="hero-inner"><div><h1 data-t="headline">خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span></h1>
 <p data-t="sub">ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.</p>
 <div class="search"><input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة"><input id="city" data-ph="searchCity" placeholder="المدينة"><button class="btn primary" onclick="filterJobs()" data-t="search">ابحث عن وظيفة</button></div>
-<div class="stats"><span><b>+120</b><span data-t="statJobs">فرصة تجريبية</span></span><span><b>+35</b><span data-t="statEmployers">جهة عمل</span></span><span><b>18</b><span data-t="statCities">مدينة</span></span></div></div>
+<div class="stats"><span><b id="liveJobCount">0</b><span data-t="statJobs">وظيفة منشورة</span></span><span><b>+35</b><span data-t="statEmployers">جهة عمل</span></span><span><b>18</b><span data-t="statCities">مدينة</span></span></div></div>
 <div class="art"><div class="articon">💼</div><h3 data-t="artTitle">وظيفتك القادمة أقرب مما تتوقع</h3><p class="muted" data-t="artSub">فرص في مختلف القطاعات والمجالات في السودان.</p></div></div></section>
 <main class="wrap" id="jobs"><div class="head"><h2 data-t="latest">أحدث فرص العمل</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="muted" id="count"></span><button class="btn outline" id="refreshLiveJobsBtn" type="button" onclick="loadLiveJobs()">↻ تحديث الوظائف</button></div></div>
 <div class="layout"><aside class="filters"><button class="btn outline" onclick="clearFilters()" style="width:100%;margin-bottom:12px">
@@ -676,7 +676,7 @@ async function loadLiveJobs(options={}){
     for(let attempt=0;attempt<delays.length;attempt++){
       if(delays[attempt]) await new Promise(resolve=>setTimeout(resolve,delays[attempt]));
       try{
-        const {data:rows,error}=await supabaseClient.from("jobs").select("*").eq("status","published").order("created_at",{ascending:false});
+        const {data:rows,error,count:publishedCount}=await supabaseClient.from("jobs").select("*",{count:"exact"}).eq("status","published").order("created_at",{ascending:false});
         if(error) throw error;
         let companyMap={};
         const companyIds=[...new Set((rows||[]).map(row=>row.company_id).filter(Boolean))];
@@ -686,6 +686,8 @@ async function loadLiveJobs(options={}){
           else companyMap=Object.fromEntries((companies||[]).map(company=>[company.id,company]));
         }
         data.splice(0,data.length,...(rows||[]).map(row=>mapLiveJob({...row,companies:companyMap[row.company_id]||null})));
+        const countElement=document.getElementById("liveJobCount");
+        if(countElement) countElement.textContent=String(publishedCount ?? (rows||[]).length);
         filterJobs();
         if(disclaimer) disclaimer.textContent=lang==="ar"?"الوظائف المعروضة منشورة من قاعدة بيانات وظيفتي وتتحدث تلقائياً.":"Published jobs from Wazifti update automatically.";
         return;
@@ -693,6 +695,8 @@ async function loadLiveJobs(options={}){
     }
     // Never present sample/demo vacancies as real opportunities when the API is unavailable.
     data.splice(0,data.length);
+    const countElement=document.getElementById("liveJobCount");
+    if(countElement) countElement.textContent="0";
     filterJobs();
     if(disclaimer) disclaimer.textContent=(lang==="ar"?"تعذر الاتصال بالوظائف الحقيقية. سنحاول مجدداً تلقائياً. ":"Live jobs are temporarily unavailable. We will retry automatically. ")+(lastError?.message||"");
     if(options.manual) toast(lang==="ar"?"تعذر تحديث الوظائف حالياً؛ ستتم إعادة المحاولة تلقائياً.":"Jobs could not be refreshed; automatic retries will continue.");
