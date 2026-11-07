@@ -792,6 +792,13 @@ body.modal-open { overflow: hidden; }
   #jobApplicationModal .modal-content { max-height: 94vh; padding: 18px; }
 }
 </style>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="/icons/icon-192.svg">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="وظيفتي">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body>
 <header><div class="nav"><a class="brand" href="/" aria-label="Wazifti home" style="text-decoration:none;color:inherit"><div class="logo">و</div><span data-t="brand">وظيفتي</span></a>
@@ -799,6 +806,7 @@ body.modal-open { overflow: hidden; }
 <div class="actions">
 <button class="btn outline" id="loginBtn" onclick="openLogin()">دخول</button>
 <button class="btn primary" id="signupBtn" onclick="openSignup()">إنشاء حساب</button>
+<button class="btn outline small" id="pwaInstallBtn" type="button" onclick="installWaziftiApp()">تثبيت التطبيق</button>
 <div id="accountArea" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
   <span id="accountName" style="font-size:13px;font-weight:700;color:var(--d);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
   <button class="btn primary small" id="profileBtn" type="button" onclick="openProfile()">ملفي الشخصي</button>
@@ -3119,6 +3127,49 @@ async function loadMyApplications(){
     message.textContent="تعذر تحميل طلباتك حالياً: "+(error.message||"حدث خطأ غير متوقع");
   }
 }
+
+let waziftiInstallPrompt = null;
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  waziftiInstallPrompt = event;
+  const button = document.getElementById("pwaInstallBtn");
+  if (button) button.textContent = "تثبيت وظيفتي";
+});
+window.addEventListener("appinstalled", () => {
+  waziftiInstallPrompt = null;
+  const button = document.getElementById("pwaInstallBtn");
+  if (button) {
+    button.textContent = "تم تثبيت وظيفتي";
+    button.disabled = true;
+  }
+  toast("تم تثبيت وظيفتي بنجاح.");
+});
+async function installWaziftiApp(){
+  if (waziftiInstallPrompt) {
+    waziftiInstallPrompt.prompt();
+    const choice = await waziftiInstallPrompt.userChoice;
+    waziftiInstallPrompt = null;
+    const button = document.getElementById("pwaInstallBtn");
+    if (button && choice.outcome === "accepted") {
+      button.textContent = "تم طلب التثبيت";
+    }
+    return;
+  }
+  const ua = navigator.userAgent || "";
+  let instructions = "افتح قائمة المتصفح (⋮ أو ☰)، ثم اختر «إضافة إلى الشاشة الرئيسية» أو «تثبيت التطبيق» إذا ظهر الخيار.";
+  if (/iPhone|iPad|iPod/i.test(ua)) {
+    instructions = "افتح زر المشاركة في Safari، ثم اختر «إضافة إلى الشاشة الرئيسية».";
+  } else if (/HuaweiBrowser|HMSCore/i.test(ua)) {
+    instructions = "من قائمة متصفح Huawei اختر «إضافة إلى الشاشة الرئيسية» أو «إضافة اختصار». قد يختلف اسم الخيار حسب إصدار المتصفح.";
+  }
+  alert("لتثبيت وظيفتي على هاتفك:\n\n" + instructions);
+}
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(error => console.warn("Service worker registration failed:", error));
+  });
+}
+
 </script>
 
 </body></html>
