@@ -592,7 +592,7 @@ footer {
 <div class="search"><input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة"><input id="city" data-ph="searchCity" placeholder="المدينة"><button class="btn primary" onclick="filterJobs()" data-t="search">ابحث عن وظيفة</button></div>
 <div class="stats"><span><b>+120</b><span data-t="statJobs">فرصة تجريبية</span></span><span><b>+35</b><span data-t="statEmployers">جهة عمل</span></span><span><b>18</b><span data-t="statCities">مدينة</span></span></div></div>
 <div class="art"><div class="articon">💼</div><h3 data-t="artTitle">وظيفتك القادمة أقرب مما تتوقع</h3><p class="muted" data-t="artSub">فرص في مختلف القطاعات والمجالات في السودان.</p></div></div></section>
-<main class="wrap" id="jobs"><div class="head"><h2 data-t="latest">أحدث فرص العمل</h2><span class="muted" id="count"></span></div>
+<main class="wrap" id="jobs"><div class="head"><h2 data-t="latest">أحدث فرص العمل</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="muted" id="count"></span><button class="btn outline" id="refreshLiveJobsBtn" type="button" onclick="loadLiveJobs()">↻ تحديث الوظائف</button></div></div>
 <div class="layout"><aside class="filters"><button class="btn outline" onclick="clearFilters()" style="width:100%;margin-bottom:12px">
   مسح جميع الفلاتر
 </button> <h3 data-t="filters">تصفية النتائج</h3><div class="group"><strong data-t="jobType">نوع الوظيفة</strong><label><input type="checkbox" value="Full-time" onchange="filterJobs()"> <span data-t="full">دوام كامل</span></label><label><input type="checkbox" value="Part-time" onchange="filterJobs()"> <span data-t="part">دوام جزئي</span></label><label><input type="checkbox" value="Remote" onchange="filterJobs()"> <span data-t="remote">عن بُعد</span></label></div>
@@ -671,19 +671,32 @@ function mapLiveJob(row){
   return {id:row.id,categoryId:row.category_id||null,specialtyId:row.specialty_id||null,title:row.title||"",en:row.title_en||row.title||"",company:company?.name||company?.company_name||"جهة العمل",companyEn:company?.name_en||company?.company_name||"Employer",companyDescription:company?.description||"",city:row.city||row.state||row.location||"غير محدد",cityEn:row.city||row.state||row.location||"Not specified",type:typeMap[String(row.employment_type||"").toLowerCase().replace(/[ -]/g,"_")]||"Full-time",field,salary,salaryEn:salary,icon:"💼",desc:row.description||"",descEn:row.description_en||row.description||""};
 }
 async function loadLiveJobs(){
+  const refreshButton=document.getElementById("refreshLiveJobsBtn");
+  const disclaimer=document.querySelector('[data-t="disclaimer"]');
+  if(refreshButton){refreshButton.disabled=true;refreshButton.textContent=lang==="ar"?"جارٍ التحديث…":"Refreshing…";}
   try {
-    const {data:rows,error} = await supabaseClient.from("jobs").select("*, companies(company_name,description)").eq("status","published").order("created_at",{ascending:false});
+    // Fetch published jobs independently from company metadata so a related-table
+    // permission or schema-cache issue cannot hide valid public job listings.
+    const {data:rows,error} = await supabaseClient.from("jobs").select("*").eq("status","published").order("created_at",{ascending:false});
     if(error) throw error;
-    data.splice(0,data.length,...(rows||[]).map(mapLiveJob));
+    let companyMap={};
+    const companyIds=[...new Set((rows||[]).map(row=>row.company_id).filter(Boolean))];
+    if(companyIds.length){
+      const {data:companies,error:companyError}=await supabaseClient.from("public_verified_companies").select("id,company_name,description").in("id",companyIds);
+      if(companyError) console.warn("Public company details unavailable:",companyError);
+      else companyMap=Object.fromEntries((companies||[]).map(company=>[company.id,company]));
+    }
+    data.splice(0,data.length,...(rows||[]).map(row=>mapLiveJob({...row,companies:companyMap[row.company_id]||null})));
     filterJobs();
-    const disclaimer=document.querySelector('[data-t="disclaimer"]');
     if(disclaimer) disclaimer.textContent=lang==="ar"?"الوظائف المعروضة منشورة من قاعدة بيانات وظيفتي.":"Jobs shown are published from the Wazifti database.";
   } catch(error) {
     console.error("Supabase jobs load failed:",error);
     data.splice(0,data.length,...demoData);
     filterJobs();
-    const disclaimer=document.querySelector('[data-t="disclaimer"]');
-    if(disclaimer) disclaimer.textContent=lang==="ar"?"تعذر تحميل الوظائف الحقيقية؛ المعروض حالياً بيانات تجريبية.":"Live jobs could not be loaded; sample listings are shown.";
+    if(disclaimer) disclaimer.textContent=(lang==="ar"?"تعذر تحميل الوظائف الحقيقية: ":"Live jobs could not be loaded: ")+(error.message||"خطأ غير معروف");
+    toast(lang==="ar"?"تعذر تحديث الوظائف الحقيقية. تحقق من الاتصال ثم أعد المحاولة.":"Could not refresh live jobs. Check your connection and retry.");
+  } finally {
+    if(refreshButton){refreshButton.disabled=false;refreshButton.textContent=lang==="ar"?"↻ تحديث الوظائف":"↻ Refresh jobs";}
   }
 }
 const words={
