@@ -874,6 +874,7 @@ body.modal-open { overflow: hidden; }
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn outline" type="button" onclick="loadEmployerDashboard()">تحديث البيانات</button><button class="btn outline" type="button" onclick="closeEmployerDashboard()">إغلاق ✕</button></div>
   </div>
   <div id="employerDashboardMessage" role="status" aria-live="polite" class="muted" style="margin:14px 0">جارٍ تحميل بيانات جهة العمل...</div>
+  <div id="individualJobsPanel" style="display:none;margin:16px 0;padding:16px;background:#f7fbf8;border:1px solid #dcebe1;border-radius:14px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><h3 style="margin:0">وظائفي كفرد</h3><p class="muted" style="margin:6px 0">انشر فرصة عمل باسمك وتابع مراجعتها من الإدارة.</p></div><button class="btn primary" type="button" onclick="openIndividualJobForm()">+ نشر وظيفة</button></div><div id="individualJobsList"></div></div>
   <div id="employerCompanyCard"></div>
   <div id="employerJobStats" style="display:none;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:16px 0"></div>
   <div id="employerJobsPanel" style="display:none;margin-top:18px">
@@ -2141,6 +2142,7 @@ function employerCompanyStatusLabel(status) {
 }
 
 let employerEditingJobId = null;
+let employerJobPostingMode = "company";
 let employerViewingApplicationsFor = null;
 
 function employerJobStatusLabel(status) {
@@ -2187,6 +2189,7 @@ function closeEmployerJobForm() {
 }
 
 async function openEmployerJobForm(jobId=null) {
+  employerJobPostingMode="company";
   if(!currentAuthUser || !employerDashboardCompany || employerDashboardCompany.status!=="verified") {
     toast("يجب أن تكون جهة العمل معتمدة قبل نشر الوظائف.");
     return;
@@ -2225,7 +2228,7 @@ async function openEmployerJobForm(jobId=null) {
 
 document.getElementById("employerJobForm")?.addEventListener("submit",async event=>{
   event.preventDefault();
-  if(!currentAuthUser || !employerDashboardCompany) return;
+  if(!currentAuthUser || (employerJobPostingMode==="company" && !employerDashboardCompany)) return;
   const button=document.getElementById("saveEmployerJobBtn");
   const message=document.getElementById("employerJobFormMessage");
   const minRaw=document.getElementById("employerJobSalaryMin").value;
@@ -2237,7 +2240,9 @@ document.getElementById("employerJobForm")?.addEventListener("submit",async even
     return;
   }
   const payload={
-    company_id:employerDashboardCompany.id,
+    company_id:employerJobPostingMode==="individual"?null:employerDashboardCompany.id,
+    posted_by_user_id:currentAuthUser.id,
+    poster_type:employerJobPostingMode==="individual"?"individual":"company",
     title:document.getElementById("employerJobTitle").value.trim(),
     description:document.getElementById("employerJobDescription").value.trim(),
     location:document.getElementById("employerJobLocation").value.trim()||null,
@@ -2257,15 +2262,17 @@ document.getElementById("employerJobForm")?.addEventListener("submit",async even
   try {
     let result;
     if(employerEditingJobId) {
-      result=await supabaseClient.from("jobs").update(payload)
-        .eq("id",employerEditingJobId).eq("company_id",employerDashboardCompany.id);
+      let updateQuery=supabaseClient.from("jobs").update(payload).eq("id",employerEditingJobId).eq("status","pending");
+      updateQuery=employerJobPostingMode==="individual" ? updateQuery.eq("poster_type","individual").eq("posted_by_user_id",currentAuthUser.id) : updateQuery.eq("company_id",employerDashboardCompany.id);
+      result=await updateQuery;
     } else {
       result=await supabaseClient.from("jobs").insert({...payload,status:"pending"});
     }
     if(result.error) throw result.error;
     toast(employerEditingJobId?"تم حفظ التعديلات.":"تم إرسال الوظيفة للمراجعة بنجاح.");
     closeEmployerJobForm();
-    await loadEmployerDashboard();
+    if(employerJobPostingMode==="individual") await loadIndividualJobs();
+    else await loadEmployerDashboard();
   } catch(error) {
     console.error("Employer job save failed:",error);
     message.textContent="تعذر حفظ الوظيفة: "+(error.message||"خطأ غير معروف");
@@ -2273,14 +2280,16 @@ document.getElementById("employerJobForm")?.addEventListener("submit",async even
 });
 
 async function deleteEmployerJob(jobId) {
-  if(!currentAuthUser || !employerDashboardCompany) return;
+  if(!currentAuthUser || (employerJobPostingMode==="company" && !employerDashboardCompany)) return;
   if(!confirm("هل أنت متأكد من حذف هذه الوظيفة؟ لا يمكن التراجع عن الحذف.")) return;
   try {
-    const {error}=await supabaseClient.from("jobs").delete()
-      .eq("id",jobId).eq("company_id",employerDashboardCompany.id);
+    let deleteQuery=supabaseClient.from("jobs").delete().eq("id",jobId);
+    deleteQuery=employerJobPostingMode==="individual" ? deleteQuery.eq("poster_type","individual").eq("posted_by_user_id",currentAuthUser.id) : deleteQuery.eq("company_id",employerDashboardCompany.id);
+    const {error}=await deleteQuery;
     if(error) throw error;
     toast("تم حذف الوظيفة.");
-    await loadEmployerDashboard();
+    if(employerJobPostingMode==="individual") await loadIndividualJobs();
+    else await loadEmployerDashboard();
   } catch(error) {
     toast("تعذر حذف الوظيفة: "+(error.message||""));
   }
@@ -2435,12 +2444,52 @@ async function toggleEmployerApplications(jobId) {
   }
 }
 
+
+async function openIndividualJobForm(jobId=null) {
+ if(!currentAuthUser){toast("يرجى تسجيل الدخول أولاً.");openLogin();return;}
+ try{
+  const {data:profile,error}=await supabaseClient.from("profiles").select("can_post_individual_jobs").eq("id",currentAuthUser.id).maybeSingle();
+  if(error)throw error;
+  if(profile?.can_post_individual_jobs!==true){toast("فعّل خيار «نشر الوظائف للأفراد» من ملفك الشخصي أولاً.");return;}
+  employerJobPostingMode="individual";await loadWaziftiTaxonomy();
+  const form=document.getElementById("employerJobForm");form.reset();employerEditingJobId=jobId;populateEmployerJobCategories();
+  document.getElementById("employerJobFormTitle").textContent=jobId?"تعديل إعلاني":"نشر وظيفة كفرد";
+  document.getElementById("saveEmployerJobBtn").textContent=jobId?"حفظ التعديلات":"إرسال للمراجعة";
+  document.getElementById("employerJobFormMessage").textContent="";
+  if(jobId){
+   const {data:job,error:je}=await supabaseClient.from("jobs").select("id,title,description,location,state,employment_type,category_id,specialty_id,salary_min,salary_max,currency,status").eq("id",jobId).eq("poster_type","individual").eq("posted_by_user_id",currentAuthUser.id).single();
+   if(je)throw je;if(job.status!=="pending")throw Error("يمكن تعديل الإعلانات التي ما زالت قيد المراجعة فقط.");
+   document.getElementById("employerJobTitle").value=job.title||"";document.getElementById("employerJobDescription").value=job.description||"";
+   document.getElementById("employerJobLocation").value=job.location||"";document.getElementById("employerJobState").value=job.state||"";
+   document.getElementById("employerJobType").value=job.employment_type||"full_time";document.getElementById("employerJobSalaryMin").value=job.salary_min??"";
+   document.getElementById("employerJobSalaryMax").value=job.salary_max??"";document.getElementById("employerJobCurrency").value=job.currency||"SDG";
+   populateEmployerJobCategories(job.category_id,job.specialty_id);
+  }
+  document.getElementById("employerJobFormBox").style.display="block";document.getElementById("employerJobFormBox").scrollIntoView({behavior:"smooth",block:"start"});
+ }catch(e){toast("تعذر فتح نموذج الوظيفة: "+(e.message||""));}
+}
+async function loadIndividualJobs(){
+ const panel=document.getElementById("individualJobsPanel"),list=document.getElementById("individualJobsList");if(!currentAuthUser||!panel||!list)return;
+ panel.style.display="block";list.innerHTML='<p class="muted">جارٍ تحميل إعلاناتك...</p>';
+ try{
+  const {data:jobs,error}=await supabaseClient.from("jobs").select("id,title,status,location,created_at").eq("poster_type","individual").eq("posted_by_user_id",currentAuthUser.id).order("created_at",{ascending:false});
+  if(error)throw error;const rows=jobs||[];
+  list.innerHTML=rows.length?rows.map(j=>'<article style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px;margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>'+escapeAdminHtml(j.title)+'</strong><span class="tag">'+escapeAdminHtml(employerJobStatusLabel(j.status))+'</span></div><div class="muted" style="margin:8px 0">'+escapeAdminHtml(j.location||"الموقع غير محدد")+'</div><div style="display:flex;gap:8px;flex-wrap:wrap">'+(j.status==="pending"?'<button class="btn outline small" type="button" onclick="openIndividualJobForm(\''+j.id+'\')">تعديل</button>':'')+(['pending','rejected','closed'].includes(j.status)?'<button class="btn outline small" type="button" onclick="deleteIndividualJob(\''+j.id+'\')">حذف</button>':'')+'</div></article>').join(""):'<p class="muted" style="padding:12px;background:#fff;border-radius:10px">لم تنشر أي وظائف بعد.</p>';
+ }catch(e){list.innerHTML='<p class="muted">تعذر تحميل إعلاناتك: '+escapeAdminHtml(e.message||"")+'</p>';}
+}
+async function deleteIndividualJob(id){
+ if(!currentAuthUser||!confirm("هل تريد حذف هذا الإعلان؟"))return;
+ try{const {error}=await supabaseClient.from("jobs").delete().eq("id",id).eq("poster_type","individual").eq("posted_by_user_id",currentAuthUser.id).in("status",["pending","rejected","closed"]);if(error)throw error;toast("تم حذف الإعلان.");await loadIndividualJobs();}
+ catch(e){toast("تعذر حذف الإعلان: "+(e.message||""));}
+}
+
 async function loadEmployerDashboard() {
   const message=document.getElementById("employerDashboardMessage");
   const card=document.getElementById("employerCompanyCard");
   const stats=document.getElementById("employerJobStats");
   const jobsPanel=document.getElementById("employerJobsPanel");
   const jobsList=document.getElementById("employerJobsList");
+  const individualPanel=document.getElementById("individualJobsPanel");
   const button=document.getElementById("employerDashboardBtn");
   if(!currentAuthUser) {
     if(button) button.style.display="none";
@@ -2451,6 +2500,7 @@ async function loadEmployerDashboard() {
   if(card) card.innerHTML="";
   if(stats){stats.style.display="none";stats.innerHTML="";}
   if(jobsPanel) jobsPanel.style.display="none";
+  if(individualPanel) individualPanel.style.display="none";
   if(jobsList) jobsList.innerHTML="";
   closeEmployerJobForm();
   try {
@@ -2460,12 +2510,18 @@ async function loadEmployerDashboard() {
     if(error) throw error;
     if(!company) {
       employerDashboardCompany=null;
-      if(button) button.style.display="none";
-      if(message) message.textContent="لم تسجل جهة عمل بهذا الحساب بعد. يمكنك البدء من زر «أعلن عن وظيفة».";
+      if(button) button.style.display="inline-flex";
+      const {data:profile,error:pe}=await supabaseClient.from("profiles").select("can_post_individual_jobs").eq("id",currentAuthUser.id).maybeSingle();
+      if(pe) throw pe;
+      if(profile?.can_post_individual_jobs===true){if(message)message.textContent="حسابك الشخصي جاهز لإدارة إعلانات الوظائف الفردية.";await loadIndividualJobs();}
+      else if(message)message.textContent="يمكنك تفعيل خيار «نشر الوظائف للأفراد» من ملفك الشخصي لإضافة فرص عمل باسمك.";
       return;
     }
     employerDashboardCompany=company;
     if(button) button.style.display="inline-flex";
+    const {data:ip,error:ipe}=await supabaseClient.from("profiles").select("can_post_individual_jobs").eq("id",currentAuthUser.id).maybeSingle();
+    if(ipe) throw ipe;
+    if(ip?.can_post_individual_jobs===true) await loadIndividualJobs();
     const statusLabel=employerCompanyStatusLabel(company.status);
     const statusColor=company.status==="verified"?"#087a4b":company.status==="rejected"||company.status==="suspended"?"#a33b32":"#946200";
     if(card) card.innerHTML='<article style="background:#fff;border:1px solid #e5eee8;border-radius:14px;padding:18px;margin-top:12px">'+
