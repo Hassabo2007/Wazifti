@@ -828,7 +828,7 @@ loadLiveJobs();
         <h3 id="experienceHeading" style="margin:0 0 12px">الخبرات العملية</h3>
         <div id="candidateExperiencesList" aria-live="polite" class="muted">جارٍ تحميل الخبرات...</div>
         <h4 id="experienceFormHeading">إضافة خبرة جديدة</h4>
-        <form id="candidateExperienceForm">
+        <div id="candidateExperienceForm">
           <label for="experienceCompany">جهة العمل</label><input id="experienceCompany" type="text" maxlength="150" required>
           <label for="experienceTitle">المسمى الوظيفي</label><input id="experienceTitle" type="text" maxlength="150" required>
           <label for="experienceStart">تاريخ البداية</label><input id="experienceStart" type="date">
@@ -837,7 +837,7 @@ loadLiveJobs();
           <label for="experienceDescription">وصف المهام (اختياري)</label><textarea id="experienceDescription" rows="3" maxlength="700"></textarea>
           <button id="addExperienceBtn" type="submit" class="btn outline" style="width:100%">إضافة الخبرة</button>
           <p id="experienceMessage" role="status" aria-live="polite"></p>
-        </form>
+        </div>
       </section>
       <button id="saveProfileBtn" type="submit" class="btn primary" style="width:100%;margin-top:10px">حفظ البيانات</button>
       <p id="profileMessage" role="status" aria-live="polite"></p>
@@ -1072,28 +1072,43 @@ async function loadCandidateExperiences() {
   }).join("");
 }
 const experienceForm=document.getElementById("candidateExperienceForm");
-if(experienceForm) {
-  experienceForm.addEventListener("submit",async event=>{
+const addExperienceButton=document.getElementById("addExperienceBtn");
+if(experienceForm && addExperienceButton) {
+  addExperienceButton.addEventListener("click",async event=>{
     event.preventDefault();
     if(!currentAuthUser) return;
     const button=document.getElementById("addExperienceBtn");
     const message=document.getElementById("experienceMessage");
     button.disabled=true;
     message.textContent=lang==="ar"?"جارٍ حفظ الخبرة...":"Saving experience...";
+    const companyInput=document.getElementById("experienceCompany");
+    const titleInput=document.getElementById("experienceTitle");
+    const startInput=document.getElementById("experienceStart");
+    const endInput=document.getElementById("experienceEnd");
+    if(!companyInput.value.trim() || !titleInput.value.trim()) {
+      message.textContent=lang==="ar"?"يرجى إدخال جهة العمل والمسمى الوظيفي.":"Please enter the employer and job title.";
+      button.disabled=false; return;
+    }
     const current=document.getElementById("experienceCurrent").checked;
+    if(!current && startInput.value && endInput.value && endInput.value < startInput.value) {
+      message.textContent=lang==="ar"?"تاريخ النهاية يجب أن يكون بعد تاريخ البداية.":"End date must be after the start date.";
+      button.disabled=false; return;
+    }
     const payload={
       candidate_id:currentAuthUser.id,
       company_name:document.getElementById("experienceCompany").value.trim(),
       job_title:document.getElementById("experienceTitle").value.trim(),
-      start_date:document.getElementById("experienceStart").value||null,
-      end_date:current?null:(document.getElementById("experienceEnd").value||null),
+      start_date:startInput.value||null,
+      end_date:current?null:(endInput.value||null),
       is_current:current,
       description:document.getElementById("experienceDescription").value.trim()||null
     };
     try {
       const {error}=await supabaseClient.from("candidate_experiences").insert(payload);
       if(error) throw error;
-      experienceForm.reset();
+      companyInput.value=""; titleInput.value=""; startInput.value=""; endInput.value="";
+      document.getElementById("experienceCurrent").checked=false;
+      document.getElementById("experienceDescription").value="";
       message.textContent=lang==="ar"?"تمت إضافة الخبرة بنجاح.":"Experience added successfully.";
       await loadCandidateExperiences();
     } catch(error) {
