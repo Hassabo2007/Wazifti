@@ -2294,6 +2294,16 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
     const statusNode = document.querySelector('[data-application-status="' + applicationId + '"]');
     if (statusNode) statusNode.textContent = label;
     toast("تم تحديث حالة الطلب بنجاح.");
+    if(data.status !== previousStatus){
+      try{
+        const {error:pushError}=await supabaseClient.functions.invoke("send-application-status-push",{
+          body:{applicationId}
+        });
+        if(pushError) console.warn("Status updated, but push notification could not be sent:",pushError);
+      }catch(pushError){
+        console.warn("Status updated, but push notification could not be sent:",pushError);
+      }
+    }
   } catch (error) {
     console.error("Application status update failed:", error);
     if (selectElement) {
@@ -2836,6 +2846,10 @@ updateTexts();
     <button type="button" class="close" onclick="closeMyApplications()" aria-label="إغلاق">✕</button>
     <div class="head" style="margin:0 0 14px"><h2 id="myApplicationsTitle">طلباتي</h2><button class="btn outline small" type="button" onclick="loadMyApplications()">↻ تحديث</button></div>
     <p class="muted">تابع الوظائف التي تقدمت إليها وحالة كل طلب.</p>
+    <div class="push-settings" style="margin:12px 0 16px;padding:12px;border:1px solid #dcebe1;border-radius:12px;background:#f7fbf8">
+      <button id="pushNotificationsToggle" class="btn outline small" type="button" onclick="togglePushNotifications()">تفعيل إشعارات حالة الطلب</button>
+      <p id="pushNotificationsMessage" class="muted" role="status" aria-live="polite" style="margin:8px 0 0;font-size:13px">احصل على تنبيه عندما تتغير حالة طلبك.</p>
+    </div>
     <div id="myApplicationsMessage" class="muted" role="status" aria-live="polite" style="margin:12px 0">جارٍ تحميل طلباتك...</div>
     <div id="myApplicationsList"></div>
   </div>
@@ -2965,6 +2979,7 @@ function openMyApplications(){
   const modal=document.getElementById("myApplicationsModal");
   modal.style.display="flex";
   document.body.classList.add("modal-open");
+  refreshPushNotificationUI();
   loadMyApplications();
 }
 function closeMyApplications(){
@@ -2976,6 +2991,99 @@ function closeMyApplications(){
   const otherOpen=[profile,employer,application].some(x=>x&&x.style.display==="flex");
   if(!otherOpen) document.body.classList.remove("modal-open");
 }
+const WAZIFTI_VAPID_PUBLIC_KEY = "BGh1IJDO52tJUVrMGfRmhQXtOc7HMjdRCQLC5hPG6O3uyUkBqUrgwushtyem5BTNVxW4U_ghc9DBxmtR8w4vCc0";
+
+function pushFeatureAvailable(){
+  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+}
+function urlBase64ToUint8Array(base64String){
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(char => char.charCodeAt(0)));
+}
+async function refreshPushNotificationUI(){
+  const button=document.getElementById("pushNotificationsToggle");
+  const message=document.getElementById("pushNotificationsMessage");
+  if(!button||!message) return;
+  if(!pushFeatureAvailable()){
+    button.disabled=true;
+    button.textContent="الإشعارات غير مدعومة هنا";
+    message.textContent="هذا المتصفح لا يدعم إشعارات الويب. جرّب Chrome على Android أو ثبّت الموقع كتطبيق إذا كان الخيار متاحاً.";
+    return;
+  }
+  if(Notification.permission==="denied"){
+    button.disabled=true;
+    button.textContent="الإشعارات محظورة";
+    message.textContent="الإذن مرفوض من إعدادات المتصفح. يمكنك تغييره من إعدادات الموقع في المتصفح.";
+    return;
+  }
+  try{
+    const registration=await navigator.serviceWorker.getRegistration("/");
+    const subscription=registration?await registration.pushManager.getSubscription():null;
+    button.disabled=false;
+    button.textContent=subscription?"إيقاف إشعارات حالة الطلب":"تفعيل إشعارات حالة الطلب";
+    message.textContent=subscription?"الإشعارات مفعّلة على هذا الجهاز.":"فعّل الإشعارات لتصلك تحديثات حالة طلباتك.";
+  }catch(error){
+    console.warn("Push status check failed:",error);
+    button.disabled=false;
+    button.textContent="تفعيل إشعارات حالة الطلب";
+    message.textContent="يمكنك محاولة تفعيل الإشعارات على هذا الجهاز.";
+  }
+}
+async function togglePushNotifications(){
+  const button=document.getElementById("pushNotificationsToggle");
+  const message=document.getElementById("pushNotificationsMessage");
+  if(!currentAuthUser){toast("يرجى تسجيل الدخول أولاً.");return;}
+  if(!pushFeatureAvailable()){
+    if(message) message.textContent="هذا المتصفح لا يدعم إشعارات الويب. جرّب Chrome على Android.";
+    return;
+  }
+  if(button) button.disabled=true;
+  try{
+    const registration=await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.ready;
+    let subscription=await registration.pushManager.getSubscription();
+    if(subscription){
+      const endpoint=subscription.endpoint;
+      const {error}=await supabaseClient.from("push_subscriptions").delete()
+        .eq("endpoint",endpoint).eq("user_id",currentAuthUser.id);
+      if(error) throw error;
+      await subscription.unsubscribe();
+      if(message) message.textContent="تم إيقاف الإشعارات على هذا الجهاز.";
+      toast("تم إيقاف الإشعارات.");
+    }else{
+      let permission=Notification.permission;
+      if(permission==="default") permission=await Notification.requestPermission();
+      if(permission!=="granted") throw new Error("لم يتم منح إذن الإشعارات.");
+      subscription=await registration.pushManager.subscribe({
+        userVisibleOnly:true,
+        applicationServerKey:urlBase64ToUint8Array(WAZIFTI_VAPID_PUBLIC_KEY)
+      });
+      const json=subscription.toJSON();
+      const {error}=await supabaseClient.from("push_subscriptions").upsert({
+        user_id:currentAuthUser.id,
+        endpoint:subscription.endpoint,
+        subscription:json,
+        updated_at:new Date().toISOString()
+      },{onConflict:"endpoint"});
+      if(error){
+        await subscription.unsubscribe();
+        throw error;
+      }
+      if(message) message.textContent="تم تفعيل الإشعارات بنجاح على هذا الجهاز.";
+      toast("تم تفعيل إشعارات حالة الطلب.");
+    }
+  }catch(error){
+    console.error("Push subscription setup failed:",error);
+    if(message) message.textContent="تعذر إعداد الإشعارات: "+(error.message||"تحقق من دعم المتصفح.");
+    toast("تعذر إعداد الإشعارات.");
+  }finally{
+    if(button) button.disabled=false;
+    await refreshPushNotificationUI();
+  }
+}
+
 async function loadMyApplications(){
   const message=document.getElementById("myApplicationsMessage");
   const list=document.getElementById("myApplicationsList");
