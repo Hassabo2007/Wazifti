@@ -622,15 +622,15 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLI
 const demoData = data.slice();
 function mapLiveJob(row){
   const company = Array.isArray(row.companies) ? row.companies[0] : row.companies;
-  const typeMap = {full_time:"Full-time",part_time:"Part-time",remote:"Remote",contract:"Part-time",temporary:"Part-time",internship:"Part-time"};
+  const typeMap = {full_time:"Full-time",fulltime:"Full-time",part_time:"Part-time",parttime:"Part-time",remote:"Remote",contract:"Part-time",temporary:"Part-time",internship:"Part-time"};
   const category = (row.category || "").toLowerCase();
   const field = /health|medical|healthcare|طبي|صحي/.test(category) ? "Healthcare" : /admin|human|إدار/.test(category) ? "Admin" : /tech|it|تقن/.test(category) ? "Tech" : /engineer|هندس/.test(category) ? "Engineering" : "Admin";
   const salary = row.salary_min != null || row.salary_max != null ? `${row.salary_min ?? ""}${row.salary_min != null && row.salary_max != null ? " - " : ""}${row.salary_max ?? ""} ${row.currency || ""}`.trim() : "حسب الاتفاق";
-  return {id:row.id,categoryId:row.category_id||null,specialtyId:row.specialty_id||null,title:row.title||"",en:row.title_en||row.title||"",company:company?.name||company?.company_name||"جهة العمل",companyEn:company?.name_en||company?.company_name||"Employer",city:row.city||row.state||row.location||"غير محدد",cityEn:row.city||row.state||row.location||"Not specified",type:typeMap[row.job_type]||"Full-time",field,salary,salaryEn:salary,icon:"💼",desc:row.description||"",descEn:row.description_en||row.description||""};
+  return {id:row.id,categoryId:row.category_id||null,specialtyId:row.specialty_id||null,title:row.title||"",en:row.title_en||row.title||"",company:company?.name||company?.company_name||"جهة العمل",companyEn:company?.name_en||company?.company_name||"Employer",city:row.city||row.state||row.location||"غير محدد",cityEn:row.city||row.state||row.location||"Not specified",type:typeMap[String(row.employment_type||"").toLowerCase().replace(/[ -]/g,"_")]||"Full-time",field,salary,salaryEn:salary,icon:"💼",desc:row.description||"",descEn:row.description_en||row.description||""};
 }
 async function loadLiveJobs(){
   try {
-    const {data:rows,error} = await supabaseClient.from("jobs").select("*, companies(name,name_en)").eq("status","published").order("published_at",{ascending:false});
+    const {data:rows,error} = await supabaseClient.from("jobs").select("*, companies(company_name)").eq("status","published").order("created_at",{ascending:false});
     if(error) throw error;
     data.splice(0,data.length,...(rows||[]).map(mapLiveJob));
     filterJobs();
