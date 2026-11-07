@@ -596,7 +596,7 @@ footer {
 <div class="layout"><aside class="filters"><button class="btn outline" onclick="clearFilters()" style="width:100%;margin-bottom:12px">
   مسح جميع الفلاتر
 </button> <h3 data-t="filters">تصفية النتائج</h3><div class="group"><strong data-t="jobType">نوع الوظيفة</strong><label><input type="checkbox" value="Full-time" onchange="filterJobs()"> <span data-t="full">دوام كامل</span></label><label><input type="checkbox" value="Part-time" onchange="filterJobs()"> <span data-t="part">دوام جزئي</span></label><label><input type="checkbox" value="Remote" onchange="filterJobs()"> <span data-t="remote">عن بُعد</span></label></div>
-<div class="group"><strong>التصنيف والتخصص</strong><label for="jobCategoryFilter">التصنيف الرئيسي</label><select id="jobCategoryFilter" onchange="onJobCategoryFilterChange()" style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="">كل التصنيفات</option></select><label for="jobSpecialtyFilter">التخصص الفرعي</label><select id="jobSpecialtyFilter" onchange="filterJobs()" disabled style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="">كل التخصصات</option></select></div><div class="group"><strong data-t="sector">المجال (قديم)</strong><label><input type="checkbox" value="Healthcare" onchange="filterJobs()"> <span data-t="health">طبي وصحي</span></label><label><input type="checkbox" value="Admin" onchange="filterJobs()"> <span data-t="admin">إداري</span></label><label><input type="checkbox" value="Tech" onchange="filterJobs()"> <span data-t="tech">تقنية المعلومات</span></label><label><input type="checkbox" value="Engineering" onchange="filterJobs()"> <span data-t="engineering">هندسي</span></label></div></aside><section class="list" id="list"></section></div></main>
+<div class="group"><strong>التصنيف والتخصص</strong><label for="jobCategoryFilter">التصنيف الرئيسي</label><select id="jobCategoryFilter" onchange="onJobCategoryFilterChange()" style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="">كل التصنيفات</option></select><label for="jobSpecialtyFilter">التخصص الفرعي</label><select id="jobSpecialtyFilter" onchange="filterJobs()" disabled style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="">كل التخصصات</option></select></div></aside><section class="list" id="list"></section></div></main>
 <section class="wrap" id="adminDashboard" style="display:none">
   <div class="head"><h2>لوحة إدارة وظيفتي</h2><button class="btn outline" type="button" onclick="loadAdminCompanies()">تحديث القائمة</button></div>
   <p class="muted">مراجعة طلبات تسجيل الشركات والتحقق من مستنداتها قبل اعتمادها.</p>
@@ -612,8 +612,29 @@ footer {
   <div id="employerCompanyCard"></div>
   <div id="employerJobStats" style="display:none;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:16px 0"></div>
   <div id="employerJobsPanel" style="display:none;margin-top:18px">
-    <h3>وظائف جهة العمل</h3><p class="muted">ستظهر هنا الوظائف التي تنشرها الشركة وحالة مراجعتها.</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div><h3>وظائف جهة العمل</h3><p class="muted">أضف الوظائف وتابع حالة مراجعتها وطلبات التقديم.</p></div>
+      <button class="btn primary" type="button" id="addEmployerJobBtn" onclick="openEmployerJobForm()">+ نشر وظيفة</button>
+    </div>
     <div id="employerJobsList"></div>
+  </div>
+  <div id="employerJobFormBox" style="display:none;background:#fff;border:1px solid #dcebe1;border-radius:14px;padding:18px;margin-top:16px">
+    <h3 id="employerJobFormTitle">نشر وظيفة جديدة</h3>
+    <form id="employerJobForm">
+      <label for="employerJobTitle">المسمى الوظيفي *</label><input id="employerJobTitle" required maxlength="160">
+      <label for="employerJobDescription">وصف الوظيفة *</label><textarea id="employerJobDescription" required rows="5" maxlength="5000"></textarea>
+      <label for="employerJobLocation">المدينة / الموقع</label><input id="employerJobLocation" maxlength="120">
+      <label for="employerJobType">نوع العمل</label><select id="employerJobType"><option value="full_time">دوام كامل</option><option value="part_time">دوام جزئي</option><option value="remote">عن بُعد</option><option value="contract">تعاقد</option><option value="internship">تدريب</option></select>
+      <label for="employerJobCategory">التصنيف الرئيسي *</label><select id="employerJobCategory" required><option value="">اختر التصنيف</option></select>
+      <label for="employerJobSpecialty">التخصص الفرعي *</label><select id="employerJobSpecialty" required disabled><option value="">اختر التخصص</option></select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label for="employerJobSalaryMin">الحد الأدنى للراتب</label><input id="employerJobSalaryMin" type="number" min="0" step="0.01"></div>
+        <div><label for="employerJobSalaryMax">الحد الأعلى للراتب</label><input id="employerJobSalaryMax" type="number" min="0" step="0.01"></div>
+      </div>
+      <label for="employerJobCurrency">العملة</label><select id="employerJobCurrency"><option value="SDG">جنيه سوداني (SDG)</option><option value="USD">دولار أمريكي (USD)</option></select>
+      <p id="employerJobFormMessage" role="status" aria-live="polite" class="muted"></p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="saveEmployerJobBtn" type="submit">حفظ وإرسال للمراجعة</button><button class="btn outline" type="button" onclick="closeEmployerJobForm()">إلغاء</button></div>
+    </form>
   </div>
 </section>
 <section class="wrap" id="how" style="text-align:center"><h2 data-t="howTitle">كيف تعمل وظيفتي؟</h2><p class="muted" data-t="howSub">ابحث عن الفرصة المناسبة ← اقرأ التفاصيل ← تواصل مع جهة العمل.</p></section>
@@ -665,7 +686,8 @@ function updateTexts(){T=words[lang];document.documentElement.lang=lang;document
 function toggleLang(){lang=lang==="ar"?"en":"ar";updateTexts()}
 function typeName(t){return T[t==="Full-time"?"full":t==="Part-time"?"part":"remote"]}
 function fieldName(f){return T[f==="Healthcare"?"health":f==="Admin"?"admin":f==="Tech"?"tech":"engineering"]}
-function render(items){document.getElementById("list").innerHTML=items.length?items.map(j=>`<article class="job"><div class="company"><div class="icon">${j.icon}</div><div><h3>${lang==="ar"?j.title:j.en}</h3><div class="muted">${lang==="ar"?j.company:j.companyEn}</div><div class="meta"><span>📍 ${lang==="ar"?j.city:j.cityEn}</span><span>◷ ${typeName(j.type)}</span></div><span class="tag">${fieldName(j.field)}</span></div></div><div class="side"><span class="salary">${lang==="ar"?j.salary:j.salaryEn}</span><button class="btn primary small" onclick="showJob(${data.indexOf(j)})">${T.details}</button></div></article>`).join(""):`<div class="empty" style="padding:28px;text-align:center;color:#718078">${T.empty}</div>`;document.getElementById("count").textContent=items.length+" "+T.count}
+function jobCategoryName(job){const category=waziftiTaxonomy.categories.find(item=>item.id===job.categoryId);return category?(lang==="ar"?category.name_ar:(category.name_en||category.name_ar)):fieldName(job.field)}
+function render(items){document.getElementById("list").innerHTML=items.length?items.map(j=>`<article class="job"><div class="company"><div class="icon">${j.icon}</div><div><h3>${lang==="ar"?j.title:j.en}</h3><div class="muted">${lang==="ar"?j.company:j.companyEn}</div><div class="meta"><span>📍 ${lang==="ar"?j.city:j.cityEn}</span><span>◷ ${typeName(j.type)}</span></div><span class="tag">${jobCategoryName(j)}</span></div></div><div class="side"><span class="salary">${lang==="ar"?j.salary:j.salaryEn}</span><button class="btn primary small" onclick="showJob(${data.indexOf(j)})">${T.details}</button></div></article>`).join(""):`<div class="empty" style="padding:28px;text-align:center;color:#718078">${T.empty}</div>`;document.getElementById("count").textContent=items.length+" "+T.count}
 function showJob(i){let j=data[i];document.getElementById("modalContent").innerHTML=`<div style="font-size:34px">${j.icon}</div><h2>${lang==="ar"?j.title:j.en}</h2><p class="muted">${lang==="ar"?j.company:j.companyEn}</p><p><b>${T.location}:</b> ${lang==="ar"?j.city:j.cityEn}</p><p><b>${T.type}:</b> ${typeName(j.type)}</p><p><b>${T.salary}:</b> ${lang==="ar"?j.salary:j.salaryEn}</p><hr style="border:0;border-top:1px solid #e5eee8"><h3>${T.description}</h3><p style="line-height:1.9">${lang==="ar"?j.desc:j.descEn}</p><button class="btn primary" onclick="toast(T.demo);closeModal()">${T.apply}</button>`;document.getElementById("modalbg").style.display="flex"}
 function closeModal(){document.getElementById("modalbg").style.display="none"}
 function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
@@ -682,9 +704,6 @@ loadLiveJobs();
     .map(x => x.value)
     .filter(x => ["Full-time", "Part-time", "Remote"].includes(x));
 
-  const fields = checked
-    .map(x => x.value)
-    .filter(x => ["Healthcare", "Admin", "Tech", "Engineering"].includes(x));
   const selectedCategory = document.getElementById("jobCategoryFilter")?.value || "";
   const selectedSpecialty = document.getElementById("jobSpecialtyFilter")?.value || "";
 
@@ -699,11 +718,10 @@ loadLiveJobs();
     const matchesSearch = !q || jobText.includes(q);
     const matchesCity = !c || cityText.includes(c);
     const matchesType = types.length === 0 || types.includes(j.type);
-    const matchesField = fields.length === 0 || fields.includes(j.field);
     const matchesCategory = !selectedCategory || j.categoryId === selectedCategory;
     const matchesSpecialty = !selectedSpecialty || j.specialtyId === selectedSpecialty;
 
-    return matchesSearch && matchesCity && matchesType && matchesField && matchesCategory && matchesSpecialty;
+    return matchesSearch && matchesCity && matchesType && matchesCategory && matchesSpecialty;
   });
 
   render(results);
@@ -1153,6 +1171,7 @@ async function loadJobCategoryFilters() {
     await loadWaziftiTaxonomy();
     const select=document.getElementById("jobCategoryFilter");
     if(select) addSelectOptions(select,waziftiTaxonomy.categories,lang==="ar"?"كل التصنيفات":"All categories","");
+    filterJobs();
   } catch(error) { console.error("Job category filters unavailable:",error); }
 }
 function onJobCategoryFilterChange() {
@@ -1459,75 +1478,241 @@ function employerCompanyStatusLabel(status) {
   return ({pending:"قيد المراجعة",verified:"معتمدة",rejected:"مرفوضة",suspended:"موقوفة"})[status] || "غير معروفة";
 }
 
-async function loadEmployerDashboard() {
-  const message = document.getElementById("employerDashboardMessage");
-  const card = document.getElementById("employerCompanyCard");
-  const stats = document.getElementById("employerJobStats");
-  const jobsPanel = document.getElementById("employerJobsPanel");
-  const jobsList = document.getElementById("employerJobsList");
-  const button = document.getElementById("employerDashboardBtn");
-  if (!currentAuthUser) {
-    if (button) button.style.display = "none";
-    if (message) message.textContent = "يرجى تسجيل الدخول أولاً.";
+let employerEditingJobId = null;
+let employerViewingApplicationsFor = null;
+
+function employerJobStatusLabel(status) {
+  return ({pending:"قيد المراجعة",published:"منشورة",closed:"مغلقة",rejected:"مرفوضة"})[status] || status || "غير معروفة";
+}
+
+function populateEmployerJobCategories(selectedCategory="", selectedSpecialty="") {
+  const categorySelect=document.getElementById("employerJobCategory");
+  const specialtySelect=document.getElementById("employerJobSpecialty");
+  if(!categorySelect || !specialtySelect) return;
+  addSelectOptions(categorySelect,waziftiTaxonomy.categories,"اختر التصنيف","");
+  categorySelect.value=selectedCategory||"";
+  const rows=waziftiTaxonomy.specialties.filter(x=>x.category_id===categorySelect.value);
+  addSelectOptions(specialtySelect,rows,"اختر التخصص","");
+  specialtySelect.disabled=!categorySelect.value;
+  specialtySelect.value=selectedSpecialty||"";
+}
+
+document.getElementById("employerJobCategory")?.addEventListener("change",()=>{
+  populateEmployerJobCategories(document.getElementById("employerJobCategory").value,"");
+});
+
+function closeEmployerJobForm() {
+  const box=document.getElementById("employerJobFormBox");
+  const form=document.getElementById("employerJobForm");
+  if(box) box.style.display="none";
+  if(form) form.reset();
+  employerEditingJobId=null;
+  const message=document.getElementById("employerJobFormMessage");
+  if(message) message.textContent="";
+}
+
+async function openEmployerJobForm(jobId=null) {
+  if(!currentAuthUser || !employerDashboardCompany || employerDashboardCompany.status!=="verified") {
+    toast("يجب أن تكون جهة العمل معتمدة قبل نشر الوظائف.");
     return;
   }
-  if (message) message.textContent = "جارٍ تحميل بيانات جهة العمل...";
-  if (card) card.innerHTML = "";
-  if (stats) { stats.style.display = "none"; stats.innerHTML = ""; }
-  if (jobsPanel) jobsPanel.style.display = "none";
-  if (jobsList) jobsList.innerHTML = "";
   try {
-    const {data: company, error} = await supabaseClient.from("companies")
-      .select("id,company_name,description,website,status,created_at")
-      .eq("owner_id", currentAuthUser.id).order("created_at", {ascending:false}).limit(1).maybeSingle();
-    if (error) throw error;
-    if (!company) {
-      employerDashboardCompany = null;
-      if (button) button.style.display = "none";
-      if (message) message.textContent = "لم تسجل جهة عمل بهذا الحساب بعد. يمكنك البدء من زر «أعلن عن وظيفة».";
-      return;
+    await loadWaziftiTaxonomy();
+    const form=document.getElementById("employerJobForm");
+    form.reset();
+    employerEditingJobId=jobId;
+    populateEmployerJobCategories();
+    document.getElementById("employerJobFormTitle").textContent=jobId?"تعديل الوظيفة":"نشر وظيفة جديدة";
+    document.getElementById("saveEmployerJobBtn").textContent=jobId?"حفظ التعديلات":"حفظ وإرسال للمراجعة";
+    document.getElementById("employerJobFormMessage").textContent="";
+    if(jobId) {
+      const {data:job,error}=await supabaseClient.from("jobs")
+        .select("id,title,description,location,employment_type,category_id,specialty_id,salary_min,salary_max,currency,status")
+        .eq("id",jobId).eq("company_id",employerDashboardCompany.id).single();
+      if(error) throw error;
+      if(job.status!=="pending") throw new Error("يمكن تعديل الوظائف التي ما زالت قيد المراجعة فقط.");
+      document.getElementById("employerJobTitle").value=job.title||"";
+      document.getElementById("employerJobDescription").value=job.description||"";
+      document.getElementById("employerJobLocation").value=job.location||"";
+      document.getElementById("employerJobType").value=job.employment_type||"full_time";
+      document.getElementById("employerJobSalaryMin").value=job.salary_min??"";
+      document.getElementById("employerJobSalaryMax").value=job.salary_max??"";
+      document.getElementById("employerJobCurrency").value=job.currency||"SDG";
+      populateEmployerJobCategories(job.category_id,job.specialty_id);
     }
-    employerDashboardCompany = company;
-    if (button) button.style.display = "inline-flex";
-    const statusLabel = employerCompanyStatusLabel(company.status);
-    const statusColor = company.status === "verified" ? "#087a4b" : company.status === "rejected" || company.status === "suspended" ? "#a33b32" : "#946200";
-    if (card) card.innerHTML = '<article style="background:#fff;border:1px solid #e5eee8;border-radius:14px;padding:18px;margin-top:12px">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">' + escapeAdminHtml(company.company_name) + '</h3>' +
-      '<span class="tag" style="color:' + statusColor + '">' + escapeAdminHtml(statusLabel) + '</span></div>' +
-      '<p class="muted" style="line-height:1.8">' + escapeAdminHtml(company.description || "لا يوجد وصف مضاف لجهة العمل.") + '</p>' +
-      (company.website ? '<p><a href="' + escapeAdminHtml(company.website) + '" target="_blank" rel="noopener noreferrer">الموقع الإلكتروني</a></p>' : '') +
-      '<small class="muted">تاريخ التسجيل: ' + escapeAdminHtml(new Date(company.created_at).toLocaleDateString("ar")) + '</small></article>';
-    if (company.status !== "verified") {
-      const guidance = company.status === "pending" ? "طلب تسجيل جهة العمل قيد المراجعة. ستتمكن من نشر الوظائف بعد اعتماد الشركة."
-        : company.status === "rejected" ? "تم رفض طلب الشركة. يرجى التواصل مع إدارة وظيفتي لمعرفة الخطوات التالية."
-        : "حساب جهة العمل موقوف حالياً. يرجى التواصل مع إدارة وظيفتي.";
-      if (message) message.textContent = guidance;
-      return;
-    }
-    if (message) message.textContent = "الشركة معتمدة. يمكنك متابعة وظائف جهة العمل من هذه اللوحة.";
-    const {data: jobs, error: jobsError} = await supabaseClient.from("jobs")
-      .select("id,title,status,location,created_at").eq("company_id", company.id).order("created_at", {ascending:false});
-    if (jobsError) throw jobsError;
-    const jobRows = jobs || [];
-    const counts = {total:jobRows.length,published:jobRows.filter(j=>j.status==="published").length,pending:jobRows.filter(j=>j.status==="pending").length,closed:jobRows.filter(j=>j.status==="closed").length};
-    if (stats) {
-      stats.style.display = "grid";
-      stats.innerHTML = [["إجمالي الوظائف",counts.total],["منشورة",counts.published],["قيد المراجعة",counts.pending],["مغلقة",counts.closed]]
-        .map(([label,value])=>'<div style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px"><div class="muted" style="font-size:13px">'+label+'</div><strong style="font-size:24px;color:#064e35">'+value+'</strong></div>').join("");
-    }
-    if (jobsPanel) jobsPanel.style.display = "block";
-    if (jobsList) jobsList.innerHTML = jobRows.length ? jobRows.map(job => {
-      const jobStatus = ({pending:"قيد المراجعة",published:"منشورة",closed:"مغلقة",rejected:"مرفوضة"})[job.status] || job.status;
-      return '<article style="background:#fff;border:1px solid #e5eee8;border-radius:10px;padding:14px;margin:9px 0">' +
-        '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>'+escapeAdminHtml(job.title)+'</strong><span class="tag">'+escapeAdminHtml(jobStatus)+'</span></div>' +
-        '<small class="muted">'+escapeAdminHtml(job.location || "الموقع غير محدد")+'</small></article>';
-    }).join("") : '<p class="muted" style="padding:14px;background:#fff;border-radius:10px">لا توجد وظائف مسجلة لهذه الشركة حتى الآن. سنضيف نموذج نشر الوظائف في الخطوة التالية.</p>';
-  } catch (error) {
-    console.error("Employer dashboard load failed:", error);
-    if (message) message.textContent = "تعذر تحميل لوحة صاحب العمل: " + (error.message || "خطأ غير معروف");
+    document.getElementById("employerJobFormBox").style.display="block";
+    document.getElementById("employerJobFormBox").scrollIntoView({behavior:"smooth",block:"start"});
+  } catch(error) {
+    toast("تعذر فتح نموذج الوظيفة: "+(error.message||""));
   }
 }
 
+document.getElementById("employerJobForm")?.addEventListener("submit",async event=>{
+  event.preventDefault();
+  if(!currentAuthUser || !employerDashboardCompany) return;
+  const button=document.getElementById("saveEmployerJobBtn");
+  const message=document.getElementById("employerJobFormMessage");
+  const minRaw=document.getElementById("employerJobSalaryMin").value;
+  const maxRaw=document.getElementById("employerJobSalaryMax").value;
+  const salaryMin=minRaw===""?null:Number(minRaw);
+  const salaryMax=maxRaw===""?null:Number(maxRaw);
+  if(salaryMin!==null && salaryMax!==null && salaryMax<salaryMin) {
+    message.textContent="الحد الأعلى للراتب يجب أن يساوي الحد الأدنى أو يتجاوزه.";
+    return;
+  }
+  const payload={
+    company_id:employerDashboardCompany.id,
+    title:document.getElementById("employerJobTitle").value.trim(),
+    description:document.getElementById("employerJobDescription").value.trim(),
+    location:document.getElementById("employerJobLocation").value.trim()||null,
+    employment_type:document.getElementById("employerJobType").value,
+    category_id:document.getElementById("employerJobCategory").value||null,
+    specialty_id:document.getElementById("employerJobSpecialty").value||null,
+    salary_min:salaryMin,salary_max:salaryMax,
+    currency:document.getElementById("employerJobCurrency").value
+  };
+  if(!payload.title||!payload.description||!payload.category_id||!payload.specialty_id) {
+    message.textContent="يرجى استكمال المسمى والوصف والتصنيف والتخصص.";
+    return;
+  }
+  button.disabled=true;
+  message.textContent="جارٍ حفظ الوظيفة وإرسالها للمراجعة...";
+  try {
+    let result;
+    if(employerEditingJobId) {
+      result=await supabaseClient.from("jobs").update(payload)
+        .eq("id",employerEditingJobId).eq("company_id",employerDashboardCompany.id);
+    } else {
+      result=await supabaseClient.from("jobs").insert({...payload,status:"pending"});
+    }
+    if(result.error) throw result.error;
+    toast(employerEditingJobId?"تم حفظ التعديلات.":"تم إرسال الوظيفة للمراجعة بنجاح.");
+    closeEmployerJobForm();
+    await loadEmployerDashboard();
+  } catch(error) {
+    console.error("Employer job save failed:",error);
+    message.textContent="تعذر حفظ الوظيفة: "+(error.message||"خطأ غير معروف");
+  } finally { button.disabled=false; }
+});
+
+async function deleteEmployerJob(jobId) {
+  if(!currentAuthUser || !employerDashboardCompany) return;
+  if(!confirm("هل أنت متأكد من حذف هذه الوظيفة؟ لا يمكن التراجع عن الحذف.")) return;
+  try {
+    const {error}=await supabaseClient.from("jobs").delete()
+      .eq("id",jobId).eq("company_id",employerDashboardCompany.id);
+    if(error) throw error;
+    toast("تم حذف الوظيفة.");
+    await loadEmployerDashboard();
+  } catch(error) {
+    toast("تعذر حذف الوظيفة: "+(error.message||""));
+  }
+}
+
+async function toggleEmployerApplications(jobId) {
+  if(!currentAuthUser || !employerDashboardCompany) return;
+  const target=document.getElementById("employerApplications-"+jobId);
+  if(!target) return;
+  if(employerViewingApplicationsFor===jobId && target.style.display==="block") {
+    target.style.display="none"; employerViewingApplicationsFor=null; return;
+  }
+  employerViewingApplicationsFor=jobId;
+  target.style.display="block";
+  target.innerHTML='<p class="muted">جارٍ تحميل طلبات التقديم...</p>';
+  try {
+    const {data:apps,error}=await supabaseClient.from("applications")
+      .select("id,candidate_id,cover_letter,status,created_at,cv_url")
+      .eq("job_id",jobId).order("created_at",{ascending:false});
+    if(error) throw error;
+    target.innerHTML=apps?.length?apps.map(app=>
+      '<article style="padding:12px;margin:8px 0;background:#fff;border:1px solid #e5eee8;border-radius:9px">'+
+      '<strong>طلب تقديم</strong><div class="muted">معرّف المتقدم: '+escapeAdminHtml(app.candidate_id)+'</div>'+
+      '<div class="muted">الحالة: '+escapeAdminHtml(app.status)+'</div>'+
+      (app.cover_letter?'<p style="white-space:pre-wrap;line-height:1.8">'+escapeAdminHtml(app.cover_letter)+'</p>':'')+
+      (app.cv_url?'<p><a href="'+escapeAdminHtml(app.cv_url)+'" target="_blank" rel="noopener noreferrer">رابط السيرة الذاتية</a></p>':'')+
+      '<small class="muted">'+escapeAdminHtml(new Date(app.created_at).toLocaleString("ar"))+'</small></article>'
+    ).join(""):'<p class="muted">لا توجد طلبات تقديم لهذه الوظيفة بعد.</p>';
+  } catch(error) {
+    target.innerHTML='<p class="muted">تعذر تحميل الطلبات: '+escapeAdminHtml(error.message||"")+'</p>';
+  }
+}
+
+async function loadEmployerDashboard() {
+  const message=document.getElementById("employerDashboardMessage");
+  const card=document.getElementById("employerCompanyCard");
+  const stats=document.getElementById("employerJobStats");
+  const jobsPanel=document.getElementById("employerJobsPanel");
+  const jobsList=document.getElementById("employerJobsList");
+  const button=document.getElementById("employerDashboardBtn");
+  if(!currentAuthUser) {
+    if(button) button.style.display="none";
+    if(message) message.textContent="يرجى تسجيل الدخول أولاً.";
+    return;
+  }
+  if(message) message.textContent="جارٍ تحميل بيانات جهة العمل...";
+  if(card) card.innerHTML="";
+  if(stats){stats.style.display="none";stats.innerHTML="";}
+  if(jobsPanel) jobsPanel.style.display="none";
+  if(jobsList) jobsList.innerHTML="";
+  closeEmployerJobForm();
+  try {
+    const {data:company,error}=await supabaseClient.from("companies")
+      .select("id,company_name,description,website,status,created_at")
+      .eq("owner_id",currentAuthUser.id).order("created_at",{ascending:false}).limit(1).maybeSingle();
+    if(error) throw error;
+    if(!company) {
+      employerDashboardCompany=null;
+      if(button) button.style.display="none";
+      if(message) message.textContent="لم تسجل جهة عمل بهذا الحساب بعد. يمكنك البدء من زر «أعلن عن وظيفة».";
+      return;
+    }
+    employerDashboardCompany=company;
+    if(button) button.style.display="inline-flex";
+    const statusLabel=employerCompanyStatusLabel(company.status);
+    const statusColor=company.status==="verified"?"#087a4b":company.status==="rejected"||company.status==="suspended"?"#a33b32":"#946200";
+    if(card) card.innerHTML='<article style="background:#fff;border:1px solid #e5eee8;border-radius:14px;padding:18px;margin-top:12px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">'+escapeAdminHtml(company.company_name)+'</h3>'+
+      '<span class="tag" style="color:'+statusColor+'">'+escapeAdminHtml(statusLabel)+'</span></div>'+
+      '<p class="muted" style="line-height:1.8">'+escapeAdminHtml(company.description||"لا يوجد وصف مضاف لجهة العمل.")+'</p>'+
+      (company.website?'<p><a href="'+escapeAdminHtml(company.website)+'" target="_blank" rel="noopener noreferrer">الموقع الإلكتروني</a></p>':'')+
+      '<small class="muted">تاريخ التسجيل: '+escapeAdminHtml(new Date(company.created_at).toLocaleDateString("ar"))+'</small></article>';
+    if(company.status!=="verified") {
+      const guidance=company.status==="pending"?"طلب تسجيل جهة العمل قيد المراجعة. ستتمكن من نشر الوظائف بعد اعتماد الشركة."
+        :company.status==="rejected"?"تم رفض طلب الشركة. يرجى التواصل مع إدارة وظيفتي لمعرفة الخطوات التالية."
+        :"حساب جهة العمل موقوف حالياً. يرجى التواصل مع إدارة وظيفتي.";
+      if(message) message.textContent=guidance;
+      return;
+    }
+    if(message) message.textContent="الشركة معتمدة. يمكنك إدارة الوظائف ومتابعة طلبات التقديم.";
+    const {data:jobs,error:jobsError}=await supabaseClient.from("jobs")
+      .select("id,title,status,location,created_at,category_id,specialty_id")
+      .eq("company_id",company.id).order("created_at",{ascending:false});
+    if(jobsError) throw jobsError;
+    const rows=jobs||[];
+    const counts={total:rows.length,published:rows.filter(j=>j.status==="published").length,pending:rows.filter(j=>j.status==="pending").length,closed:rows.filter(j=>j.status==="closed").length};
+    if(stats) {
+      stats.style.display="grid";
+      stats.innerHTML=[["إجمالي الوظائف",counts.total],["منشورة",counts.published],["قيد المراجعة",counts.pending],["مغلقة",counts.closed]]
+        .map(([label,value])=>'<div style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px"><div class="muted" style="font-size:13px">'+label+'</div><strong style="font-size:24px;color:#064e35">'+value+'</strong></div>').join("");
+    }
+    if(jobsPanel) jobsPanel.style.display="block";
+    if(jobsList) jobsList.innerHTML=rows.length?rows.map(job=>{
+      const canEdit=job.status==="pending";
+      const canDelete=["pending","closed","rejected"].includes(job.status);
+      return '<article style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px;margin:10px 0">'+
+        '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>'+escapeAdminHtml(job.title)+'</strong><span class="tag">'+escapeAdminHtml(employerJobStatusLabel(job.status))+'</span></div>'+
+        '<div class="muted" style="margin:8px 0">'+escapeAdminHtml(job.location||"الموقع غير محدد")+'</div>'+
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
+        (canEdit?'<button class="btn outline small" type="button" onclick="openEmployerJobForm(\''+job.id+'\')">تعديل</button>':'')+
+        (canDelete?'<button class="btn outline small" type="button" onclick="deleteEmployerJob(\''+job.id+'\')">حذف</button>':'')+
+        (job.status==="published"?'<button class="btn primary small" type="button" onclick="toggleEmployerApplications(\''+job.id+'\')">طلبات التقديم</button>':'')+
+        '</div><div id="employerApplications-'+job.id+'" style="display:none;margin-top:12px"></div></article>';
+    }).join(""):'<p class="muted" style="padding:14px;background:#fff;border-radius:10px">لا توجد وظائف بعد. استخدم «نشر وظيفة» لإضافة أول فرصة.</p>';
+  } catch(error) {
+    console.error("Employer dashboard load failed:",error);
+    if(message) message.textContent="تعذر تحميل لوحة صاحب العمل: "+(error.message||"خطأ غير معروف");
+  }
+}
 function openEmployerDashboard() {
   if (!currentAuthUser) { toast("يرجى تسجيل الدخول أولاً."); openLogin(); return; }
   const panel = document.getElementById("employerDashboard");

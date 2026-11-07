@@ -1,0 +1,1849 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>وظيفتي | Wazifti</title>
+<meta name="description" content="منصة وظيفتي السودانية للبحث عن فرص العمل.">
+<meta name="wazifti-version" content="1.6.2">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+  --g: #087a4b;
+  --d: #064e35;
+  --mint: #e9f6ee;
+  --ink: #17372a;
+  --muted: #738279;
+  --line: #e5eee8;
+  --bg: #f5f8f6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Tahoma, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+header {
+  background: white;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  box-shadow: 0 3px 15px #123d2b08;
+}
+
+.nav {
+  max-width: 1150px;
+  margin: auto;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 25px;
+  font-weight: 900;
+  color: var(--g);
+}
+
+.logo {
+  width: 44px;
+  height: 44px;
+  background: var(--g);
+  color: white;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+}
+
+nav {
+  display: flex;
+  gap: 25px;
+  font-size: 14px;
+}
+
+nav a {
+  color: #52645a;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+nav a:hover {
+  color: var(--g);
+}
+
+.actions {
+  display: flex;
+  gap: 9px;
+}
+
+.btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 17px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: .2s;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.primary {
+  background: var(--g);
+  color: white;
+  box-shadow: 0 4px 12px #087a4b25;
+}
+
+.outline {
+  background: white;
+  border: 1px solid #b9d7c5;
+  color: var(--g);
+}
+
+.hero {
+  background: linear-gradient(125deg, #e3f4e9, #f8fcf9 70%);
+  padding: 65px 20px 55px;
+}
+
+.hero-inner {
+  max-width: 1150px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1.2fr .8fr;
+  align-items: center;
+  gap: 35px;
+}
+
+h1 {
+  font-size: 42px;
+  line-height: 1.5;
+  margin: 0 0 15px;
+  color: #123d2b;
+  font-weight: 900;
+}
+
+.hero p {
+  color: #5e7167;
+  font-size: 16px;
+  line-height: 2;
+  margin-bottom: 25px;
+}
+
+.search {
+  background: white;
+  padding: 9px;
+  border: 1px solid #dcebe1;
+  border-radius: 15px;
+  display: flex;
+  gap: 8px;
+  max-width: 680px;
+  box-shadow: 0 10px 30px #174d3010;
+}
+
+.search input {
+  border: 0;
+  outline: 0;
+  padding: 13px;
+  min-width: 0;
+  flex: 1;
+  font: 14px Tahoma, Arial;
+}
+
+.art {
+  background: white;
+  border: 1px solid #dcece2;
+  border-radius: 25px;
+  padding: 35px;
+  text-align: center;
+  box-shadow: 0 15px 40px #174d3010;
+}
+
+.articon {
+  font-size: 75px;
+}
+
+.stats {
+  display: flex;
+  gap: 30px;
+  margin-top: 25px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.stats b {
+  display: block;
+  color: var(--g);
+  font-size: 23px;
+  margin-bottom: 5px;
+}
+
+.wrap {
+  max-width: 1150px;
+  margin: 45px auto;
+  padding: 0 20px;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.head h2 {
+  margin: 0;
+  font-size: 25px;
+  color: var(--d);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 235px 1fr;
+  gap: 22px;
+}
+
+.filters,
+.job,
+.empty {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.filters {
+  padding: 20px;
+  height: max-content;
+}
+
+.filters h3 {
+  margin-top: 0;
+}
+
+.group {
+  border-top: 1px solid var(--line);
+  padding: 15px 0;
+}
+
+.group strong {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.group label {
+  display: flex;
+  gap: 9px;
+  margin: 11px 0;
+  color: #627269;
+  font-size: 13px;
+}
+
+.group input {
+  accent-color: var(--g);
+}
+
+.list {
+  display: grid;
+  gap: 15px;
+}
+
+.job {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  transition: .2s;
+}
+
+.job:hover {
+  border-color: #a9d4b9;
+  box-shadow: 0 8px 25px #174d3010;
+  transform: translateY(-2px);
+}
+
+.company {
+  display: flex;
+  gap: 14px;
+}
+
+.icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--mint);
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.job h3 {
+  margin: 2px 0 8px;
+  font-size: 17px;
+  color: var(--d);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.meta {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.tag {
+  display: inline-block;
+  background: var(--mint);
+  color: var(--g);
+  padding: 6px 11px;
+  border-radius: 8px;
+  font-size: 11px;
+  margin-top: 11px;
+  font-weight: bold;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.salary {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--g);
+  white-space: nowrap;
+}
+
+.small {
+  padding: 10px 14px;
+  font-size: 12px;
+}
+
+footer {
+  margin-top: 55px;
+  background: #103d2a;
+  color: #d7e9de;
+  padding: 35px 20px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 2;
+}
+
+.modalbg {
+  position: fixed;
+  inset: 0;
+  background: #10291dcc;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 10;
+}
+
+.modal {
+  background: white;
+  border-radius: 18px;
+  max-width: 520px;
+  width: 100%;
+  padding: 25px;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.close {
+  float: inline-end;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 11px;
+  cursor: pointer;
+}
+
+.toast {
+  position: fixed;
+  bottom: 18px;
+  left: 18px;
+  background: #123d2b;
+  color: white;
+  padding: 13px 18px;
+  border-radius: 10px;
+  display: none;
+  z-index: 20;
+}
+
+[dir="ltr"] .side {
+  align-items: flex-start;
+}
+
+[dir="ltr"] .toast {
+  left: auto;
+  right: 18px;
+}
+
+@media(max-width:760px) {
+  nav {
+    display: none;
+  }
+
+  .hero {
+    padding: 40px 16px;
+  }
+
+  .hero-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .art {
+    display: none;
+  }
+
+  h1 {
+    font-size: 30px;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .filters {
+    display: block;
+  }
+
+  .job {
+    padding: 15px;
+  }
+
+  .search {
+    flex-wrap: wrap;
+  }
+
+  .search input {
+    flex-basis: 40%;
+  }
+
+  .nav {
+    padding: 11px 14px;
+  }
+
+  .brand {
+    font-size: 21px;
+  }
+
+  .actions .outline {
+    display: none;
+  }
+
+  .stats {
+    gap: 18px;
+  }
+
+  .head h2 {
+    font-size: 20px;
+  }
+} @media (max-width: 760px) {
+  .nav {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .brand {
+    font-size: 20px;
+  }
+
+  .actions {
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  #accountArea {
+    width: 100%;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #profileBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  #accountName {
+    max-width: 115px !important;
+  }
+
+  .actions .outline:not(#lang):not(#logoutBtn) {
+    display: none;
+  }
+
+  #logoutBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  #lang {
+    display: inline-block;
+  }
+
+  .hero {
+    padding: 28px 14px;
+  }
+
+  h1 {
+    font-size: 26px;
+  }
+
+  .search {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  .search input,
+  .search button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .stats {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .wrap {
+    padding: 0 14px;
+    margin: 24px auto;
+  }
+
+  .head h2 {
+    font-size: 20px;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .filters {
+    display: block;
+    padding: 14px;
+  }
+
+  .job {
+    flex-direction: column;
+    padding: 14px;
+  }
+
+  .side {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+  }
+
+  .btn {
+    min-height: 42px;
+  }
+}
+</style></head>
+<body>
+<header><div class="nav"><div class="brand"><div class="logo">و</div><span data-t="brand">وظيفتي</span></div>
+<nav><a href="#jobs" data-t="navJobs">الوظائف</a><a href="#how" data-t="navHow">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout">عن وظيفتي</a></nav>
+<div class="actions">
+<button class="btn outline" id="loginBtn" onclick="openLogin()">دخول</button>
+<button class="btn primary" id="signupBtn" onclick="openSignup()">إنشاء حساب</button>
+<div id="accountArea" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
+  <span id="accountName" style="font-size:13px;font-weight:700;color:var(--d);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+  <button class="btn primary small" id="profileBtn" type="button" onclick="openProfile()">ملفي الشخصي</button>
+  <button class="btn outline small" id="employerDashboardBtn" type="button" style="display:none" onclick="openEmployerDashboard()">لوحة صاحب العمل</button>
+   <button class="btn outline small" id="adminBtn" type="button" style="display:none" onclick="openAdminDashboard()">لوحة الإدارة</button>
+  <button class="btn outline small" id="logoutBtn" type="button" onclick="logoutUser()">تسجيل الخروج</button>
+</div>
+<button class="btn primary" onclick="openEmployerRegistration()" data-t="postJob">أعلن عن وظيفة</button>
+<button class="btn outline" id="lang" onclick="toggleLang()">EN</button>
+</div></div>
+</header>
+<section class="hero"><div class="hero-inner"><div><h1 data-t="headline">خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span></h1>
+<p data-t="sub">ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.</p>
+<div class="search"><input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة"><input id="city" data-ph="searchCity" placeholder="المدينة"><button class="btn primary" onclick="filterJobs()" data-t="search">ابحث عن وظيفة</button></div>
+<div class="stats"><span><b>+120</b><span data-t="statJobs">فرصة تجريبية</span></span><span><b>+35</b><span data-t="statEmployers">جهة عمل</span></span><span><b>18</b><span data-t="statCities">مدينة</span></span></div></div>
+<div class="art"><div class="articon">💼</div><h3 data-t="artTitle">وظيفتك القادمة أقرب مما تتوقع</h3><p class="muted" data-t="artSub">فرص في مختلف القطاعات والمجالات في السودان.</p></div></div></section>
+<main class="wrap" id="jobs"><div class="head"><h2 data-t="latest">أحدث فرص العمل</h2><span class="muted" id="count"></span></div>
+<div class="layout"><aside class="filters"><button class="btn outline" onclick="clearFilters()" style="width:100%;margin-bottom:12px">
+  مسح جميع الفلاتر
+</button> <h3 data-t="filters">تصفية النتائج</h3><div class="group"><strong data-t="jobType">نوع الوظيفة</strong><label><input type="checkbox" value="Full-time" onchange="filterJobs()"> <span data-t="full">دوام كامل</span></label><label><input type="checkbox" value="Part-time" onchange="filterJobs()"> <span data-t="part">دوام جزئي</span></label><label><input type="checkbox" value="Remote" onchange="filterJobs()"> <span data-t="remote">عن بُعد</span></label></div>
+<div class="group"><strong>التصنيف والتخصص</strong><label for="jobCategoryFilter">التصنيف الرئيسي</label><select id="jobCategoryFilter" onchange="onJobCategoryFilterChange()" style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="">كل التصنيفات</option></select><label for="jobSpecialtyFilter">التخصص الفرعي</label><select id="jobSpecialtyFilter" onchange="filterJobs()" disabled style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="">كل التخصصات</option></select></div><div class="group"><strong data-t="sector">المجال (قديم)</strong><label><input type="checkbox" value="Healthcare" onchange="filterJobs()"> <span data-t="health">طبي وصحي</span></label><label><input type="checkbox" value="Admin" onchange="filterJobs()"> <span data-t="admin">إداري</span></label><label><input type="checkbox" value="Tech" onchange="filterJobs()"> <span data-t="tech">تقنية المعلومات</span></label><label><input type="checkbox" value="Engineering" onchange="filterJobs()"> <span data-t="engineering">هندسي</span></label></div></aside><section class="list" id="list"></section></div></main>
+<section class="wrap" id="adminDashboard" style="display:none">
+  <div class="head"><h2>لوحة إدارة وظيفتي</h2><button class="btn outline" type="button" onclick="loadAdminCompanies()">تحديث القائمة</button></div>
+  <p class="muted">مراجعة طلبات تسجيل الشركات والتحقق من مستنداتها قبل اعتمادها.</p>
+  <div id="adminDashboardMessage" role="status" aria-live="polite" class="muted" style="margin:12px 0"></div>
+  <div id="adminCompaniesList"></div>
+</section>
+<section class="wrap" id="employerDashboard" style="display:none;margin-top:24px;margin-bottom:30px">
+  <div class="head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <div><h2 style="margin:0">لوحة صاحب العمل</h2><p class="muted" style="margin:6px 0 0">إدارة بيانات جهة العمل ومتابعة حالة طلبك ووظائفك.</p></div>
+    <button class="btn outline" type="button" onclick="loadEmployerDashboard()">تحديث البيانات</button>
+  </div>
+  <div id="employerDashboardMessage" role="status" aria-live="polite" class="muted" style="margin:14px 0">جارٍ تحميل بيانات جهة العمل...</div>
+  <div id="employerCompanyCard"></div>
+  <div id="employerJobStats" style="display:none;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:16px 0"></div>
+  <div id="employerJobsPanel" style="display:none;margin-top:18px">
+    <h3>وظائف جهة العمل</h3><p class="muted">ستظهر هنا الوظائف التي تنشرها الشركة وحالة مراجعتها.</p>
+    <div id="employerJobsList"></div>
+  </div>
+</section>
+<section class="wrap" id="how" style="text-align:center"><h2 data-t="howTitle">كيف تعمل وظيفتي؟</h2><p class="muted" data-t="howSub">ابحث عن الفرصة المناسبة ← اقرأ التفاصيل ← تواصل مع جهة العمل.</p></section>
+<footer id="about"><b data-t="brand">وظيفتي</b> — <span data-t="footerLine">منصة سودانية للبحث عن فرص العمل</span><br><span data-t="disclaimer">نموذج أولي؛ الوظائف المعروضة بيانات توضيحية وليست إعلانات حقيقية.</span></footer>
+<div class="modalbg" id="modalbg" onclick="if(event.target===this)closeModal()"><div class="modal"><button class="close" onclick="closeModal()" data-t="close">إغلاق ✕</button><div id="modalContent"></div></div></div><div class="toast" id="toastbox"></div>
+<script>
+const data=[
+{title:"أخصائي مختبرات طبية",en:"Medical Laboratory Specialist",company:"مركز النيل الطبي",companyEn:"Nile Medical Center",city:"الخرطوم",cityEn:"Khartoum",type:"Full-time",field:"Healthcare",salary:"حسب الخبرة",salaryEn:"Based on experience",icon:"🧪",desc:"المساهمة في إجراء الفحوصات المخبرية وضبط الجودة وإعداد التقارير. يشترط مؤهل في علوم المختبرات الطبية.",descEn:"Perform laboratory tests, support quality control and prepare reports. A degree in medical laboratory sciences is required."},
+{title:"مسؤول موارد بشرية",en:"Human Resources Officer",company:"مجموعة الأفق",companyEn:"Horizon Group",city:"أم درمان",cityEn:"Omdurman",type:"Full-time",field:"Admin",salary:"قابل للتفاوض",salaryEn:"Negotiable",icon:"👥",desc:"متابعة ملفات الموظفين وإجراءات التوظيف والحضور والإجازات.",descEn:"Maintain employee records and support recruitment, attendance and leave processes."},
+{title:"مطور واجهات ويب",en:"Frontend Web Developer",company:"حلول رقمية",companyEn:"Digital Solutions",city:"عن بُعد",cityEn:"Remote",type:"Remote",field:"Tech",salary:"حسب الاتفاق",salaryEn:"By agreement",icon:"💻",desc:"تطوير واجهات ويب متجاوبة والعمل مع فريق تقني على تحسين تجربة المستخدم.",descEn:"Build responsive web interfaces and collaborate with a team to improve user experience."},
+{title:"مهندس مدني",en:"Civil Engineer",company:"شركة البناء الحديث",companyEn:"Modern Construction Co.",city:"بورتسودان",cityEn:"Port Sudan",type:"Full-time",field:"Engineering",salary:"يحدد بعد المقابلة",salaryEn:"After interview",icon:"🏗️",desc:"الإشراف على تنفيذ الأعمال ومتابعة الجودة والجدول الزمني للمشروعات.",descEn:"Supervise project execution and monitor quality and project schedules."},
+{title:"مساعد إداري",en:"Administrative Assistant",company:"منظمة تنمية المجتمع",companyEn:"Community Development Organization",city:"كسلا",cityEn:"Kassala",type:"Part-time",field:"Admin",salary:"مكافأة شهرية",salaryEn:"Monthly stipend",icon:"📋",desc:"تنظيم المراسلات والاجتماعات وإدخال البيانات ومساندة الفريق الإداري.",descEn:"Organize correspondence and meetings, enter data and support the administration team."},
+{title:"فني صيدلة",en:"Pharmacy Technician",company:"صيدليات الشفاء",companyEn:"Al Shifa Pharmacies",city:"مدني",cityEn:"Wad Madani",type:"Full-time",field:"Healthcare",salary:"قابل للتفاوض",salaryEn:"Negotiable",icon:"💊",desc:"تنظيم الأدوية ومتابعة المخزون وخدمة العملاء تحت إشراف الصيدلي.",descEn:"Organize medicines, monitor stock and assist customers under pharmacist supervision."}
+];
+let lang="ar";let T={};
+// Public browser configuration. The publishable key is safe to expose only with correct Supabase RLS policies.
+const SUPABASE_URL = "https://zaucmxoxgpmipizzhbqs.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_g-HmAZw_pmn6wQy41JjUug_VqrVrJsq";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const demoData = data.slice();
+function mapLiveJob(row){
+  const company = Array.isArray(row.companies) ? row.companies[0] : row.companies;
+  const typeMap = {full_time:"Full-time",fulltime:"Full-time",part_time:"Part-time",parttime:"Part-time",remote:"Remote",contract:"Part-time",temporary:"Part-time",internship:"Part-time"};
+  const category = (row.category || "").toLowerCase();
+  const field = /health|medical|healthcare|طبي|صحي/.test(category) ? "Healthcare" : /admin|human|إدار/.test(category) ? "Admin" : /tech|it|تقن/.test(category) ? "Tech" : /engineer|هندس/.test(category) ? "Engineering" : "Admin";
+  const salary = row.salary_min != null || row.salary_max != null ? `${row.salary_min ?? ""}${row.salary_min != null && row.salary_max != null ? " - " : ""}${row.salary_max ?? ""} ${row.currency || ""}`.trim() : "حسب الاتفاق";
+  return {id:row.id,categoryId:row.category_id||null,specialtyId:row.specialty_id||null,title:row.title||"",en:row.title_en||row.title||"",company:company?.name||company?.company_name||"جهة العمل",companyEn:company?.name_en||company?.company_name||"Employer",city:row.city||row.state||row.location||"غير محدد",cityEn:row.city||row.state||row.location||"Not specified",type:typeMap[String(row.employment_type||"").toLowerCase().replace(/[ -]/g,"_")]||"Full-time",field,salary,salaryEn:salary,icon:"💼",desc:row.description||"",descEn:row.description_en||row.description||""};
+}
+async function loadLiveJobs(){
+  try {
+    const {data:rows,error} = await supabaseClient.from("jobs").select("*, companies(company_name)").eq("status","published").order("created_at",{ascending:false});
+    if(error) throw error;
+    data.splice(0,data.length,...(rows||[]).map(mapLiveJob));
+    filterJobs();
+    const disclaimer=document.querySelector('[data-t="disclaimer"]');
+    if(disclaimer) disclaimer.textContent=lang==="ar"?"الوظائف المعروضة منشورة من قاعدة بيانات وظيفتي.":"Jobs shown are published from the Wazifti database.";
+  } catch(error) {
+    console.error("Supabase jobs load failed:",error);
+    data.splice(0,data.length,...demoData);
+    filterJobs();
+    const disclaimer=document.querySelector('[data-t="disclaimer"]');
+    if(disclaimer) disclaimer.textContent=lang==="ar"?"تعذر تحميل الوظائف الحقيقية؛ المعروض حالياً بيانات تجريبية.":"Live jobs could not be loaded; sample listings are shown.";
+  }
+}
+const words={
+ar:{brand:"وظيفتي",navJobs:"الوظائف",navHow:"كيف تعمل المنصة؟",navAbout:"عن وظيفتي",login:"دخول",signup:"إنشاء حساب",logout:"تسجيل الخروج",profile:"ملفي الشخصي",postJob:"أعلن عن وظيفة",headline:'خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span>',sub:"ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.",searchJob:"المسمى الوظيفي أو المهارة",searchCity:"المدينة",search:"ابحث عن وظيفة",statJobs:"فرصة تجريبية",statEmployers:"جهة عمل",statCities:"مدينة",artTitle:"وظيفتك القادمة أقرب مما تتوقع",artSub:"فرص في مختلف القطاعات والمجالات في السودان.",latest:"أحدث فرص العمل",filters:"تصفية النتائج",jobType:"نوع الوظيفة",full:"دوام كامل",part:"دوام جزئي",remote:"عن بُعد",sector:"المجال",health:"طبي وصحي",admin:"إداري",tech:"تقنية المعلومات",engineering:"هندسي",howTitle:"كيف تعمل وظيفتي؟",howSub:"ابحث عن الفرصة المناسبة ← اقرأ التفاصيل ← تواصل مع جهة العمل.",footerLine:"منصة سودانية للبحث عن فرص العمل",disclaimer:"نموذج أولي؛ الوظائف المعروضة بيانات توضيحية وليست إعلانات حقيقية.",close:"إغلاق ✕",details:"تفاصيل الوظيفة",company:"جهة العمل",location:"الموقع",type:"نوع العمل",salary:"الراتب",description:"وصف الوظيفة",apply:"تقديم تجريبي",empty:"لا توجد وظائف مطابقة لبحثك.",loginSoon:"ميزة تسجيل الدخول ستكون متاحة قريباً",employerSoon:"نموذج تسجيل صاحب العمل سيكون متاحاً قريباً",demo:"هذه وظيفة تجريبية؛ التقديم الإلكتروني غير مفعّل بعد",count:"وظائف معروضة"},
+en:{brand:"Wazifti",navJobs:"Jobs",navHow:"How it works",navAbout:"About Wazifti",login:"Log in",signup:"Create account",logout:"Log out",profile:"My profile",postJob:"Post a job",headline:'Your first step toward<br><span style="color:var(--g)">a better opportunity</span>',sub:"Find suitable jobs across Sudan and connect with employers in one place.",searchJob:"Job title or skill",searchCity:"City",search:"Find jobs",statJobs:"sample jobs",statEmployers:"employers",statCities:"cities",artTitle:"Your next opportunity is closer than you think",artSub:"Opportunities across sectors and industries in Sudan.",latest:"Latest opportunities",filters:"Filter results",jobType:"Job type",full:"Full-time",part:"Part-time",remote:"Remote",sector:"Sector",health:"Healthcare",admin:"Administration",tech:"Technology",engineering:"Engineering",howTitle:"How does Wazifti work?",howSub:"Find an opportunity ← Review the details ← Contact the employer.",footerLine:"A Sudanese job-search platform",disclaimer:"Prototype only; listed jobs are illustrative, not real vacancies.",close:"Close ✕",details:"Job details",company:"Employer",location:"Location",type:"Job type",salary:"Salary",description:"Description",apply:"Demo application",empty:"No jobs match your search.",loginSoon:"Login will be available soon",employerSoon:"Employer registration will be available soon",demo:"This is a sample job; online applications are not enabled yet",count:"jobs shown"}};
+function updateTexts(){T=words[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";document.querySelectorAll("[data-t]").forEach(e=>e.innerHTML=T[e.dataset.t]);document.querySelectorAll("[data-ph]").forEach(e=>e.placeholder=T[e.dataset.ph]);document.getElementById("lang").textContent=lang==="ar"?"EN":"عربي";const lb=document.getElementById("loginBtn");if(lb)lb.textContent=T.login;const sb=document.getElementById("signupBtn");if(sb)sb.textContent=T.signup;const ob=document.getElementById("logoutBtn");if(ob)ob.textContent=T.logout;const pb=document.getElementById("profileBtn");if(pb)pb.textContent=T.profile;filterJobs()}
+function toggleLang(){lang=lang==="ar"?"en":"ar";updateTexts()}
+function typeName(t){return T[t==="Full-time"?"full":t==="Part-time"?"part":"remote"]}
+function fieldName(f){return T[f==="Healthcare"?"health":f==="Admin"?"admin":f==="Tech"?"tech":"engineering"]}
+function render(items){document.getElementById("list").innerHTML=items.length?items.map(j=>`<article class="job"><div class="company"><div class="icon">${j.icon}</div><div><h3>${lang==="ar"?j.title:j.en}</h3><div class="muted">${lang==="ar"?j.company:j.companyEn}</div><div class="meta"><span>📍 ${lang==="ar"?j.city:j.cityEn}</span><span>◷ ${typeName(j.type)}</span></div><span class="tag">${fieldName(j.field)}</span></div></div><div class="side"><span class="salary">${lang==="ar"?j.salary:j.salaryEn}</span><button class="btn primary small" onclick="showJob(${data.indexOf(j)})">${T.details}</button></div></article>`).join(""):`<div class="empty" style="padding:28px;text-align:center;color:#718078">${T.empty}</div>`;document.getElementById("count").textContent=items.length+" "+T.count}
+function showJob(i){let j=data[i];document.getElementById("modalContent").innerHTML=`<div style="font-size:34px">${j.icon}</div><h2>${lang==="ar"?j.title:j.en}</h2><p class="muted">${lang==="ar"?j.company:j.companyEn}</p><p><b>${T.location}:</b> ${lang==="ar"?j.city:j.cityEn}</p><p><b>${T.type}:</b> ${typeName(j.type)}</p><p><b>${T.salary}:</b> ${lang==="ar"?j.salary:j.salaryEn}</p><hr style="border:0;border-top:1px solid #e5eee8"><h3>${T.description}</h3><p style="line-height:1.9">${lang==="ar"?j.desc:j.descEn}</p><button class="btn primary" onclick="toast(T.demo);closeModal()">${T.apply}</button>`;document.getElementById("modalbg").style.display="flex"}
+function closeModal(){document.getElementById("modalbg").style.display="none"}
+function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
+updateTexts();
+loadWaziftiTaxonomy().then(loadJobCategoryFilters).catch(error=>console.error("Taxonomy load failed:",error));
+loadLiveJobs();
+  function filterJobs(){
+  const q = document.getElementById("q").value.toLowerCase().trim();
+  const c = document.getElementById("city").value.toLowerCase().trim();
+
+  const checked = [...document.querySelectorAll(".filters input:checked")];
+
+  const types = checked
+    .map(x => x.value)
+    .filter(x => ["Full-time", "Part-time", "Remote"].includes(x));
+
+  const fields = checked
+    .map(x => x.value)
+    .filter(x => ["Healthcare", "Admin", "Tech", "Engineering"].includes(x));
+  const selectedCategory = document.getElementById("jobCategoryFilter")?.value || "";
+  const selectedSpecialty = document.getElementById("jobSpecialtyFilter")?.value || "";
+
+  const results = data.filter(j => {
+    const jobText = [
+      j.title, j.en, j.company, j.companyEn,
+      j.field, j.desc
+    ].join(" ").toLowerCase();
+
+    const cityText = [j.city, j.cityEn].join(" ").toLowerCase();
+
+    const matchesSearch = !q || jobText.includes(q);
+    const matchesCity = !c || cityText.includes(c);
+    const matchesType = types.length === 0 || types.includes(j.type);
+    const matchesField = fields.length === 0 || fields.includes(j.field);
+    const matchesCategory = !selectedCategory || j.categoryId === selectedCategory;
+    const matchesSpecialty = !selectedSpecialty || j.specialtyId === selectedSpecialty;
+
+    return matchesSearch && matchesCity && matchesType && matchesField && matchesCategory && matchesSpecialty;
+  });
+
+  render(results);
+} function clearFilters(){
+  document.getElementById("q").value = "";
+  document.getElementById("city").value = "";
+  const categoryFilter=document.getElementById("jobCategoryFilter");
+  const specialtyFilter=document.getElementById("jobSpecialtyFilter");
+  if(categoryFilter) categoryFilter.value="";
+  if(specialtyFilter){specialtyFilter.innerHTML='<option value="">كل التخصصات</option>';specialtyFilter.disabled=true;}
+
+  document.querySelectorAll(".filters input").forEach(input => {
+    input.checked = false;
+  });
+
+  filterJobs();
+}
+</script>
+<div id="signupModal" class="modal" style="display:none;" onclick="if(event.target===this)closeSignup()">
+  <div class="modal-content">
+    <button onclick="closeSignup()" class="close-btn">&times;</button>
+
+    <h2>إنشاء حساب جديد</h2>
+    <p>انضم إلى منصة وظيفتي</p>
+
+    <form id="signupForm">
+      <label>الاسم الكامل</label>
+      <input type="text" id="signupName" placeholder="أدخل اسمك الكامل" required>
+
+      <label>البريد الإلكتروني</label>
+      <input type="email" id="signupEmail" placeholder="example@email.com" required>
+
+      <label>كلمة المرور</label>
+      <input type="password" id="signupPassword" placeholder="6 أحرف على الأقل" minlength="6" required>
+
+      <label>تأكيد كلمة المرور</label>
+      <input type="password" id="confirmPassword" placeholder="أعد كتابة كلمة المرور" required>
+
+      <button type="submit" class="btn primary" style="width:100%;margin-top:15px;">
+        إنشاء الحساب
+      </button>
+
+      <p id="signupMessage"></p>
+    </form>
+  </div>
+</div>
+<div id="loginModal" class="modal" style="display:none;" onclick="if(event.target===this)closeLogin()">
+  <div class="modal-content">
+    <button onclick="closeLogin()" class="close-btn">&times;</button>
+
+    <h2>تسجيل الدخول</h2>
+    <p>مرحباً بعودتك إلى وظيفتي</p>
+
+    <form id="loginForm" autocomplete="off">
+      <label>البريد الإلكتروني</label>
+      <input type="email" id="loginEmail" placeholder="example@email.com" autocomplete="off" autocapitalize="none" required>
+
+      <label>كلمة المرور</label>
+      <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور" autocomplete="new-password" required>
+
+      <button type="submit" class="btn primary" style="width:100%;margin-top:15px;">
+        دخول
+      </button>
+
+      <p id="loginMessage"></p>
+    </form>
+  </div>
+</div>
+
+
+
+<div id="employerRegistrationModal" class="modalbg" onclick="if(event.target===this)closeEmployerRegistration()">
+  <div class="modal employer-modal">
+    <button class="close" type="button" onclick="closeEmployerRegistration()">إغلاق ✕</button>
+    <h2 id="employerFormTitle">تسجيل جهة العمل</h2>
+    <p id="employerFormIntro" class="muted">أدخل بيانات شركتك لإرسالها للمراجعة والتحقق.</p>
+    <form id="employerRegistrationForm">
+      <label id="employerCompanyNameLabel" for="employerCompanyName">اسم الشركة / المؤسسة *</label>
+      <input id="employerCompanyName" type="text" maxlength="150" required autocomplete="organization">
+      <label id="employerWebsiteLabel" for="employerWebsite">الموقع الإلكتروني (اختياري)</label>
+      <input id="employerWebsite" type="url" maxlength="250" placeholder="https://example.com">
+      <label id="employerDescriptionLabel" for="employerDescription">نبذة عن الشركة (اختياري)</label>
+      <textarea id="employerDescription" rows="4" maxlength="1200"></textarea>
+      <label id="employerDocumentLabel" for="employerDocumentFile">مستند تسجيل الشركة (PDF، حتى 5 ميجابايت) *</label>
+      <input id="employerDocumentFile" type="file" accept="application/pdf,.pdf" required>
+      <p id="employerDocumentHint" class="muted">يُقبل ملف PDF فقط، بحد أقصى 5 ميجابايت.</p>
+      <p id="employerRegistrationMessage" role="status" aria-live="polite"></p>
+      <button id="employerRegistrationSubmit" type="submit" class="btn primary" style="width:100%;margin-top:12px">إرسال الطلب والمستند</button>
+    </form>
+  </div>
+</div>
+<style>
+#employerRegistrationModal .employer-modal {max-width:520px}
+#employerRegistrationModal label {display:block;margin:12px 0 6px;font-weight:700;font-size:14px}
+#employerRegistrationModal input,#employerRegistrationModal textarea {
+  display:block;width:100%;padding:12px;margin:6px 0 14px;border:1px solid #d7e4dc;border-radius:9px;
+  box-sizing:border-box;font:inherit;background:#fff;color:#17372a
+}
+#employerRegistrationModal textarea {resize:vertical}
+#employerRegistrationModal input:focus,#employerRegistrationModal textarea:focus {outline:2px solid #b8dec7;border-color:#087a4b}
+#employerRegistrationMessage {line-height:1.8;font-size:14px}
+</style>
+
+<div id="profileModal" class="modal" style="display:none;" onclick="if(event.target===this)closeProfile()">
+  <div class="modal-content">
+    <button onclick="closeProfile()" class="close-btn" aria-label="Close">&times;</button>
+    <h2 id="profileTitle">الملف الشخصي</h2>
+    <p id="profileIntro">أكمل بياناتك لتسهيل تواصلك مع أصحاب العمل.</p>
+    <form id="profileForm">
+      <label id="profileNameLabel" for="profileName">الاسم الكامل</label>
+      <input id="profileName" type="text" maxlength="100" autocomplete="name" required>
+      <label id="profileEmailLabel" for="profileEmail">البريد الإلكتروني</label>
+      <input id="profileEmail" type="email" disabled>
+      <label id="profilePhoneLabel" for="profilePhone">رقم الهاتف</label>
+      <input id="profilePhone" type="tel" maxlength="30" autocomplete="tel" placeholder="+249">
+      <label id="profileStateLabel" for="profileState">الولاية</label>
+      <select id="profileState">
+        <option value="">اختر الولاية</option>
+        <option>الخرطوم</option><option>الجزيرة</option><option>البحر الأحمر</option><option>كسلا</option>
+        <option>القضارف</option><option>سنار</option><option>النيل الأبيض</option><option>النيل الأزرق</option>
+        <option>نهر النيل</option><option>الشمالية</option><option>شمال كردفان</option><option>جنوب كردفان</option>
+        <option>غرب كردفان</option><option>شمال دارفور</option><option>جنوب دارفور</option><option>غرب دارفور</option>
+        <option>وسط دارفور</option><option>شرق دارفور</option>
+      </select>
+      <label id="profileCityLabel" for="profileCity">المدينة / المنطقة</label>
+      <input id="profileCity" type="text" maxlength="80">
+      <label id="profileCategoryLabel" for="profileCategory">التصنيف الرئيسي</label>
+      <select id="profileCategory" required><option value="">اختر التصنيف الرئيسي</option></select>
+      <label id="profileSpecialtyLabel" for="profileSpecialty">التخصص الفرعي</label>
+      <select id="profileSpecialty" required disabled><option value="">اختر التخصص الفرعي</option></select>
+      <label id="profileQualificationLabel" for="profileQualification">المؤهل العلمي</label>
+      <input id="profileQualification" type="text" maxlength="120">
+      <label id="profileBioLabel" for="profileBio">نبذة مهنية مختصرة</label>
+      <textarea id="profileBio" rows="4" maxlength="700" style="display:block;width:100%;padding:12px;margin:8px 0 15px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;font:inherit;resize:vertical"></textarea>
+      <button id="saveProfileBtn" type="submit" class="btn primary" style="width:100%;margin-top:10px">حفظ البيانات</button>
+      <p id="profileMessage" role="status" aria-live="polite"></p>
+    </form>
+      <section id="candidateExperienceSection" style="margin:18px 0;padding:14px;border:1px solid #e5eee8;border-radius:12px">
+        <h3 id="experienceHeading" style="margin:0 0 12px">الخبرات العملية</h3>
+        <div id="candidateExperiencesList" aria-live="polite" class="muted">جارٍ تحميل الخبرات...</div>
+        <h4 id="experienceFormHeading">إضافة خبرة جديدة</h4>
+        <div id="candidateExperienceForm">
+          <label for="experienceCompany">جهة العمل</label><input id="experienceCompany" type="text" maxlength="150" required>
+          <label for="experienceTitle">المسمى الوظيفي</label><input id="experienceTitle" type="text" maxlength="150" required>
+          <label for="experienceStart">تاريخ البداية</label><input id="experienceStart" type="date">
+          <label for="experienceEnd">تاريخ النهاية</label><input id="experienceEnd" type="date">
+          <label style="display:flex;gap:8px;align-items:center"><input id="experienceCurrent" type="checkbox" style="width:auto"> أعمل هنا حالياً</label>
+          <label for="experienceDescription">وصف المهام (اختياري)</label><textarea id="experienceDescription" rows="3" maxlength="700"></textarea>
+          <button id="addExperienceBtn" type="button" class="btn outline" style="width:100%">إضافة الخبرة</button>
+          <p id="experienceMessage" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+  </div>
+</div>
+
+<style>
+#signupModal,
+#loginModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+}
+
+#signupModal .modal-content,
+#loginModal .modal-content {
+  background: white;
+  color: #222;
+  width: 100%;
+  max-width: 420px;
+  padding: 25px;
+  border-radius: 16px;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+#signupModal input,
+#loginModal input {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+#signupModal label,
+#loginModal label {
+  display: block;
+  text-align: right;
+}
+
+#signupModal .close-btn,
+#loginModal .close-btn {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  border: none;
+  background: none;
+  font-size: 26px;
+  cursor: pointer;
+}
+</style>
+
+<script>
+function openSignup() {
+  const modal = document.getElementById("signupModal");
+  if (modal) modal.style.display = "flex";
+}
+
+function closeSignup() {
+  const modal = document.getElementById("signupModal");
+  if (modal) modal.style.display = "none";
+}
+
+function clearLoginCredentials() {
+  const form = document.getElementById("loginForm");
+  if (form) form.reset();
+  const message = document.getElementById("loginMessage");
+  if (message) message.textContent = "";
+}
+
+function openLogin() {
+  const modal = document.getElementById("loginModal");
+  if (modal) modal.style.display = "flex";
+}
+
+function closeLogin() {
+  const modal = document.getElementById("loginModal");
+  if (modal) modal.style.display = "none";
+  clearLoginCredentials();
+}
+
+
+// Wazifti V1.3.1: user profile stored in Supabase Auth user metadata.
+let currentAuthUser = null;
+
+const profileLabels = {
+  ar: {
+    title:"الملف الشخصي", intro:"أكمل بياناتك لتسهيل تواصلك مع أصحاب العمل.",
+    name:"الاسم الكامل", email:"البريد الإلكتروني", phone:"رقم الهاتف",
+    state:"الولاية", city:"المدينة / المنطقة", specialty:"التخصص أو المجال المهني",
+    qualification:"المؤهل العلمي", bio:"نبذة مهنية مختصرة", save:"حفظ البيانات",
+    choose:"اختر الولاية", saving:"جارٍ حفظ البيانات...", saved:"تم حفظ بيانات ملفك الشخصي بنجاح.",
+    failed:"تعذر حفظ البيانات: ", required:"يرجى إدخال الاسم الكامل.",
+    states:["الخرطوم","الجزيرة","البحر الأحمر","كسلا","القضارف","سنار","النيل الأبيض","النيل الأزرق","نهر النيل","الشمالية","شمال كردفان","جنوب كردفان","غرب كردفان","شمال دارفور","جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور"]
+  },
+  en: {
+    title:"My profile", intro:"Complete your details to help employers contact you.",
+    name:"Full name", email:"Email address", phone:"Phone number",
+    state:"State", city:"City / Area", specialty:"Professional field or specialty",
+    qualification:"Education / Qualification", bio:"Short professional summary", save:"Save profile",
+    choose:"Select a state", saving:"Saving your profile...", saved:"Your profile has been saved successfully.",
+    failed:"Could not save profile: ", required:"Please enter your full name.",
+    states:["Khartoum","Al Jazirah","Red Sea","Kassala","Al Qadarif","Sennar","White Nile","Blue Nile","River Nile","Northern","North Kordofan","South Kordofan","West Kordofan","North Darfur","South Darfur","West Darfur","Central Darfur","East Darfur"]
+  }
+};
+
+function openProfile() {
+  if (!currentAuthUser) {
+    toast(lang === "ar" ? "يرجى تسجيل الدخول أولاً" : "Please log in first");
+    return;
+  }
+  const m = profileLabels[lang];
+  document.getElementById("profileTitle").textContent = m.title;
+  document.getElementById("profileIntro").textContent = m.intro;
+  document.getElementById("profileNameLabel").textContent = m.name;
+  document.getElementById("profileEmailLabel").textContent = m.email;
+  document.getElementById("profilePhoneLabel").textContent = m.phone;
+  document.getElementById("profileStateLabel").textContent = m.state;
+  document.getElementById("profileCityLabel").textContent = m.city;
+  document.getElementById("profileSpecialtyLabel").textContent = m.specialty;
+  document.getElementById("profileQualificationLabel").textContent = m.qualification;
+  document.getElementById("profileBioLabel").textContent = m.bio;
+  document.getElementById("saveProfileBtn").textContent = m.save;
+
+  const stateSelect = document.getElementById("profileState");
+  const savedState = currentAuthUser.user_metadata?.state || "";
+  stateSelect.innerHTML = `<option value="">${m.choose}</option>` +
+    m.states.map(s => `<option value="${s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}">${s}</option>`).join("");
+
+  const meta = currentAuthUser.user_metadata || {};
+  document.getElementById("profileName").value = meta.full_name || meta.name || "";
+  document.getElementById("profileEmail").value = currentAuthUser.email || "";
+  document.getElementById("profilePhone").value = meta.phone || "";
+  stateSelect.value = savedState;
+  document.getElementById("profileCity").value = meta.city || "";
+  document.getElementById("profileQualification").value = meta.qualification || "";
+  document.getElementById("profileBio").value = meta.professional_bio || "";
+  document.getElementById("profileMessage").textContent = "";
+  document.getElementById("profileModal").style.display = "flex";
+  loadCandidateProfileData();
+}
+
+function closeProfile() {
+  const modal = document.getElementById("profileModal");
+  if (modal) modal.style.display = "none";
+}
+
+
+const waziftiTaxonomy = {categories:[],specialties:[]};
+function addSelectOptions(select, rows, placeholder, selectedId) {
+  if (!select) return;
+  select.innerHTML = "";
+  const first = document.createElement("option");
+  first.value = ""; first.textContent = placeholder; select.appendChild(first);
+  rows.forEach(row => {
+    const option = document.createElement("option");
+    option.value = row.id;
+    option.textContent = lang === "ar" ? row.name_ar : (row.name_en || row.name_ar);
+    select.appendChild(option);
+  });
+  if (selectedId) select.value = selectedId;
+}
+async function loadWaziftiTaxonomy() {
+  if (waziftiTaxonomy.categories.length) return waziftiTaxonomy;
+  const [{data:categories,error:categoryError},{data:specialties,error:specialtyError}] = await Promise.all([
+    supabaseClient.from("job_categories").select("id,name_ar,name_en,sort_order").eq("is_active",true).order("sort_order"),
+    supabaseClient.from("job_specialties").select("id,category_id,name_ar,name_en,sort_order").eq("is_active",true).order("sort_order")
+  ]);
+  if (categoryError) throw categoryError;
+  if (specialtyError) throw specialtyError;
+  waziftiTaxonomy.categories = categories || [];
+  waziftiTaxonomy.specialties = specialties || [];
+  return waziftiTaxonomy;
+}
+function populateProfileSpecialties(categoryId, selectedId) {
+  const select = document.getElementById("profileSpecialty");
+  const rows = waziftiTaxonomy.specialties.filter(x => x.category_id === categoryId);
+  addSelectOptions(select, rows, lang === "ar" ? "اختر التخصص الفرعي" : "Select a specialty", selectedId);
+  select.disabled = !categoryId || !rows.length;
+}
+async function loadCandidateProfileData() {
+  const categorySelect = document.getElementById("profileCategory");
+  const specialtySelect = document.getElementById("profileSpecialty");
+  const categoryLabel = document.getElementById("profileCategoryLabel");
+  const experienceHeading = document.getElementById("experienceHeading");
+  const experienceFormHeading = document.getElementById("experienceFormHeading");
+  const currentLabel = document.querySelector('label[for="experienceCurrent"]');
+  if (categoryLabel) categoryLabel.textContent = lang === "ar" ? "التصنيف الرئيسي" : "Main category";
+  if (experienceHeading) experienceHeading.textContent = lang === "ar" ? "الخبرات العملية" : "Work experience";
+  if (experienceFormHeading) experienceFormHeading.textContent = lang === "ar" ? "إضافة خبرة جديدة" : "Add new experience";
+  if (currentLabel) currentLabel.lastChild.textContent = lang === "ar" ? " أعمل هنا حالياً" : " I currently work here";
+  try {
+    await loadWaziftiTaxonomy();
+    const {data:profile,error} = await supabaseClient.from("profiles").select("category_id,specialty_id").eq("id",currentAuthUser.id).maybeSingle();
+    if (error) throw error;
+    const savedCategory = profile?.category_id || currentAuthUser.user_metadata?.category_id || "";
+    const savedSpecialty = profile?.specialty_id || currentAuthUser.user_metadata?.specialty_id || "";
+    addSelectOptions(categorySelect,waziftiTaxonomy.categories,lang === "ar" ? "اختر التصنيف الرئيسي" : "Select a category",savedCategory);
+    populateProfileSpecialties(savedCategory,savedSpecialty);
+    if (categorySelect && !categorySelect.dataset.bound) {
+      categorySelect.addEventListener("change",() => populateProfileSpecialties(categorySelect.value,""));
+      categorySelect.dataset.bound = "1";
+    }
+    await loadCandidateExperiences();
+  } catch(error) {
+    console.error("Could not load candidate taxonomy:",error);
+    const message=document.getElementById("profileMessage");
+    if(message) message.textContent=(lang==="ar"?"تعذر تحميل التصنيفات: ":"Could not load categories: ")+(error.message||"");
+  }
+}
+async function loadCandidateExperiences() {
+  const list=document.getElementById("candidateExperiencesList");
+  if(!list || !currentAuthUser) return;
+  list.textContent=lang==="ar"?"جارٍ تحميل الخبرات...":"Loading experience...";
+  const {data,error}=await supabaseClient.from("candidate_experiences")
+    .select("id,company_name,job_title,start_date,end_date,is_current,description")
+    .eq("candidate_id",currentAuthUser.id).order("start_date",{ascending:false});
+  if(error) { list.textContent=(lang==="ar"?"تعذر تحميل الخبرات: ":"Could not load experience: ")+error.message; return; }
+  if(!data?.length) { list.textContent=lang==="ar"?"لم تُضف خبرات عملية بعد.":"No work experience added yet."; return; }
+  list.innerHTML=data.map(item => {
+    const period=[item.start_date||"",item.is_current?(lang==="ar"?"حتى الآن":"Present"):(item.end_date||"")].filter(Boolean).join(" — ");
+    return '<article style="padding:10px;margin:8px 0;border:1px solid #e5eee8;border-radius:9px"><strong>'+escapeAdminHtml(item.job_title)+'</strong><div>'+escapeAdminHtml(item.company_name)+'</div><small class="muted">'+escapeAdminHtml(period)+'</small>'+(item.description?'<p>'+escapeAdminHtml(item.description)+'</p>':'')+'<button type="button" class="btn outline small" data-delete-experience="'+item.id+'">'+(lang==="ar"?"حذف":"Delete")+'</button></article>';
+  }).join("");
+}
+const experienceForm=document.getElementById("candidateExperienceForm");
+const addExperienceButton=document.getElementById("addExperienceBtn");
+const experienceCurrentCheckbox=document.getElementById("experienceCurrent");
+const experienceEndInput=document.getElementById("experienceEnd");
+if(experienceCurrentCheckbox && experienceEndInput) {
+  const syncExperienceEndDate=()=>{
+    experienceEndInput.disabled=experienceCurrentCheckbox.checked;
+    if(experienceCurrentCheckbox.checked) experienceEndInput.value="";
+  };
+  experienceCurrentCheckbox.addEventListener("change",syncExperienceEndDate);
+  syncExperienceEndDate();
+}
+if(experienceForm && addExperienceButton) {
+  addExperienceButton.addEventListener("click",async event=>{
+    event.preventDefault();
+    if(!currentAuthUser) return;
+    const button=document.getElementById("addExperienceBtn");
+    const message=document.getElementById("experienceMessage");
+    button.disabled=true;
+    message.textContent=lang==="ar"?"جارٍ حفظ الخبرة...":"Saving experience...";
+    const companyInput=document.getElementById("experienceCompany");
+    const titleInput=document.getElementById("experienceTitle");
+    const startInput=document.getElementById("experienceStart");
+    const endInput=document.getElementById("experienceEnd");
+    if(!companyInput.value.trim() || !titleInput.value.trim()) {
+      message.textContent=lang==="ar"?"يرجى إدخال جهة العمل والمسمى الوظيفي.":"Please enter the employer and job title.";
+      button.disabled=false; return;
+    }
+    const current=document.getElementById("experienceCurrent").checked;
+    if(!current && startInput.value && endInput.value && endInput.value < startInput.value) {
+      message.textContent=lang==="ar"?"تاريخ النهاية يجب أن يكون بعد تاريخ البداية.":"End date must be after the start date.";
+      button.disabled=false; return;
+    }
+    const payload={
+      candidate_id:currentAuthUser.id,
+      company_name:document.getElementById("experienceCompany").value.trim(),
+      job_title:document.getElementById("experienceTitle").value.trim(),
+      start_date:startInput.value||null,
+      end_date:current?null:(endInput.value||null),
+      is_current:current,
+      description:document.getElementById("experienceDescription").value.trim()||null
+    };
+    try {
+      const {error}=await supabaseClient.from("candidate_experiences").insert(payload);
+      if(error) throw error;
+      companyInput.value=""; titleInput.value=""; startInput.value=""; endInput.value="";
+      document.getElementById("experienceCurrent").checked=false;
+      document.getElementById("experienceDescription").value="";
+      message.textContent=lang==="ar"?"تمت إضافة الخبرة بنجاح.":"Experience added successfully.";
+      await loadCandidateExperiences();
+    } catch(error) {
+      message.textContent=(lang==="ar"?"تعذر حفظ الخبرة: ":"Could not save experience: ")+(error.message||"");
+    } finally { button.disabled=false; }
+  });
+}
+document.addEventListener("click",async event=>{
+  const button=event.target.closest("[data-delete-experience]");
+  if(!button || !currentAuthUser) return;
+  if(!confirm(lang==="ar"?"هل تريد حذف هذه الخبرة؟":"Delete this experience?")) return;
+  const {error}=await supabaseClient.from("candidate_experiences").delete().eq("id",button.dataset.deleteExperience).eq("candidate_id",currentAuthUser.id);
+  if(error) { toast((lang==="ar"?"تعذر الحذف: ":"Delete failed: ")+error.message); return; }
+  await loadCandidateExperiences();
+});
+async function loadJobCategoryFilters() {
+  try {
+    await loadWaziftiTaxonomy();
+    const select=document.getElementById("jobCategoryFilter");
+    if(select) addSelectOptions(select,waziftiTaxonomy.categories,lang==="ar"?"كل التصنيفات":"All categories","");
+  } catch(error) { console.error("Job category filters unavailable:",error); }
+}
+function onJobCategoryFilterChange() {
+  const categoryId=document.getElementById("jobCategoryFilter").value;
+  const specialty=document.getElementById("jobSpecialtyFilter");
+  const rows=waziftiTaxonomy.specialties.filter(x=>x.category_id===categoryId);
+  addSelectOptions(specialty,rows,lang==="ar"?"كل التخصصات":"All specialties","");
+  specialty.disabled=!categoryId;
+  filterJobs();
+}
+
+const profileForm = document.getElementById("profileForm");
+if (profileForm) {
+  profileForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    if (!currentAuthUser) return;
+    const m = profileLabels[lang];
+    const name = document.getElementById("profileName").value.trim();
+    const message = document.getElementById("profileMessage");
+    const button = document.getElementById("saveProfileBtn");
+    if (!name) {
+      message.textContent = m.required;
+      return;
+    }
+    const updates = {
+      full_name: name,
+      phone: document.getElementById("profilePhone").value.trim(),
+      state: document.getElementById("profileState").value,
+      city: document.getElementById("profileCity").value.trim(),
+      specialty: document.getElementById("profileSpecialty").selectedOptions[0]?.textContent || "",
+      category: document.getElementById("profileCategory").selectedOptions[0]?.textContent || "",
+      category_id: document.getElementById("profileCategory").value || null,
+      specialty_id: document.getElementById("profileSpecialty").value || null,
+      qualification: document.getElementById("profileQualification").value.trim(),
+      professional_bio: document.getElementById("profileBio").value.trim()
+    };
+    message.textContent = m.saving;
+    button.disabled = true;
+    try {
+      if (!updates.category_id || !updates.specialty_id) throw new Error(lang === "ar" ? "يرجى اختيار التصنيف الرئيسي والتخصص الفرعي." : "Please select a category and specialty.");
+      const { data, error } = await supabaseClient.auth.updateUser({ data: updates });
+      if (error) throw error;
+      currentAuthUser = data.user || currentAuthUser;
+      const { error: profileError } = await supabaseClient.from("profiles").upsert({
+        id: currentAuthUser.id,
+        full_name: updates.full_name,
+        email: currentAuthUser.email || null,
+        phone: updates.phone || null,
+        category_id: updates.category_id,
+        specialty_id: updates.specialty_id
+      }, { onConflict: "id" });
+      if (profileError) throw profileError;
+      renderAuthUI(currentAuthUser);
+      message.textContent = m.saved;
+    } catch (error) {
+      console.error("Profile update failed:", error);
+      message.textContent = m.failed + (error.message || "");
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
+// User session management (V1.2): restore the saved Supabase session and update the header.
+let adminCheckUserId = null;
+let isAdminUser = false;
+
+function escapeAdminHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+
+async function refreshAdminAccess(user) {
+  const button = document.getElementById("adminBtn");
+  if (!user) {
+    adminCheckUserId = null;
+    isAdminUser = false;
+    if (button) button.style.display = "none";
+    const panel = document.getElementById("adminDashboard");
+    if (panel) panel.style.display = "none";
+    return;
+  }
+  if (adminCheckUserId === user.id && isAdminUser) {
+    if (button) button.style.display = "inline-flex";
+    return;
+  }
+  adminCheckUserId = user.id;
+  isAdminUser = false;
+  if (button) button.style.display = "none";
+  try {
+    const { data, error } = await supabaseClient.rpc("is_admin");
+    if (error) throw error;
+    if (currentAuthUser?.id !== user.id) return;
+    isAdminUser = data === true;
+    if (button) button.style.display = isAdminUser ? "inline-flex" : "none";
+  } catch (error) {
+    console.error("Admin access check failed:", error);
+    isAdminUser = false;
+    if (button) button.style.display = "none";
+  }
+}
+
+let pdfJsLoaderPromise = null;
+
+function loadPdfJs() {
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (pdfJsLoaderPromise) return pdfJsLoaderPromise;
+  pdfJsLoaderPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    script.onload = () => {
+      if (!window.pdfjsLib) return reject(new Error("PDF.js لم يتم تحميله"));
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      resolve(window.pdfjsLib);
+    };
+    script.onerror = () => reject(new Error("تعذر تحميل مكتبة عرض PDF"));
+    document.head.appendChild(script);
+  });
+  return pdfJsLoaderPromise;
+}
+
+async function previewAdminPdf(event, signedUrl, companyId) {
+  event.preventDefault();
+  const panel = document.getElementById("adminPdfPreview-" + companyId);
+  if (!panel) {
+    toast("تعذر فتح مساحة معاينة المستند.");
+    return false;
+  }
+  panel.style.display = "block";
+  panel.innerHTML = '<p class="muted">جارٍ تحميل المستند للمعاينة...</p>';
+  try {
+    const response = await fetch(signedUrl);
+    if (!response.ok) throw new Error("تعذر جلب ملف PDF");
+    const pdfBlob = await response.blob();
+    const header = new Uint8Array(await pdfBlob.slice(0, 5).arrayBuffer());
+    if (String.fromCharCode(...header) !== "%PDF-") {
+      throw new Error("الملف المستلم ليس ملف PDF صالحاً");
+    }
+
+    window.adminPdfPreviewUrls = window.adminPdfPreviewUrls || {};
+    if (window.adminPdfPreviewUrls[companyId]) {
+      URL.revokeObjectURL(window.adminPdfPreviewUrls[companyId]);
+    }
+    const previewUrl = URL.createObjectURL(pdfBlob);
+    window.adminPdfPreviewUrls[companyId] = previewUrl;
+
+    panel.innerHTML =
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0">' +
+      '<strong>معاينة المستند</strong>' +
+      '<a class="btn outline small" href="' + previewUrl + '" download="company-document.pdf">تنزيل PDF</a>' +
+      '<button class="btn outline small" type="button" onclick="closeAdminPdfPreview(\'' + companyId + '\')">إغلاق المعاينة</button></div>' +
+      '<div id="adminPdfPages-' + companyId + '" style="display:grid;gap:14px;justify-items:center;background:#f3f5f4;padding:10px;border-radius:10px;min-height:160px"><p class="muted">جارٍ تجهيز صفحات المستند...</p></div>';
+
+    const pdfjsLib = await loadPdfJs();
+    const bytes = new Uint8Array(await pdfBlob.arrayBuffer());
+    const pdf = await pdfjsLib.getDocument({data:bytes}).promise;
+    const pagesContainer = document.getElementById("adminPdfPages-" + companyId);
+    if (!pagesContainer) return false;
+    pagesContainer.innerHTML = "";
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+      const page = await pdf.getPage(pageNumber);
+      const baseViewport = page.getViewport({scale:1});
+      const availableWidth = Math.max(280, Math.min(900, (pagesContainer.clientWidth || 340) - 24));
+      const scale = Math.min(1.6, availableWidth / baseViewport.width);
+      const viewport = page.getViewport({scale});
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d", {alpha:false});
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      canvas.style.width = "100%";
+      canvas.style.maxWidth = Math.ceil(viewport.width) + "px";
+      canvas.style.height = "auto";
+      canvas.style.background = "#fff";
+      canvas.style.boxShadow = "0 1px 5px rgba(0,0,0,.15)";
+      pagesContainer.appendChild(canvas);
+      await page.render({canvasContext:context,viewport}).promise;
+    }
+    panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+  } catch (error) {
+    console.error("PDF.js preview failed:", error);
+    const pagesContainer = document.getElementById("adminPdfPages-" + companyId);
+    if (pagesContainer) {
+      pagesContainer.innerHTML = '<p class="muted">تعذرت المعاينة داخل الصفحة. يمكنك استخدام زر تنزيل PDF.</p>';
+    } else {
+      panel.innerHTML = '<p class="muted">تعذرت معاينة الملف. يرجى المحاولة مرة أخرى أو تنزيله.</p>';
+    }
+    toast("تعذرت معاينة مستند PDF.");
+  }
+  return false;
+}
+
+function closeAdminPdfPreview(companyId) {
+  const panel = document.getElementById("adminPdfPreview-" + companyId);
+  if (panel) {
+    panel.style.display = "none";
+    panel.innerHTML = "";
+  }
+  if (window.adminPdfPreviewUrls && window.adminPdfPreviewUrls[companyId]) {
+    URL.revokeObjectURL(window.adminPdfPreviewUrls[companyId]);
+    delete window.adminPdfPreviewUrls[companyId];
+  }
+}
+
+function openAdminDashboard() {
+  if (!currentAuthUser || !isAdminUser) {
+    toast("ليس لديك صلاحية الوصول إلى لوحة الإدارة.");
+    return;
+  }
+  const panel = document.getElementById("adminDashboard");
+  if (panel) {
+    panel.style.display = "block";
+    panel.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  loadAdminCompanies();
+}
+
+async function loadAdminCompanies() {
+  if (!currentAuthUser || !isAdminUser) return;
+  const list = document.getElementById("adminCompaniesList");
+  const message = document.getElementById("adminDashboardMessage");
+  if (!list || !message) return;
+  message.textContent = "جارٍ تحميل طلبات الشركات...";
+  list.innerHTML = "";
+  try {
+    const { data: companies, error } = await supabaseClient
+      .from("companies")
+      .select("id, company_name, description, website, status, created_at, owner_id")
+      .order("created_at", {ascending:false});
+    if (error) throw error;
+    if (!companies || !companies.length) {
+      message.textContent = "لا توجد طلبات شركات حتى الآن.";
+      return;
+    }
+    const cards = await Promise.all(companies.map(async company => {
+      let documentLinks = "";
+      try {
+        const { data: files, error: filesError } = await supabaseClient
+          .storage.from("company-documents").list(company.id, {limit:100});
+        if (filesError) throw filesError;
+        const pdfs = (files || []).filter(file => file.name && file.id);
+        const links = await Promise.all(pdfs.map(async file => {
+          const path = company.id + "/" + file.name;
+          const { data: signed, error: signedError } = await supabaseClient
+            .storage.from("company-documents").createSignedUrl(path, 300);
+          if (signedError) throw signedError;
+          return '<a class="btn outline small" href="' +
+            escapeAdminHtml(signed.signedUrl) + '" onclick="return previewAdminPdf(event, this.href, \'' + company.id + '\')">معاينة: ' + escapeAdminHtml(file.name) + '</a>';
+        }));
+        documentLinks = links.join(" ");
+      } catch (docError) {
+        console.warn("Could not load company document:", company.id, docError);
+        documentLinks = '<span class="muted">تعذر تحميل المستند أو لا يوجد مستند مرفق.</span>';
+      }
+      const statusLabel = ({pending:"قيد المراجعة",verified:"معتمدة",rejected:"مرفوضة",suspended:"موقوفة"})[company.status] || company.status;
+      const actions = company.status === "pending"
+        ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">' +
+          '<button class="btn primary" type="button" onclick="adminSetCompanyStatus(\'' + company.id + '\',\'verified\')">اعتماد الشركة</button>' +
+          '<button class="btn outline" type="button" onclick="adminSetCompanyStatus(\'' + company.id + '\',\'rejected\')">رفض الطلب</button></div>'
+        : '<div style="margin-top:12px"><button class="btn outline small" type="button" onclick="adminSetCompanyStatus(\'' + company.id + '\',\'pending\')">إعادة إلى قيد المراجعة</button></div>';
+      return '<article class="job" style="display:block;margin:12px 0;padding:18px;background:#fff;border:1px solid #e5eee8;border-radius:14px">' +
+        '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3 style="margin:0">' + escapeAdminHtml(company.company_name) + '</h3>' +
+        '<span class="tag">' + escapeAdminHtml(statusLabel) + '</span></div>' +
+        '<p class="muted" style="line-height:1.8">' + escapeAdminHtml(company.description || "لا يوجد وصف للشركة.") + '</p>' +
+        (company.website ? '<p><a href="' + escapeAdminHtml(company.website) + '" target="_blank" rel="noopener noreferrer">الموقع الإلكتروني</a></p>' : '') +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (documentLinks || '<span class="muted">لا يوجد مستند مرفق.</span>') + '</div>' +
+        '<div id="adminPdfPreview-' + company.id + '" style="display:none;margin-top:14px;padding:12px;border:1px solid #d8e2dc;border-radius:12px;background:#f8fbf9"></div>' +
+        '<small class="muted">تاريخ التسجيل: ' + escapeAdminHtml(new Date(company.created_at).toLocaleString("ar")) + '</small>' +
+        actions + '</article>';
+    }));
+    list.innerHTML = cards.join("");
+    const pendingCount = companies.filter(c => c.status === "pending").length;
+    message.textContent = "إجمالي الشركات: " + companies.length + " — طلبات قيد المراجعة: " + pendingCount;
+  } catch (error) {
+    console.error("Admin companies load failed:", error);
+    message.textContent = "تعذر تحميل طلبات الشركات: " + (error.message || "خطأ غير معروف");
+  }
+}
+
+async function adminSetCompanyStatus(companyId, status) {
+  if (!currentAuthUser || !isAdminUser) {
+    toast("ليس لديك صلاحية تنفيذ هذا الإجراء.");
+    return;
+  }
+  const labels = {verified:"اعتماد الشركة",rejected:"رفض الطلب",pending:"إعادة الطلب للمراجعة"};
+  if (!window.confirm("هل أنت متأكد من " + labels[status] + "؟")) return;
+  try {
+    const { error } = await supabaseClient
+      .from("companies")
+      .update({status})
+      .eq("id", companyId);
+    if (error) throw error;
+    toast("تم تحديث حالة الشركة بنجاح.");
+    await loadAdminCompanies();
+  } catch (error) {
+    console.error("Company status update failed:", error);
+    toast("تعذر تحديث حالة الشركة: " + (error.message || ""));
+  }
+}
+
+let employerDashboardCompany = null;
+
+function employerCompanyStatusLabel(status) {
+  return ({pending:"قيد المراجعة",verified:"معتمدة",rejected:"مرفوضة",suspended:"موقوفة"})[status] || "غير معروفة";
+}
+
+async function loadEmployerDashboard() {
+  const message = document.getElementById("employerDashboardMessage");
+  const card = document.getElementById("employerCompanyCard");
+  const stats = document.getElementById("employerJobStats");
+  const jobsPanel = document.getElementById("employerJobsPanel");
+  const jobsList = document.getElementById("employerJobsList");
+  const button = document.getElementById("employerDashboardBtn");
+  if (!currentAuthUser) {
+    if (button) button.style.display = "none";
+    if (message) message.textContent = "يرجى تسجيل الدخول أولاً.";
+    return;
+  }
+  if (message) message.textContent = "جارٍ تحميل بيانات جهة العمل...";
+  if (card) card.innerHTML = "";
+  if (stats) { stats.style.display = "none"; stats.innerHTML = ""; }
+  if (jobsPanel) jobsPanel.style.display = "none";
+  if (jobsList) jobsList.innerHTML = "";
+  try {
+    const {data: company, error} = await supabaseClient.from("companies")
+      .select("id,company_name,description,website,status,created_at")
+      .eq("owner_id", currentAuthUser.id).order("created_at", {ascending:false}).limit(1).maybeSingle();
+    if (error) throw error;
+    if (!company) {
+      employerDashboardCompany = null;
+      if (button) button.style.display = "none";
+      if (message) message.textContent = "لم تسجل جهة عمل بهذا الحساب بعد. يمكنك البدء من زر «أعلن عن وظيفة».";
+      return;
+    }
+    employerDashboardCompany = company;
+    if (button) button.style.display = "inline-flex";
+    const statusLabel = employerCompanyStatusLabel(company.status);
+    const statusColor = company.status === "verified" ? "#087a4b" : company.status === "rejected" || company.status === "suspended" ? "#a33b32" : "#946200";
+    if (card) card.innerHTML = '<article style="background:#fff;border:1px solid #e5eee8;border-radius:14px;padding:18px;margin-top:12px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">' + escapeAdminHtml(company.company_name) + '</h3>' +
+      '<span class="tag" style="color:' + statusColor + '">' + escapeAdminHtml(statusLabel) + '</span></div>' +
+      '<p class="muted" style="line-height:1.8">' + escapeAdminHtml(company.description || "لا يوجد وصف مضاف لجهة العمل.") + '</p>' +
+      (company.website ? '<p><a href="' + escapeAdminHtml(company.website) + '" target="_blank" rel="noopener noreferrer">الموقع الإلكتروني</a></p>' : '') +
+      '<small class="muted">تاريخ التسجيل: ' + escapeAdminHtml(new Date(company.created_at).toLocaleDateString("ar")) + '</small></article>';
+    if (company.status !== "verified") {
+      const guidance = company.status === "pending" ? "طلب تسجيل جهة العمل قيد المراجعة. ستتمكن من نشر الوظائف بعد اعتماد الشركة."
+        : company.status === "rejected" ? "تم رفض طلب الشركة. يرجى التواصل مع إدارة وظيفتي لمعرفة الخطوات التالية."
+        : "حساب جهة العمل موقوف حالياً. يرجى التواصل مع إدارة وظيفتي.";
+      if (message) message.textContent = guidance;
+      return;
+    }
+    if (message) message.textContent = "الشركة معتمدة. يمكنك متابعة وظائف جهة العمل من هذه اللوحة.";
+    const {data: jobs, error: jobsError} = await supabaseClient.from("jobs")
+      .select("id,title,status,location,created_at").eq("company_id", company.id).order("created_at", {ascending:false});
+    if (jobsError) throw jobsError;
+    const jobRows = jobs || [];
+    const counts = {total:jobRows.length,published:jobRows.filter(j=>j.status==="published").length,pending:jobRows.filter(j=>j.status==="pending").length,closed:jobRows.filter(j=>j.status==="closed").length};
+    if (stats) {
+      stats.style.display = "grid";
+      stats.innerHTML = [["إجمالي الوظائف",counts.total],["منشورة",counts.published],["قيد المراجعة",counts.pending],["مغلقة",counts.closed]]
+        .map(([label,value])=>'<div style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px"><div class="muted" style="font-size:13px">'+label+'</div><strong style="font-size:24px;color:#064e35">'+value+'</strong></div>').join("");
+    }
+    if (jobsPanel) jobsPanel.style.display = "block";
+    if (jobsList) jobsList.innerHTML = jobRows.length ? jobRows.map(job => {
+      const jobStatus = ({pending:"قيد المراجعة",published:"منشورة",closed:"مغلقة",rejected:"مرفوضة"})[job.status] || job.status;
+      return '<article style="background:#fff;border:1px solid #e5eee8;border-radius:10px;padding:14px;margin:9px 0">' +
+        '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>'+escapeAdminHtml(job.title)+'</strong><span class="tag">'+escapeAdminHtml(jobStatus)+'</span></div>' +
+        '<small class="muted">'+escapeAdminHtml(job.location || "الموقع غير محدد")+'</small></article>';
+    }).join("") : '<p class="muted" style="padding:14px;background:#fff;border-radius:10px">لا توجد وظائف مسجلة لهذه الشركة حتى الآن. سنضيف نموذج نشر الوظائف في الخطوة التالية.</p>';
+  } catch (error) {
+    console.error("Employer dashboard load failed:", error);
+    if (message) message.textContent = "تعذر تحميل لوحة صاحب العمل: " + (error.message || "خطأ غير معروف");
+  }
+}
+
+function openEmployerDashboard() {
+  if (!currentAuthUser) { toast("يرجى تسجيل الدخول أولاً."); openLogin(); return; }
+  const panel = document.getElementById("employerDashboard");
+  if (panel) { panel.style.display = "block"; panel.scrollIntoView({behavior:"smooth",block:"start"}); }
+  loadEmployerDashboard();
+}
+
+function renderAuthUI(user) {
+  // Keep the profile editor synchronized with the latest Supabase session.
+  currentAuthUser = user || null;
+  refreshAdminAccess(currentAuthUser);
+  const employerButton = document.getElementById("employerDashboardBtn");
+  if (!currentAuthUser) {
+    employerDashboardCompany = null;
+    if (employerButton) employerButton.style.display = "none";
+    const employerPanel = document.getElementById("employerDashboard");
+    if (employerPanel) employerPanel.style.display = "none";
+  } else {
+    loadEmployerDashboard();
+  }
+
+  const loginBtn = document.getElementById("loginBtn");
+  const signupBtn = document.getElementById("signupBtn");
+  const accountArea = document.getElementById("accountArea");
+  const accountName = document.getElementById("accountName");
+  const loggedIn = Boolean(user);
+
+  if (loginBtn) loginBtn.style.display = loggedIn ? "none" : "inline-block";
+  if (signupBtn) signupBtn.style.display = loggedIn ? "none" : "inline-block";
+  if (accountArea) {
+    accountArea.style.display = loggedIn ? "flex" : "none";
+  }
+
+  const profileBtn = document.getElementById("profileBtn");
+  if (profileBtn) profileBtn.style.display = loggedIn ? "inline-flex" : "none";
+
+  if (accountName && user) {
+    const fullName = user.user_metadata?.full_name || user.user_metadata?.name;
+    accountName.textContent = fullName || user.email || "حسابي";
+    accountName.title = user.email || accountName.textContent;
+  } else if (accountName) {
+    accountName.textContent = "";
+    accountName.removeAttribute("title");
+  }
+}
+
+async function restoreUserSession() {
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) throw error;
+    renderAuthUI(data.session?.user || null);
+  } catch (error) {
+    console.error("Could not restore user session:", error);
+    renderAuthUI(null);
+  }
+}
+
+// Supabase persists the session in this browser; listen for sign-in, sign-out and refresh events.
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  renderAuthUI(session?.user || null);
+});
+
+async function logoutUser() {
+  const button = document.getElementById("logoutBtn");
+  if (button) button.disabled = true;
+  try {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) throw error;
+    renderAuthUI(null);
+    clearLoginCredentials();
+    toast(lang === "ar" ? "تم تسجيل الخروج بنجاح" : "You have signed out successfully");
+  } catch (error) {
+    console.error("Sign out failed:", error);
+    toast((lang === "ar" ? "تعذر تسجيل الخروج: " : "Sign out failed: ") + (error.message || ""));
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+restoreUserSession();
+
+const signupForm = document.getElementById("signupForm");
+if (signupForm) {
+  signupForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const name = document.getElementById("signupName").value.trim();
+    const email = document.getElementById("signupEmail").value.trim();
+    const password = document.getElementById("signupPassword").value;
+    const confirm = document.getElementById("confirmPassword").value;
+    const message = document.getElementById("signupMessage");
+    const submitButton = signupForm.querySelector('button[type="submit"]');
+
+    if (password !== confirm) {
+      message.textContent = "كلمتا المرور غير متطابقتين";
+      return;
+    }
+
+    message.textContent = "جارٍ إنشاء الحساب...";
+    if (submitButton) submitButton.disabled = true;
+
+    try {
+      const { error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name } }
+      });
+
+      if (error) throw error;
+      message.textContent = "تم إرسال طلب إنشاء الحساب. تحقق من بريدك الإلكتروني لإكمال التسجيل إذا طُلب منك ذلك.";
+      signupForm.reset();
+    } catch (error) {
+      message.textContent = "تعذر إنشاء الحساب: " + (error.message || "حدث خطأ غير متوقع");
+    } finally {
+      if (submitButton) submitButton.disabled = false;
+    }
+  });
+}
+
+const loginForm = document.getElementById("loginForm");
+if (loginForm) {
+  loginForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    const message = document.getElementById("loginMessage");
+    const submitButton = loginForm.querySelector('button[type="submit"]');
+
+    message.textContent = "جارٍ تسجيل الدخول...";
+    if (submitButton) submitButton.disabled = true;
+
+    try {
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      message.textContent = "تم تسجيل الدخول بنجاح!";
+      setTimeout(closeLogin, 1000);
+    } catch (error) {
+      message.textContent = "تعذر تسجيل الدخول: " + (error.message || "حدث خطأ غير متوقع");
+    } finally {
+      if (submitButton) submitButton.disabled = false;
+    }
+  });
+}
+</script>
+
+<script>
+// Wazifti V1.5.4 — mobile logout visibility fix.
+const employerFormText = {
+  ar: {
+    title:"تسجيل جهة العمل", intro:"أدخل بيانات شركتك لإرسالها للمراجعة والتحقق.",
+    company:"اسم الشركة / المؤسسة *", website:"الموقع الإلكتروني (اختياري)",
+    description:"نبذة عن الشركة (اختياري)", submit:"إرسال طلب التسجيل",
+    sending:"جارٍ إرسال طلب التسجيل...", success:"تم إرسال بيانات الشركة بنجاح. حالة الطلب: قيد المراجعة.",
+    failed:"تعذر تسجيل بيانات صاحب العمل: ", login:"يرجى تسجيل الدخول أولاً بحسابك.",
+    fileRequired:"يرجى إرفاق مستند تسجيل الشركة بصيغة PDF.", pdfOnly:"نوع الملف غير مدعوم. يرجى اختيار ملف PDF.", fileTooLarge:"حجم الملف أكبر من 5 ميجابايت.", companySavedUploadFailed:"تم حفظ بيانات الشركة، لكن تعذر رفع المستند. أعد اختيار الملف واضغط لإعادة المحاولة: ", retryUpload:"إعادة محاولة رفع المستند",
+    required:"يرجى إدخال اسم الشركة أو المؤسسة.", invalidUrl:"يرجى إدخال رابط صحيح يبدأ بـ https:// أو http://.",
+    roleWarning:"تم تسجيل الشركة، لكن تعذر تحديث نوع الحساب. يمكنك متابعة طلب الشركة."
+  },
+  en: {
+    title:"Employer registration", intro:"Enter your company details to submit them for review and verification.",
+    company:"Company / organization name *", website:"Website (optional)",
+    description:"Company description (optional)", submit:"Submit registration",
+    sending:"Submitting your registration...", success:"Company details submitted successfully. Status: Pending review.",
+    failed:"Could not register employer details: ", login:"Please log in first.",
+    fileRequired:"Please attach the company registration document as a PDF.", pdfOnly:"Unsupported file type. Please choose a PDF.", fileTooLarge:"The file exceeds 5 MB.", companySavedUploadFailed:"Company details were saved, but document upload failed. Select the file again and retry: ", retryUpload:"Retry document upload",
+    required:"Please enter a company or organization name.", invalidUrl:"Enter a valid URL beginning with https:// or http://.",
+    roleWarning:"Company registered, but the account type could not be updated. Your company request is still saved."
+  }
+};
+
+async function openEmployerRegistration() {
+  if (!currentAuthUser) {
+    toast(employerFormText[lang].login);
+    openLogin();
+    return;
+  }
+  try {
+    const {data: existingCompany, error} = await supabaseClient.from("companies")
+      .select("id").eq("owner_id", currentAuthUser.id).limit(1).maybeSingle();
+    if (error) throw error;
+    if (existingCompany) { openEmployerDashboard(); return; }
+  } catch (error) {
+    console.error("Employer company lookup failed:", error);
+    toast("تعذر التحقق من بيانات جهة العمل. حاول مرة أخرى.");
+    return;
+  }
+  const t = employerFormText[lang];
+  document.getElementById("employerFormTitle").textContent = t.title;
+  document.getElementById("employerFormIntro").textContent = t.intro;
+  document.getElementById("employerCompanyNameLabel").textContent = t.company;
+  document.getElementById("employerWebsiteLabel").textContent = t.website;
+  document.getElementById("employerDescriptionLabel").textContent = t.description;
+  document.getElementById("employerRegistrationSubmit").textContent = t.submit;
+  document.getElementById("employerRegistrationMessage").textContent = "";
+  document.getElementById("employerRegistrationModal").style.display = "flex";
+}
+function closeEmployerRegistration() {
+  document.getElementById("employerRegistrationModal").style.display = "none";
+}
+
+const employerRegistrationForm = document.getElementById("employerRegistrationForm");
+let employerPendingCompanyId = null;
+if (employerRegistrationForm) {
+  employerRegistrationForm.addEventListener("submit", async function(event) {
+    event.preventDefault();
+    const t = employerFormText[lang];
+    const message = document.getElementById("employerRegistrationMessage");
+    const button = document.getElementById("employerRegistrationSubmit");
+    const companyName = document.getElementById("employerCompanyName").value.trim();
+    const websiteRaw = document.getElementById("employerWebsite").value.trim();
+    const description = document.getElementById("employerDescription").value.trim();
+    const fileInput = document.getElementById("employerDocumentFile");
+    const file = fileInput.files && fileInput.files[0];
+
+    if (!currentAuthUser) {
+      message.textContent = t.login;
+      return;
+    }
+    if (!companyName) {
+      message.textContent = t.required;
+      return;
+    }
+    if (!file) {
+      message.textContent = t.fileRequired;
+      return;
+    }
+    if (file.type !== "application/pdf" || !file.name.toLowerCase().endsWith(".pdf")) {
+      message.textContent = t.pdfOnly;
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      message.textContent = t.fileTooLarge;
+      return;
+    }
+
+    let website = null;
+    if (websiteRaw) {
+      try {
+        const parsed = new URL(websiteRaw);
+        if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("Invalid protocol");
+        website = parsed.href;
+      } catch (_) {
+        message.textContent = t.invalidUrl;
+        return;
+      }
+    }
+
+    message.textContent = t.sending;
+    button.disabled = true;
+    try {
+      // Create the company once. If file upload fails, retain its ID so retrying
+      // uploads the document to the same company instead of creating duplicates.
+      if (!employerPendingCompanyId) {
+        // Reuse this user's latest pending company (including after a page reload)
+        // so retrying a document upload does not create duplicate company records.
+        const { data: existingCompany, error: lookupError } = await supabaseClient
+          .from("companies")
+          .select("id, company_name, status")
+          .eq("owner_id", currentAuthUser.id)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (lookupError) throw lookupError;
+
+        if (existingCompany) {
+          employerPendingCompanyId = existingCompany.id;
+          console.info("Wazifti reusing pending company:", existingCompany.id);
+        } else {
+          const { data: company, error } = await supabaseClient
+            .from("companies")
+            .insert({
+              owner_id: currentAuthUser.id,
+              company_name: companyName,
+              description: description || null,
+              website,
+              status: "pending"
+            })
+            .select("id, company_name, status")
+            .single();
+          if (error) throw error;
+          employerPendingCompanyId = company.id;
+          console.info("Wazifti employer registration saved:", company.id, company.status);
+        }
+        sessionStorage.setItem("wazifti_pending_company_" + currentAuthUser.id, employerPendingCompanyId);
+      }
+
+      const safeName = file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]+/g, "_").replace(/^_+|_+$/g, "") || "company-document.pdf";
+      const filePath = employerPendingCompanyId + "/" + Date.now() + "-" + safeName;
+      const { data: uploaded, error: uploadError } = await supabaseClient
+        .storage
+        .from("company-documents")
+        .upload(filePath, file, {
+          contentType: "application/pdf",
+          cacheControl: "3600",
+          upsert: false
+        });
+      if (uploadError) throw uploadError;
+
+      message.textContent = t.success;
+      employerRegistrationForm.reset();
+      closeEmployerRegistration();
+      await loadEmployerDashboard();
+      sessionStorage.removeItem("wazifti_pending_company_" + currentAuthUser.id);
+      employerPendingCompanyId = null;
+      console.info("Wazifti company document uploaded:", uploaded?.path);
+    } catch (error) {
+      console.error("Employer registration/document upload failed:", error);
+      message.textContent = (employerPendingCompanyId ? t.companySavedUploadFailed : t.failed) + (error.message || "Unexpected error");
+      if (employerPendingCompanyId) button.textContent = t.retryUpload;
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+</script>
+
+</body></html>
