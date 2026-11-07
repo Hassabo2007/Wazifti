@@ -496,8 +496,15 @@ footer {
     max-width: 115px !important;
   }
 
-  .actions .outline:not(#lang):not(#logoutBtn) {
+  .actions .outline:not(#lang):not(#logoutBtn):not(#myApplicationsBtn) {
     display: none;
+  }
+
+  #myApplicationsBtn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
   }
 
   #logoutBtn {
@@ -2480,6 +2487,8 @@ function renderAuthUI(user) {
 
   const profileBtn = document.getElementById("profileBtn");
   if (profileBtn) profileBtn.style.display = loggedIn ? "inline-flex" : "none";
+  const myApplicationsBtn = document.getElementById("myApplicationsBtn");
+  if (myApplicationsBtn) myApplicationsBtn.style.display = loggedIn ? "inline-flex" : "none";
 
   if (accountName && user) {
     const fullName = user.user_metadata?.full_name || user.user_metadata?.name;
