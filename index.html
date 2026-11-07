@@ -1161,6 +1161,13 @@ function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.st
       <input id="profileQualification" type="text" maxlength="120">
       <label id="profileBioLabel" for="profileBio">نبذة مهنية مختصرة</label>
       <textarea id="profileBio" rows="4" maxlength="700" style="display:block;width:100%;padding:12px;margin:8px 0 15px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;font:inherit;resize:vertical"></textarea>
+      <section style="margin:14px 0;padding:14px;border:1px solid #dcebe1;border-radius:12px;background:#f7fbf8">
+        <label for="profileIndividualPostingEnabled" style="display:flex;align-items:flex-start;gap:10px;margin:0;font-weight:700">
+          <input id="profileIndividualPostingEnabled" type="checkbox" style="width:20px;height:20px;min-height:20px;margin-top:2px;flex:0 0 auto">
+          <span>تفعيل نشر الوظائف للأفراد</span>
+        </label>
+        <p class="muted" style="margin:8px 0 0;line-height:1.7;font-size:13px">يتيح لك هذا الخيار نشر فرص العمل من حسابك الشخصي بعد استكمال إعدادات المنصة، وتخضع جميع الإعلانات لمراجعة الإدارة قبل النشر.</p>
+      </section>
       <button id="saveProfileBtn" type="submit" class="btn primary" style="width:100%;margin-top:10px">حفظ البيانات</button>
       <p id="profileMessage" role="status" aria-live="polite"></p>
     </form>
@@ -1387,10 +1394,12 @@ async function loadCandidateProfileData() {
   if (currentLabel) currentLabel.lastChild.textContent = lang === "ar" ? " أعمل هنا حالياً" : " I currently work here";
   try {
     await loadWaziftiTaxonomy();
-    const {data:profile,error} = await supabaseClient.from("profiles").select("category_id,specialty_id").eq("id",currentAuthUser.id).maybeSingle();
+    const {data:profile,error} = await supabaseClient.from("profiles").select("category_id,specialty_id,can_post_individual_jobs").eq("id",currentAuthUser.id).maybeSingle();
     if (error) throw error;
     const savedCategory = profile?.category_id || currentAuthUser.user_metadata?.category_id || "";
     const savedSpecialty = profile?.specialty_id || currentAuthUser.user_metadata?.specialty_id || "";
+    const individualPostingToggle = document.getElementById("profileIndividualPostingEnabled");
+    if (individualPostingToggle) individualPostingToggle.checked = profile?.can_post_individual_jobs === true;
     addSelectOptions(categorySelect,waziftiTaxonomy.categories,lang === "ar" ? "اختر التصنيف الرئيسي" : "Select a category",savedCategory);
     populateProfileSpecialties(savedCategory,savedSpecialty);
     if (categorySelect && !categorySelect.dataset.bound) {
@@ -1784,7 +1793,8 @@ if (profileForm) {
         email: currentAuthUser.email || null,
         phone: updates.phone || null,
         category_id: updates.category_id,
-        specialty_id: updates.specialty_id
+        specialty_id: updates.specialty_id,
+        can_post_individual_jobs: document.getElementById("profileIndividualPostingEnabled")?.checked === true
       }, { onConflict: "id" });
       if (profileError) throw profileError;
       renderAuthUI(currentAuthUser);
