@@ -2258,6 +2258,52 @@ async function downloadEmployerApplicantResume(event, filePath, fileName) {
   }
 }
 
+const employerApplicationStatusLabels = {
+  submitted:"تم استلام الطلب",
+  reviewing:"قيد المراجعة",
+  shortlisted:"ضمن القائمة المختصرة",
+  rejected:"لم يتم الاختيار",
+  accepted:"تم القبول"
+};
+async function updateEmployerApplicationStatus(applicationId, newStatus, selectElement) {
+  const allowedStatuses = Object.keys(employerApplicationStatusLabels);
+  if (!allowedStatuses.includes(newStatus)) {
+    toast("حالة الطلب غير صالحة.");
+    return;
+  }
+  if (!currentAuthUser || !employerDashboardCompany) {
+    toast("يرجى تسجيل الدخول بحساب صاحب العمل.");
+    return;
+  }
+  const previousStatus = selectElement?.dataset.previousStatus || "submitted";
+  if (selectElement) selectElement.disabled = true;
+  try {
+    const {data, error} = await supabaseClient.from("applications")
+      .update({status:newStatus})
+      .eq("id", applicationId)
+      .select("id,status")
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) throw new Error("لا تملك صلاحية تعديل هذا الطلب أو لم يعد متاحاً.");
+    if (selectElement) {
+      selectElement.dataset.previousStatus = data.status;
+      selectElement.value = data.status;
+      selectElement.disabled = false;
+    }
+    const label = employerApplicationStatusLabels[data.status] || data.status;
+    const statusNode = document.querySelector('[data-application-status="' + applicationId + '"]');
+    if (statusNode) statusNode.textContent = label;
+    toast("تم تحديث حالة الطلب بنجاح.");
+  } catch (error) {
+    console.error("Application status update failed:", error);
+    if (selectElement) {
+      selectElement.value = previousStatus;
+      selectElement.disabled = false;
+    }
+    toast("تعذر تحديث حالة الطلب: " + (error.message || "حدث خطأ غير متوقع"));
+  }
+}
+
 async function toggleEmployerApplications(jobId) {
   if(!currentAuthUser || !employerDashboardCompany) return;
   const target=document.getElementById("employerApplications-"+jobId);
@@ -2302,7 +2348,11 @@ async function toggleEmployerApplications(jobId) {
       }
       return '<article style="padding:12px;margin:8px 0;background:#fff;border:1px solid #e5eee8;border-radius:9px">'+
         '<strong>'+escapeAdminHtml(applicantName)+'</strong>'+
-        '<div class="muted">الحالة: '+escapeAdminHtml(app.status)+'</div>'+
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px"><span class="muted">الحالة:</span><strong data-application-status="'+escapeAdminHtml(app.id)+'">'+escapeAdminHtml(employerApplicationStatusLabels[app.status]||app.status||"غير محددة")+'</strong></div>'+
+        '<label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:13px;font-weight:700">تحديث حالة الطلب'+
+        '<select data-application-status-select="'+escapeAdminHtml(app.id)+'" data-previous-status="'+escapeAdminHtml(app.status||"submitted")+'" onchange="updateEmployerApplicationStatus(\''+escapeAdminHtml(app.id)+'\',this.value,this)" style="padding:8px;border:1px solid #d7e4dc;border-radius:8px;background:#fff;font:14px Tahoma,Arial">'+
+        Object.entries(employerApplicationStatusLabels).map(([value,label])=>'<option value="'+value+'" '+(app.status===value?"selected":"")+'>'+label+'</option>').join("")+
+        '</select></label>'+
         (app.cover_letter?'<p style="white-space:pre-wrap;line-height:1.8">'+escapeAdminHtml(app.cover_letter)+'</p>':'')+
         resumeActions+
         '<div id="adminPdfPreview-'+escapeAdminHtml(app.id)+'" style="display:none;margin-top:12px;padding:10px;border:1px solid #d8e2dc;border-radius:10px;background:#f8fbf9"></div>'+
