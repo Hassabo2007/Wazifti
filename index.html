@@ -730,10 +730,6 @@ function render(items){document.getElementById("list").innerHTML=items.length?it
 function showJob(i){let j=data[i];document.getElementById("modalContent").innerHTML=`<div style="font-size:34px">${j.icon}</div><h2>${lang==="ar"?j.title:j.en}</h2><p class="muted">${lang==="ar"?j.company:j.companyEn}</p>${j.companyDescription?`<div style="margin:12px 0;padding:12px;background:#f7fbf8;border:1px solid #e5eee8;border-radius:10px;line-height:1.8"><b>نبذة عن جهة العمل</b><p style="margin:6px 0 0;white-space:pre-wrap">${escapeAdminHtml(j.companyDescription)}</p></div>`:""}<p><b>${T.location}:</b> ${lang==="ar"?j.city:j.cityEn}</p><p><b>${T.type}:</b> ${typeName(j.type)}</p><p><b>${T.salary}:</b> ${lang==="ar"?j.salary:j.salaryEn}</p><hr style="border:0;border-top:1px solid #e5eee8"><h3>${T.description}</h3><p style="line-height:1.9">${lang==="ar"?j.desc:j.descEn}</p><button class="btn primary" onclick="toast(T.demo);closeModal()">${T.apply}</button>`;document.getElementById("modalbg").style.display="flex"}
 function closeModal(){document.getElementById("modalbg").style.display="none"}
 function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
-updateTexts();
-loadWaziftiTaxonomy().then(loadJobCategoryFilters).catch(error=>console.error("Taxonomy load failed:",error));
-loadLiveJobs();
-startLiveJobsUpdates();
   function filterJobs(){
   const q = document.getElementById("q").value.toLowerCase().trim();
   const c = document.getElementById("city").value.toLowerCase().trim();
@@ -2197,6 +2193,14 @@ if (employerRegistrationForm) {
     }
   });
 }
+// Start public listings only after all shared state and helper functions are initialized.
+updateTexts();
+(async()=>{
+  try { await loadWaziftiTaxonomy(); await loadJobCategoryFilters(); }
+  catch(error) { console.error("Taxonomy load failed:",error); }
+  await loadLiveJobs();
+  startLiveJobsUpdates();
+})();
 </script>
 
 </body></html>
