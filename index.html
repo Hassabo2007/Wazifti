@@ -1267,6 +1267,12 @@ async function uploadCandidateResume() {
 }
 async function openCandidateResume(resumeId,download) {
   if(!currentAuthUser) return;
+  const previewWindow=window.open("about:blank","_blank");
+  if(!previewWindow) {
+    const message=document.getElementById("candidateResumeMessage");
+    if(message) message.textContent=lang==="ar"?"اسمح بفتح النوافذ المنبثقة لعرض السيرة الذاتية.":"Allow pop-ups to open the resume.";
+    return;
+  }
   try {
     const {data:resume,error}=await supabaseClient.from("candidate_resumes")
       .select("file_path").eq("id",resumeId).eq("candidate_id",currentAuthUser.id).single();
@@ -1274,8 +1280,9 @@ async function openCandidateResume(resumeId,download) {
     const {data,error:signedError}=await supabaseClient.storage.from("candidate-cvs")
       .createSignedUrl(resume.file_path,300,{download:download});
     if(signedError) throw signedError;
-    window.open(data.signedUrl,"_blank","noopener,noreferrer");
+    previewWindow.location.href=data.signedUrl;
   } catch(error) {
+    previewWindow.close();
     console.error("Could not open candidate resume:",error);
     const message=document.getElementById("candidateResumeMessage");
     if(message) message.textContent=(lang==="ar"?"تعذر فتح الملف: ":"Could not open file: ")+(error.message||"");
