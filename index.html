@@ -955,6 +955,15 @@ function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.st
           <p id="experienceMessage" role="status" aria-live="polite"></p>
         </div>
       </section>
+      <section id="candidateResumeSection" style="margin:18px 0;padding:14px;border:1px solid #e5eee8;border-radius:12px">
+        <h3 style="margin:0 0 8px">السيرة الذاتية</h3>
+        <p class="muted" style="margin:0 0 12px">ارفع سيرتك الذاتية بصيغة PDF (بحد أقصى 5 ميجابايت). يمكنك حفظ أكثر من نسخة واختيار نسخة افتراضية.</p>
+        <label for="candidateResumeFile">ملف السيرة الذاتية (PDF)</label>
+        <input id="candidateResumeFile" type="file" accept="application/pdf,.pdf" style="display:block;width:100%;margin:8px 0 12px">
+        <button id="uploadCandidateResumeBtn" type="button" class="btn primary" style="width:100%">رفع السيرة الذاتية</button>
+        <p id="candidateResumeMessage" role="status" aria-live="polite"></p>
+        <div id="candidateResumesList" aria-live="polite" class="muted">جارٍ تحميل السير الذاتية...</div>
+      </section>
   </div>
 </div>
 
@@ -1164,6 +1173,7 @@ async function loadCandidateProfileData() {
       categorySelect.dataset.bound = "1";
     }
     await loadCandidateExperiences();
+    await loadCandidateResumes();
   } catch(error) {
     console.error("Could not load candidate taxonomy:",error);
     const message=document.getElementById("profileMessage");
@@ -1184,6 +1194,146 @@ async function loadCandidateExperiences() {
     return '<article style="padding:10px;margin:8px 0;border:1px solid #e5eee8;border-radius:9px"><strong>'+escapeAdminHtml(item.job_title)+'</strong><div>'+escapeAdminHtml(item.company_name)+'</div><small class="muted">'+escapeAdminHtml(period)+'</small>'+(item.description?'<p>'+escapeAdminHtml(item.description)+'</p>':'')+'<button type="button" class="btn outline small" data-delete-experience="'+item.id+'">'+(lang==="ar"?"حذف":"Delete")+'</button></article>';
   }).join("");
 }
+async function loadCandidateResumes() {
+  const list=document.getElementById("candidateResumesList");
+  if(!list || !currentAuthUser) return;
+  list.textContent=lang==="ar"?"جارٍ تحميل السير الذاتية...":"Loading resumes...";
+  const {data,error}=await supabaseClient.from("candidate_resumes")
+    .select("id,file_name,file_path,file_size_bytes,mime_type,is_default,created_at")
+    .eq("candidate_id",currentAuthUser.id).order("created_at",{ascending:false});
+  if(error) {
+    list.textContent=(lang==="ar"?"تعذر تحميل السير الذاتية: ":"Could not load resumes: ")+error.message;
+    return;
+  }
+  if(!data?.length) {
+    list.textContent=lang==="ar"?"لم ترفع سيرة ذاتية بعد.":"No resume uploaded yet.";
+    return;
+  }
+  list.innerHTML=data.map(item=>{
+    const size=item.file_size_bytes ? (item.file_size_bytes/1024/1024).toFixed(2)+" MB" : "PDF";
+    const defaultLabel=item.is_default?(lang==="ar"?"السيرة الافتراضية":"Default resume"):"";
+    return '<article style="padding:12px;margin:9px 0;border:1px solid #e5eee8;border-radius:10px">'+
+      '<strong>'+escapeAdminHtml(item.file_name)+'</strong><div class="muted" style="font-size:12px;margin:5px 0">'+escapeAdminHtml(size)+' '+(defaultLabel?(" · "+defaultLabel):"")+'</div>'+
+      '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:9px">'+
+      '<button type="button" class="btn outline small" onclick="openCandidateResume(\''+item.id+'\',false)">'+(lang==="ar"?"معاينة":"Preview")+'</button>'+
+      '<button type="button" class="btn outline small" onclick="openCandidateResume(\''+item.id+'\',true)">'+(lang==="ar"?"تنزيل":"Download")+'</button>'+
+      (item.is_default?"":'<button type="button" class="btn outline small" onclick="setDefaultCandidateResume(\''+item.id+'\')">'+(lang==="ar"?"تعيين كافتراضية":"Set as default")+'</button>')+
+      '<button type="button" class="btn outline small" onclick="deleteCandidateResume(\''+item.id+'\')">'+(lang==="ar"?"حذف":"Delete")+'</button></div></article>';
+  }).join("");
+}
+async function uploadCandidateResume() {
+  const input=document.getElementById("candidateResumeFile");
+  const button=document.getElementById("uploadCandidateResumeBtn");
+  const message=document.getElementById("candidateResumeMessage");
+  const file=input?.files?.[0];
+  if(!currentAuthUser) { message.textContent=lang==="ar"?"يرجى تسجيل الدخول أولاً.":"Please sign in first."; return; }
+  if(!file) { message.textContent=lang==="ar"?"اختر ملف PDF أولاً.":"Choose a PDF file first."; return; }
+  if(file.type!=="application/pdf" || !file.name.toLowerCase().endsWith(".pdf")) {
+    message.textContent=lang==="ar"?"يسمح برفع ملفات PDF فقط.":"Only PDF files are allowed."; return;
+  }
+  if(file.size===0 || file.size>5*1024*1024) {
+    message.textContent=lang==="ar"?"حجم الملف يجب أن يكون أكبر من صفر ولا يتجاوز 5 ميجابايت.":"File must be larger than zero and no bigger than 5 MB."; return;
+  }
+  button.disabled=true;
+  message.textContent=lang==="ar"?"جارٍ رفع السيرة الذاتية...":"Uploading resume...";
+  let uploadedPath=null;
+  try {
+    const safeName=file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]+/g,"_").replace(/^_+|_+$/g,"")||"resume.pdf";
+    const uniquePart=(window.crypto?.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2));
+    uploadedPath=currentAuthUser.id+"/"+uniquePart+"-"+safeName;
+    const {error:uploadError}=await supabaseClient.storage.from("candidate-cvs").upload(uploadedPath,file,{
+      contentType:"application/pdf",cacheControl:"3600",upsert:false
+    });
+    if(uploadError) throw uploadError;
+    const {count,error:countError}=await supabaseClient.from("candidate_resumes")
+      .select("id",{count:"exact",head:true}).eq("candidate_id",currentAuthUser.id);
+    if(countError) throw countError;
+    const {error:insertError}=await supabaseClient.from("candidate_resumes").insert({
+      candidate_id:currentAuthUser.id,file_name:file.name,file_path:uploadedPath,
+      file_size_bytes:file.size,mime_type:"application/pdf",is_default:count===0
+    });
+    if(insertError) throw insertError;
+    input.value="";
+    message.textContent=lang==="ar"?"تم رفع السيرة الذاتية وحفظها بنجاح.":"Resume uploaded and saved successfully.";
+    await loadCandidateResumes();
+  } catch(error) {
+    if(uploadedPath) {
+      const {error:cleanupError}=await supabaseClient.storage.from("candidate-cvs").remove([uploadedPath]);
+      if(cleanupError) console.warn("Resume upload cleanup failed:",cleanupError);
+    }
+    console.error("Candidate resume upload failed:",error);
+    message.textContent=(lang==="ar"?"تعذر رفع السيرة الذاتية: ":"Could not upload resume: ")+(error.message||"");
+  } finally { button.disabled=false; }
+}
+async function openCandidateResume(resumeId,download) {
+  if(!currentAuthUser) return;
+  const previewWindow=window.open("about:blank","_blank");
+  if(!previewWindow) {
+    const message=document.getElementById("candidateResumeMessage");
+    if(message) message.textContent=lang==="ar"?"اسمح بفتح النوافذ المنبثقة لعرض السيرة الذاتية.":"Allow pop-ups to open the resume.";
+    return;
+  }
+  try {
+    const {data:resume,error}=await supabaseClient.from("candidate_resumes")
+      .select("file_path").eq("id",resumeId).eq("candidate_id",currentAuthUser.id).single();
+    if(error) throw error;
+    const {data,error:signedError}=await supabaseClient.storage.from("candidate-cvs")
+      .createSignedUrl(resume.file_path,300,{download:download});
+    if(signedError) throw signedError;
+    previewWindow.location.href=data.signedUrl;
+  } catch(error) {
+    previewWindow.close();
+    console.error("Could not open candidate resume:",error);
+    const message=document.getElementById("candidateResumeMessage");
+    if(message) message.textContent=(lang==="ar"?"تعذر فتح الملف: ":"Could not open file: ")+(error.message||"");
+  }
+}
+async function setDefaultCandidateResume(resumeId) {
+  if(!currentAuthUser) return;
+  const message=document.getElementById("candidateResumeMessage");
+  try {
+    const {error:clearError}=await supabaseClient.from("candidate_resumes")
+      .update({is_default:false}).eq("candidate_id",currentAuthUser.id);
+    if(clearError) throw clearError;
+    const {error:setError}=await supabaseClient.from("candidate_resumes")
+      .update({is_default:true}).eq("id",resumeId).eq("candidate_id",currentAuthUser.id);
+    if(setError) throw setError;
+    message.textContent=lang==="ar"?"تم تعيين السيرة الذاتية الافتراضية.":"Default resume updated.";
+    await loadCandidateResumes();
+  } catch(error) {
+    console.error("Could not set default resume:",error);
+    message.textContent=(lang==="ar"?"تعذر تغيير السيرة الافتراضية: ":"Could not update default resume: ")+(error.message||"");
+  }
+}
+async function deleteCandidateResume(resumeId) {
+  if(!currentAuthUser) return;
+  const message=document.getElementById("candidateResumeMessage");
+  if(!window.confirm(lang==="ar"?"هل تريد حذف هذه السيرة الذاتية؟":"Delete this resume?")) return;
+  try {
+    const {data:resume,error:lookupError}=await supabaseClient.from("candidate_resumes")
+      .select("file_path,is_default").eq("id",resumeId).eq("candidate_id",currentAuthUser.id).single();
+    if(lookupError) throw lookupError;
+    const {error:deleteRowError}=await supabaseClient.from("candidate_resumes")
+      .delete().eq("id",resumeId).eq("candidate_id",currentAuthUser.id);
+    if(deleteRowError) throw deleteRowError;
+    const {error:removeError}=await supabaseClient.storage.from("candidate-cvs").remove([resume.file_path]);
+    if(removeError) console.warn("Resume storage cleanup failed:",removeError);
+    if(resume.is_default) {
+      const {data:nextResume,error:nextError}=await supabaseClient.from("candidate_resumes")
+        .select("id").eq("candidate_id",currentAuthUser.id).order("created_at",{ascending:false}).limit(1).maybeSingle();
+      if(!nextError && nextResume) await supabaseClient.from("candidate_resumes")
+        .update({is_default:true}).eq("id",nextResume.id).eq("candidate_id",currentAuthUser.id);
+    }
+    message.textContent=removeError?(lang==="ar"?"حُذف سجل السيرة، لكن تعذر حذف الملف من التخزين.":"Resume record deleted, but the stored file could not be removed."):(lang==="ar"?"تم حذف السيرة الذاتية.":"Resume deleted.");
+    await loadCandidateResumes();
+  } catch(error) {
+    console.error("Could not delete candidate resume:",error);
+    message.textContent=(lang==="ar"?"تعذر حذف السيرة الذاتية: ":"Could not delete resume: ")+(error.message||"");
+  }
+}
+const candidateResumeUploadButton=document.getElementById("uploadCandidateResumeBtn");
+if(candidateResumeUploadButton) candidateResumeUploadButton.addEventListener("click",uploadCandidateResume);
+
 const experienceForm=document.getElementById("candidateExperienceForm");
 const addExperienceButton=document.getElementById("addExperienceBtn");
 const experienceCurrentCheckbox=document.getElementById("experienceCurrent");
