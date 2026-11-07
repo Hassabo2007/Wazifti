@@ -730,6 +730,61 @@ body.modal-open { overflow: hidden; }
   box-shadow: none;
 }
 </style>
+
+<style>
+/* V1.4.1: render the application form as a true viewport modal, not an inline card. */
+#jobApplicationModal {
+  position: fixed !important;
+  inset: 0;
+  z-index: 10020;
+  width: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 14px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  box-sizing: border-box;
+  background: rgba(8, 30, 20, .72);
+  border-radius: 0;
+  box-shadow: none;
+}
+#jobApplicationModal .modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  max-height: min(92vh, 850px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px;
+  box-sizing: border-box;
+  border-radius: 18px;
+  background: #fff;
+  color: #17372a;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+#jobApplicationModal .close-btn {
+  position: sticky;
+  top: 0;
+  float: left;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: #edf6f0;
+  color: #075b39;
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+}
+@media (max-width: 600px) {
+  #jobApplicationModal { padding: 10px; }
+  #jobApplicationModal .modal-content { max-height: 94vh; padding: 18px; }
+}
+</style>
 </head>
 <body>
 <header><div class="nav"><a class="brand" href="/" aria-label="Wazifti home" style="text-decoration:none;color:inherit"><div class="logo">و</div><span data-t="brand">وظيفتي</span></a>
@@ -895,7 +950,7 @@ function fieldName(f){return T[f==="Healthcare"?"health":f==="Admin"?"admin":f==
 function jobCategoryName(job){const category=waziftiTaxonomy.categories.find(item=>item.id===job.categoryId);return category?(lang==="ar"?category.name_ar:(category.name_en||category.name_ar)):fieldName(job.field)}
 function render(items){document.getElementById("list").innerHTML=items.length?items.map(j=>`<article class="job"><div class="company"><div class="icon">${j.icon}</div><div><h3>${lang==="ar"?j.title:j.en}</h3><div class="muted">${lang==="ar"?j.company:j.companyEn}</div><div class="meta"><span>📍 ${lang==="ar"?j.city:j.cityEn}</span><span>◷ ${typeName(j.type)}</span></div><span class="tag">${jobCategoryName(j)}</span></div></div><div class="side"><span class="salary">${lang==="ar"?j.salary:j.salaryEn}</span><button class="btn primary small" onclick="showJob(${data.indexOf(j)})">${T.details}</button></div></article>`).join(""):`<div class="empty" style="padding:28px;text-align:center;color:#718078">${T.empty}</div>`;document.getElementById("count").textContent=items.length+" "+T.count}
 function showJob(i){let j=data[i];document.getElementById("modalContent").innerHTML=`<div style="font-size:34px">${j.icon}</div><h2>${lang==="ar"?j.title:j.en}</h2><p class="muted">${lang==="ar"?j.company:j.companyEn}</p>${j.companyDescription?`<div style="margin:12px 0;padding:12px;background:#f7fbf8;border:1px solid #e5eee8;border-radius:10px;line-height:1.8"><b>نبذة عن جهة العمل</b><p style="margin:6px 0 0;white-space:pre-wrap">${escapeAdminHtml(j.companyDescription)}</p></div>`:""}<p><b>${T.location}:</b> ${lang==="ar"?j.city:j.cityEn}</p><p><b>${T.type}:</b> ${typeName(j.type)}</p><p><b>${T.salary}:</b> ${lang==="ar"?j.salary:j.salaryEn}</p><hr style="border:0;border-top:1px solid #e5eee8"><h3>${T.description}</h3><p style="line-height:1.9">${lang==="ar"?j.desc:j.descEn}</p><button class="btn primary" onclick="openJobApplication('${j.id}')">${lang==="ar"?"تقديم الآن":"Apply now"}</button>`;document.getElementById("modalbg").style.display="flex"}
-function closeModal(){document.getElementById("modalbg").style.display="none"}
+function closeModal(){document.getElementById("modalbg").style.display="none";const applicationModal=document.getElementById("jobApplicationModal");if(!applicationModal||applicationModal.style.display!=="flex")document.body.classList.remove("modal-open")}
 function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
   function filterJobs(){
   const q = document.getElementById("q").value.toLowerCase().trim();
@@ -2740,7 +2795,10 @@ async function openJobApplication(jobId) {
 function closeJobApplication() {
   const modal=document.getElementById("jobApplicationModal");
   if(modal) modal.style.display="none";
-  document.body.classList.remove("modal-open");
+  const profileModal=document.getElementById("profileModal");
+  const employerModal=document.getElementById("employerDashboardModal");
+  const anotherModalOpen=(profileModal&&profileModal.style.display==="flex")||(employerModal&&employerModal.style.display==="flex");
+  if(!anotherModalOpen) document.body.classList.remove("modal-open");
   activeApplicationJobId=null;
   activeApplicationResume=null;
 }
