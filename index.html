@@ -590,18 +590,25 @@ footer {
 <section class="hero"><div class="hero-inner"><div><h1 data-t="headline">خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span></h1>
 <p data-t="sub">ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.</p>
 <div class="search"><input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة"><input id="city" data-ph="searchCity" placeholder="المدينة"><button class="btn primary" onclick="filterJobs()" data-t="search">ابحث عن وظيفة</button></div>
-<div class="stats"><span><b>+120</b><span data-t="statJobs">فرصة تجريبية</span></span><span><b>+35</b><span data-t="statEmployers">جهة عمل</span></span><span><b>18</b><span data-t="statCities">مدينة</span></span></div></div>
+<div class="stats"><span><b id="liveJobCount">0</b><span data-t="statJobs">وظيفة منشورة</span></span><span><b>+35</b><span data-t="statEmployers">جهة عمل</span></span><span><b>18</b><span data-t="statCities">مدينة</span></span></div></div>
 <div class="art"><div class="articon">💼</div><h3 data-t="artTitle">وظيفتك القادمة أقرب مما تتوقع</h3><p class="muted" data-t="artSub">فرص في مختلف القطاعات والمجالات في السودان.</p></div></div></section>
-<main class="wrap" id="jobs"><div class="head"><h2 data-t="latest">أحدث فرص العمل</h2><span class="muted" id="count"></span></div>
+<main class="wrap" id="jobs"><div class="head"><h2 data-t="latest">أحدث فرص العمل</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="muted" id="count"></span><button class="btn outline" id="refreshLiveJobsBtn" type="button" onclick="loadLiveJobs()">↻ تحديث الوظائف</button></div></div>
 <div class="layout"><aside class="filters"><button class="btn outline" onclick="clearFilters()" style="width:100%;margin-bottom:12px">
   مسح جميع الفلاتر
 </button> <h3 data-t="filters">تصفية النتائج</h3><div class="group"><strong data-t="jobType">نوع الوظيفة</strong><label><input type="checkbox" value="Full-time" onchange="filterJobs()"> <span data-t="full">دوام كامل</span></label><label><input type="checkbox" value="Part-time" onchange="filterJobs()"> <span data-t="part">دوام جزئي</span></label><label><input type="checkbox" value="Remote" onchange="filterJobs()"> <span data-t="remote">عن بُعد</span></label></div>
 <div class="group"><strong>التصنيف والتخصص</strong><label for="jobCategoryFilter">التصنيف الرئيسي</label><select id="jobCategoryFilter" onchange="onJobCategoryFilterChange()" style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="">كل التصنيفات</option></select><label for="jobSpecialtyFilter">التخصص الفرعي</label><select id="jobSpecialtyFilter" onchange="filterJobs()" disabled style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="">كل التخصصات</option></select></div></aside><section class="list" id="list"></section></div></main>
 <section class="wrap" id="adminDashboard" style="display:none">
-  <div class="head"><h2>لوحة إدارة وظيفتي</h2><button class="btn outline" type="button" onclick="loadAdminCompanies()">تحديث القائمة</button></div>
-  <p class="muted">مراجعة طلبات تسجيل الشركات والتحقق من مستنداتها قبل اعتمادها.</p>
+  <div class="head"><h2>لوحة إدارة وظيفتي</h2><button class="btn outline" type="button" onclick="loadAdminDashboardData()">تحديث القوائم</button></div>
+  <p class="muted">مراجعة طلبات تسجيل الشركات والوظائف قبل نشرها.</p>
   <div id="adminDashboardMessage" role="status" aria-live="polite" class="muted" style="margin:12px 0"></div>
+  <h3 style="margin-top:22px">طلبات اعتماد الشركات</h3>
   <div id="adminCompaniesList"></div>
+  <div style="margin-top:30px;padding-top:20px;border-top:2px solid #e5eee8">
+    <div class="head"><h3 style="margin:0">الوظائف بانتظار الموافقة</h3><span id="adminPendingJobsCount" class="tag">0 وظيفة</span></div>
+    <p class="muted">راجع تفاصيل الوظيفة قبل نشرها أو رفضها. لن تظهر الوظائف للعامة قبل اعتمادها.</p>
+    <div id="adminPendingJobsMessage" role="status" aria-live="polite" class="muted" style="margin:10px 0"></div>
+    <div id="adminPendingJobsList"></div>
+  </div>
 </section>
 <section class="wrap" id="employerDashboard" style="display:none;margin-top:24px;margin-bottom:30px">
   <div class="head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
@@ -641,20 +648,12 @@ footer {
 <footer id="about"><b data-t="brand">وظيفتي</b> — <span data-t="footerLine">منصة سودانية للبحث عن فرص العمل</span><br><span data-t="disclaimer">نموذج أولي؛ الوظائف المعروضة بيانات توضيحية وليست إعلانات حقيقية.</span></footer>
 <div class="modalbg" id="modalbg" onclick="if(event.target===this)closeModal()"><div class="modal"><button class="close" onclick="closeModal()" data-t="close">إغلاق ✕</button><div id="modalContent"></div></div></div><div class="toast" id="toastbox"></div>
 <script>
-const data=[
-{title:"أخصائي مختبرات طبية",en:"Medical Laboratory Specialist",company:"مركز النيل الطبي",companyEn:"Nile Medical Center",city:"الخرطوم",cityEn:"Khartoum",type:"Full-time",field:"Healthcare",salary:"حسب الخبرة",salaryEn:"Based on experience",icon:"🧪",desc:"المساهمة في إجراء الفحوصات المخبرية وضبط الجودة وإعداد التقارير. يشترط مؤهل في علوم المختبرات الطبية.",descEn:"Perform laboratory tests, support quality control and prepare reports. A degree in medical laboratory sciences is required."},
-{title:"مسؤول موارد بشرية",en:"Human Resources Officer",company:"مجموعة الأفق",companyEn:"Horizon Group",city:"أم درمان",cityEn:"Omdurman",type:"Full-time",field:"Admin",salary:"قابل للتفاوض",salaryEn:"Negotiable",icon:"👥",desc:"متابعة ملفات الموظفين وإجراءات التوظيف والحضور والإجازات.",descEn:"Maintain employee records and support recruitment, attendance and leave processes."},
-{title:"مطور واجهات ويب",en:"Frontend Web Developer",company:"حلول رقمية",companyEn:"Digital Solutions",city:"عن بُعد",cityEn:"Remote",type:"Remote",field:"Tech",salary:"حسب الاتفاق",salaryEn:"By agreement",icon:"💻",desc:"تطوير واجهات ويب متجاوبة والعمل مع فريق تقني على تحسين تجربة المستخدم.",descEn:"Build responsive web interfaces and collaborate with a team to improve user experience."},
-{title:"مهندس مدني",en:"Civil Engineer",company:"شركة البناء الحديث",companyEn:"Modern Construction Co.",city:"بورتسودان",cityEn:"Port Sudan",type:"Full-time",field:"Engineering",salary:"يحدد بعد المقابلة",salaryEn:"After interview",icon:"🏗️",desc:"الإشراف على تنفيذ الأعمال ومتابعة الجودة والجدول الزمني للمشروعات.",descEn:"Supervise project execution and monitor quality and project schedules."},
-{title:"مساعد إداري",en:"Administrative Assistant",company:"منظمة تنمية المجتمع",companyEn:"Community Development Organization",city:"كسلا",cityEn:"Kassala",type:"Part-time",field:"Admin",salary:"مكافأة شهرية",salaryEn:"Monthly stipend",icon:"📋",desc:"تنظيم المراسلات والاجتماعات وإدخال البيانات ومساندة الفريق الإداري.",descEn:"Organize correspondence and meetings, enter data and support the administration team."},
-{title:"فني صيدلة",en:"Pharmacy Technician",company:"صيدليات الشفاء",companyEn:"Al Shifa Pharmacies",city:"مدني",cityEn:"Wad Madani",type:"Full-time",field:"Healthcare",salary:"قابل للتفاوض",salaryEn:"Negotiable",icon:"💊",desc:"تنظيم الأدوية ومتابعة المخزون وخدمة العملاء تحت إشراف الصيدلي.",descEn:"Organize medicines, monitor stock and assist customers under pharmacist supervision."}
-];
+const data=[];
 let lang="ar";let T={};
 // Public browser configuration. The publishable key is safe to expose only with correct Supabase RLS policies.
 const SUPABASE_URL = "https://zaucmxoxgpmipizzhbqs.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_g-HmAZw_pmn6wQy41JjUug_VqrVrJsq";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-const demoData = data.slice();
 function mapLiveJob(row){
   const company = Array.isArray(row.companies) ? row.companies[0] : row.companies;
   const typeMap = {full_time:"Full-time",fulltime:"Full-time",part_time:"Part-time",parttime:"Part-time",remote:"Remote",contract:"Part-time",temporary:"Part-time",internship:"Part-time"};
@@ -663,25 +662,69 @@ function mapLiveJob(row){
   const salary = row.salary_min != null || row.salary_max != null ? `${row.salary_min ?? ""}${row.salary_min != null && row.salary_max != null ? " - " : ""}${row.salary_max ?? ""} ${row.currency || ""}`.trim() : "حسب الاتفاق";
   return {id:row.id,categoryId:row.category_id||null,specialtyId:row.specialty_id||null,title:row.title||"",en:row.title_en||row.title||"",company:company?.name||company?.company_name||"جهة العمل",companyEn:company?.name_en||company?.company_name||"Employer",companyDescription:company?.description||"",city:row.city||row.state||row.location||"غير محدد",cityEn:row.city||row.state||row.location||"Not specified",type:typeMap[String(row.employment_type||"").toLowerCase().replace(/[ -]/g,"_")]||"Full-time",field,salary,salaryEn:salary,icon:"💼",desc:row.description||"",descEn:row.description_en||row.description||""};
 }
-async function loadLiveJobs(){
+let liveJobsLoading=false;
+let liveJobsChannel=null;
+async function loadLiveJobs(options={}){
+  const refreshButton=document.getElementById("refreshLiveJobsBtn");
+  const disclaimer=document.querySelector('[data-t="disclaimer"]');
+  if(liveJobsLoading) return;
+  liveJobsLoading=true;
+  if(refreshButton){refreshButton.disabled=true;refreshButton.textContent=lang==="ar"?"جارٍ التحديث…":"Refreshing…";}
+  let lastError=null;
+  const delays=[0,1200,3000];
   try {
-    const {data:rows,error} = await supabaseClient.from("jobs").select("*, companies(company_name,description)").eq("status","published").order("created_at",{ascending:false});
-    if(error) throw error;
-    data.splice(0,data.length,...(rows||[]).map(mapLiveJob));
+    for(let attempt=0;attempt<delays.length;attempt++){
+      if(delays[attempt]) await new Promise(resolve=>setTimeout(resolve,delays[attempt]));
+      try{
+        const {data:rows,error,count:publishedCount}=await supabaseClient.from("jobs").select("*",{count:"exact"}).eq("status","published").order("created_at",{ascending:false});
+        if(error) throw error;
+        let companyMap={};
+        const companyIds=[...new Set((rows||[]).map(row=>row.company_id).filter(Boolean))];
+        if(companyIds.length){
+          const {data:companies,error:companyError}=await supabaseClient.from("public_verified_companies").select("id,company_name,description").in("id",companyIds);
+          if(companyError) console.warn("Public company details unavailable:",companyError);
+          else companyMap=Object.fromEntries((companies||[]).map(company=>[company.id,company]));
+        }
+        data.splice(0,data.length,...(rows||[]).map(row=>mapLiveJob({...row,companies:companyMap[row.company_id]||null})));
+        const countElement=document.getElementById("liveJobCount");
+        if(countElement) countElement.textContent=String(publishedCount ?? (rows||[]).length);
+        filterJobs();
+        if(disclaimer) disclaimer.textContent=lang==="ar"?"الوظائف المعروضة منشورة من قاعدة بيانات وظيفتي وتتحدث تلقائياً.":"Published jobs from Wazifti update automatically.";
+        return;
+      }catch(error){lastError=error;console.warn("Live jobs attempt failed:",attempt+1,error);}
+    }
+    // Never present sample/demo vacancies as real opportunities when the API is unavailable.
+    data.splice(0,data.length);
+    const countElement=document.getElementById("liveJobCount");
+    if(countElement) countElement.textContent="0";
     filterJobs();
-    const disclaimer=document.querySelector('[data-t="disclaimer"]');
-    if(disclaimer) disclaimer.textContent=lang==="ar"?"الوظائف المعروضة منشورة من قاعدة بيانات وظيفتي.":"Jobs shown are published from the Wazifti database.";
-  } catch(error) {
-    console.error("Supabase jobs load failed:",error);
-    data.splice(0,data.length,...demoData);
-    filterJobs();
-    const disclaimer=document.querySelector('[data-t="disclaimer"]');
-    if(disclaimer) disclaimer.textContent=lang==="ar"?"تعذر تحميل الوظائف الحقيقية؛ المعروض حالياً بيانات تجريبية.":"Live jobs could not be loaded; sample listings are shown.";
+    if(disclaimer) disclaimer.textContent=(lang==="ar"?"تعذر الاتصال بالوظائف الحقيقية. سنحاول مجدداً تلقائياً. ":"Live jobs are temporarily unavailable. We will retry automatically. ")+(lastError?.message||"");
+    if(options.manual) toast(lang==="ar"?"تعذر تحديث الوظائف حالياً؛ ستتم إعادة المحاولة تلقائياً.":"Jobs could not be refreshed; automatic retries will continue.");
+  } finally {
+    liveJobsLoading=false;
+    if(refreshButton){refreshButton.disabled=false;refreshButton.textContent=lang==="ar"?"↻ تحديث الوظائف":"↻ Refresh jobs";}
   }
 }
+function startLiveJobsUpdates(){
+  // Polling is a resilient fallback for browsers or networks where Realtime is unavailable.
+  if(!window.waziftiJobsPoller) window.waziftiJobsPoller=setInterval(()=>{
+    if(document.visibilityState==="visible" && navigator.onLine) loadLiveJobs();
+  },60000);
+  window.addEventListener("online",()=>loadLiveJobs());
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible" && navigator.onLine) loadLiveJobs();});
+  try{
+    if(liveJobsChannel) supabaseClient.removeChannel(liveJobsChannel);
+    liveJobsChannel=supabaseClient.channel("public-live-jobs")
+      .on("postgres_changes",{event:"*",schema:"public",table:"jobs"},payload=>{
+        // Re-fetch through the public SELECT policy; never trust event payload as a public listing.
+        if(payload.eventType==="INSERT" || payload.eventType==="UPDATE" || payload.eventType==="DELETE") loadLiveJobs();
+      })
+      .subscribe(status=>{if(status==="SUBSCRIBED") console.info("Live job updates connected.");});
+  }catch(error){console.warn("Realtime subscription unavailable; polling remains active.",error);}
+}
 const words={
-ar:{brand:"وظيفتي",navJobs:"الوظائف",navHow:"كيف تعمل المنصة؟",navAbout:"عن وظيفتي",login:"دخول",signup:"إنشاء حساب",logout:"تسجيل الخروج",profile:"ملفي الشخصي",postJob:"أعلن عن وظيفة",headline:'خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span>',sub:"ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.",searchJob:"المسمى الوظيفي أو المهارة",searchCity:"المدينة",search:"ابحث عن وظيفة",statJobs:"فرصة تجريبية",statEmployers:"جهة عمل",statCities:"مدينة",artTitle:"وظيفتك القادمة أقرب مما تتوقع",artSub:"فرص في مختلف القطاعات والمجالات في السودان.",latest:"أحدث فرص العمل",filters:"تصفية النتائج",jobType:"نوع الوظيفة",full:"دوام كامل",part:"دوام جزئي",remote:"عن بُعد",sector:"المجال",health:"طبي وصحي",admin:"إداري",tech:"تقنية المعلومات",engineering:"هندسي",howTitle:"كيف تعمل وظيفتي؟",howSub:"ابحث عن الفرصة المناسبة ← اقرأ التفاصيل ← تواصل مع جهة العمل.",footerLine:"منصة سودانية للبحث عن فرص العمل",disclaimer:"نموذج أولي؛ الوظائف المعروضة بيانات توضيحية وليست إعلانات حقيقية.",close:"إغلاق ✕",details:"تفاصيل الوظيفة",company:"جهة العمل",location:"الموقع",type:"نوع العمل",salary:"الراتب",description:"وصف الوظيفة",apply:"تقديم تجريبي",empty:"لا توجد وظائف مطابقة لبحثك.",loginSoon:"ميزة تسجيل الدخول ستكون متاحة قريباً",employerSoon:"نموذج تسجيل صاحب العمل سيكون متاحاً قريباً",demo:"هذه وظيفة تجريبية؛ التقديم الإلكتروني غير مفعّل بعد",count:"وظائف معروضة"},
-en:{brand:"Wazifti",navJobs:"Jobs",navHow:"How it works",navAbout:"About Wazifti",login:"Log in",signup:"Create account",logout:"Log out",profile:"My profile",postJob:"Post a job",headline:'Your first step toward<br><span style="color:var(--g)">a better opportunity</span>',sub:"Find suitable jobs across Sudan and connect with employers in one place.",searchJob:"Job title or skill",searchCity:"City",search:"Find jobs",statJobs:"sample jobs",statEmployers:"employers",statCities:"cities",artTitle:"Your next opportunity is closer than you think",artSub:"Opportunities across sectors and industries in Sudan.",latest:"Latest opportunities",filters:"Filter results",jobType:"Job type",full:"Full-time",part:"Part-time",remote:"Remote",sector:"Sector",health:"Healthcare",admin:"Administration",tech:"Technology",engineering:"Engineering",howTitle:"How does Wazifti work?",howSub:"Find an opportunity ← Review the details ← Contact the employer.",footerLine:"A Sudanese job-search platform",disclaimer:"Prototype only; listed jobs are illustrative, not real vacancies.",close:"Close ✕",details:"Job details",company:"Employer",location:"Location",type:"Job type",salary:"Salary",description:"Description",apply:"Demo application",empty:"No jobs match your search.",loginSoon:"Login will be available soon",employerSoon:"Employer registration will be available soon",demo:"This is a sample job; online applications are not enabled yet",count:"jobs shown"}};
+ar:{brand:"وظيفتي",navJobs:"الوظائف",navHow:"كيف تعمل المنصة؟",navAbout:"عن وظيفتي",login:"دخول",signup:"إنشاء حساب",logout:"تسجيل الخروج",profile:"ملفي الشخصي",postJob:"أعلن عن وظيفة",headline:'خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span>',sub:"ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.",searchJob:"المسمى الوظيفي أو المهارة",searchCity:"المدينة",search:"ابحث عن وظيفة",statJobs:"وظيفة منشورة",statEmployers:"جهة عمل",statCities:"مدينة",artTitle:"وظيفتك القادمة أقرب مما تتوقع",artSub:"فرص في مختلف القطاعات والمجالات في السودان.",latest:"أحدث فرص العمل",filters:"تصفية النتائج",jobType:"نوع الوظيفة",full:"دوام كامل",part:"دوام جزئي",remote:"عن بُعد",sector:"المجال",health:"طبي وصحي",admin:"إداري",tech:"تقنية المعلومات",engineering:"هندسي",howTitle:"كيف تعمل وظيفتي؟",howSub:"ابحث عن الفرصة المناسبة ← اقرأ التفاصيل ← تواصل مع جهة العمل.",footerLine:"منصة سودانية للبحث عن فرص العمل",disclaimer:"جارٍ تحميل الوظائف المنشورة من قاعدة البيانات...",close:"إغلاق ✕",details:"تفاصيل الوظيفة",company:"جهة العمل",location:"الموقع",type:"نوع العمل",salary:"الراتب",description:"وصف الوظيفة",apply:"تقديم تجريبي",empty:"لا توجد وظائف مطابقة لبحثك.",loginSoon:"ميزة تسجيل الدخول ستكون متاحة قريباً",employerSoon:"نموذج تسجيل صاحب العمل سيكون متاحاً قريباً",demo:"هذه وظيفة تجريبية؛ التقديم الإلكتروني غير مفعّل بعد",count:"وظائف معروضة"},
+en:{brand:"Wazifti",navJobs:"Jobs",navHow:"How it works",navAbout:"About Wazifti",login:"Log in",signup:"Create account",logout:"Log out",profile:"My profile",postJob:"Post a job",headline:'Your first step toward<br><span style="color:var(--g)">a better opportunity</span>',sub:"Find suitable jobs across Sudan and connect with employers in one place.",searchJob:"Job title or skill",searchCity:"City",search:"Find jobs",statJobs:"published jobs",statEmployers:"employers",statCities:"cities",artTitle:"Your next opportunity is closer than you think",artSub:"Opportunities across sectors and industries in Sudan.",latest:"Latest opportunities",filters:"Filter results",jobType:"Job type",full:"Full-time",part:"Part-time",remote:"Remote",sector:"Sector",health:"Healthcare",admin:"Administration",tech:"Technology",engineering:"Engineering",howTitle:"How does Wazifti work?",howSub:"Find an opportunity ← Review the details ← Contact the employer.",footerLine:"A Sudanese job-search platform",disclaimer:"Loading published jobs from the database...",close:"Close ✕",details:"Job details",company:"Employer",location:"Location",type:"Job type",salary:"Salary",description:"Description",apply:"Demo application",empty:"No jobs match your search.",loginSoon:"Login will be available soon",employerSoon:"Employer registration will be available soon",demo:"This is a sample job; online applications are not enabled yet",count:"jobs shown"}};
 function updateTexts(){T=words[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";document.querySelectorAll("[data-t]").forEach(e=>e.innerHTML=T[e.dataset.t]);document.querySelectorAll("[data-ph]").forEach(e=>e.placeholder=T[e.dataset.ph]);document.getElementById("lang").textContent=lang==="ar"?"EN":"عربي";const lb=document.getElementById("loginBtn");if(lb)lb.textContent=T.login;const sb=document.getElementById("signupBtn");if(sb)sb.textContent=T.signup;const ob=document.getElementById("logoutBtn");if(ob)ob.textContent=T.logout;const pb=document.getElementById("profileBtn");if(pb)pb.textContent=T.profile;filterJobs()}
 function toggleLang(){lang=lang==="ar"?"en":"ar";updateTexts()}
 function typeName(t){return T[t==="Full-time"?"full":t==="Part-time"?"part":"remote"]}
@@ -691,9 +734,6 @@ function render(items){document.getElementById("list").innerHTML=items.length?it
 function showJob(i){let j=data[i];document.getElementById("modalContent").innerHTML=`<div style="font-size:34px">${j.icon}</div><h2>${lang==="ar"?j.title:j.en}</h2><p class="muted">${lang==="ar"?j.company:j.companyEn}</p>${j.companyDescription?`<div style="margin:12px 0;padding:12px;background:#f7fbf8;border:1px solid #e5eee8;border-radius:10px;line-height:1.8"><b>نبذة عن جهة العمل</b><p style="margin:6px 0 0;white-space:pre-wrap">${escapeAdminHtml(j.companyDescription)}</p></div>`:""}<p><b>${T.location}:</b> ${lang==="ar"?j.city:j.cityEn}</p><p><b>${T.type}:</b> ${typeName(j.type)}</p><p><b>${T.salary}:</b> ${lang==="ar"?j.salary:j.salaryEn}</p><hr style="border:0;border-top:1px solid #e5eee8"><h3>${T.description}</h3><p style="line-height:1.9">${lang==="ar"?j.desc:j.descEn}</p><button class="btn primary" onclick="toast(T.demo);closeModal()">${T.apply}</button>`;document.getElementById("modalbg").style.display="flex"}
 function closeModal(){document.getElementById("modalbg").style.display="none"}
 function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
-updateTexts();
-loadWaziftiTaxonomy().then(loadJobCategoryFilters).catch(error=>console.error("Taxonomy load failed:",error));
-loadLiveJobs();
   function filterJobs(){
   const q = document.getElementById("q").value.toLowerCase().trim();
   const c = document.getElementById("city").value.toLowerCase().trim();
@@ -1386,7 +1426,96 @@ function openAdminDashboard() {
     panel.style.display = "block";
     panel.scrollIntoView({behavior:"smooth",block:"start"});
   }
-  loadAdminCompanies();
+  loadAdminDashboardData();
+}
+
+async function loadAdminDashboardData() {
+  await Promise.all([loadAdminCompanies(), loadAdminPendingJobs()]);
+}
+
+async function loadAdminPendingJobs() {
+  if (!currentAuthUser || !isAdminUser) return;
+  const list = document.getElementById("adminPendingJobsList");
+  const message = document.getElementById("adminPendingJobsMessage");
+  const count = document.getElementById("adminPendingJobsCount");
+  if (!list || !message) return;
+  message.textContent = "جارٍ تحميل الوظائف المعلقة...";
+  list.innerHTML = "";
+  try {
+    const { data: jobs, error } = await supabaseClient.from("jobs")
+      .select("id,title,description,location,employment_type,salary_min,salary_max,currency,status,created_at,company_id,category_id,specialty_id")
+      .eq("status", "pending").order("created_at", {ascending:false});
+    if (error) throw error;
+    const rows = jobs || [];
+    if (count) count.textContent = rows.length + " وظيفة";
+    if (!rows.length) {
+      message.textContent = "لا توجد وظائف بانتظار الموافقة حالياً.";
+      return;
+    }
+    const companyIds = [...new Set(rows.map(j => j.company_id).filter(Boolean))];
+    const categoryIds = [...new Set(rows.map(j => j.category_id).filter(Boolean))];
+    const specialtyIds = [...new Set(rows.map(j => j.specialty_id).filter(Boolean))];
+    const [companiesResult, categoriesResult, specialtiesResult] = await Promise.all([
+      companyIds.length ? supabaseClient.from("companies").select("id,company_name").in("id", companyIds) : Promise.resolve({data:[],error:null}),
+      categoryIds.length ? supabaseClient.from("job_categories").select("id,name_ar,name_en").in("id", categoryIds) : Promise.resolve({data:[],error:null}),
+      specialtyIds.length ? supabaseClient.from("job_specialties").select("id,name_ar,name_en").in("id", specialtyIds) : Promise.resolve({data:[],error:null})
+    ]);
+    if (companiesResult.error) throw companiesResult.error;
+    if (categoriesResult.error) throw categoriesResult.error;
+    if (specialtiesResult.error) throw specialtiesResult.error;
+    const companyMap = new Map((companiesResult.data || []).map(x => [x.id, x.company_name]));
+    const categoryMap = new Map((categoriesResult.data || []).map(x => [x.id, x]));
+    const specialtyMap = new Map((specialtiesResult.data || []).map(x => [x.id, x]));
+    const employmentLabels = {full_time:"دوام كامل",part_time:"دوام جزئي",contract:"عقد",temporary:"مؤقت",internship:"تدريب",remote:"عن بُعد"};
+    list.innerHTML = rows.map(job => {
+      const category = categoryMap.get(job.category_id);
+      const specialty = specialtyMap.get(job.specialty_id);
+      const salary = job.salary_min != null || job.salary_max != null
+        ? (job.salary_min != null ? Number(job.salary_min).toLocaleString("ar") : "—") + " - " + (job.salary_max != null ? Number(job.salary_max).toLocaleString("ar") : "—") + " " + escapeAdminHtml(job.currency || "")
+        : "غير محدد";
+      return "<article class='job' style='display:block;margin:12px 0;padding:18px;background:#fff;border:1px solid #e5eee8;border-radius:14px'>" +
+        "<div style='display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap'><h3 style='margin:0'>" + escapeAdminHtml(job.title) + "</h3><span class='tag'>قيد المراجعة</span></div>" +
+        "<p class='muted' style='margin:8px 0'><strong>جهة العمل:</strong> " + escapeAdminHtml(companyMap.get(job.company_id) || "شركة غير معروفة") + "</p>" +
+        "<p style='white-space:pre-wrap;line-height:1.8'>" + escapeAdminHtml(job.description || "لا يوجد وصف.") + "</p>" +
+        "<div class='muted' style='display:grid;gap:5px'>" +
+          "<span>الموقع: " + escapeAdminHtml(job.location || "غير محدد") + "</span>" +
+          "<span>التصنيف: " + escapeAdminHtml(category ? (category.name_ar || category.name_en) : "غير محدد") + "</span>" +
+          "<span>التخصص: " + escapeAdminHtml(specialty ? (specialty.name_ar || specialty.name_en) : "غير محدد") + "</span>" +
+          "<span>نوع العمل: " + escapeAdminHtml(employmentLabels[job.employment_type] || job.employment_type || "غير محدد") + "</span>" +
+          "<span>الراتب: " + salary + "</span>" +
+          "<small>تاريخ الإرسال: " + escapeAdminHtml(new Date(job.created_at).toLocaleString("ar")) + "</small>" +
+        "</div>" +
+        "<div style='display:flex;gap:8px;flex-wrap:wrap;margin-top:14px'>" +
+          "<button class='btn primary' type='button' data-admin-job-action='published' data-job-id='" + escapeAdminHtml(job.id) + "'>الموافقة والنشر</button>" +
+          "<button class='btn outline' type='button' data-admin-job-action='rejected' data-job-id='" + escapeAdminHtml(job.id) + "'>رفض الوظيفة</button>" +
+        "</div></article>";
+    }).join("");
+    list.querySelectorAll("[data-admin-job-action]").forEach(button => {
+      button.addEventListener("click", () => adminSetJobStatus(button.dataset.jobId, button.dataset.adminJobAction));
+    });
+    message.textContent = "تظهر هنا جميع الوظائف الجديدة التي تنتظر مراجعة الإدارة.";
+  } catch (error) {
+    console.error("Admin pending jobs load failed:", error);
+    message.textContent = "تعذر تحميل الوظائف المعلقة: " + (error.message || "خطأ غير معروف");
+  }
+}
+
+async function adminSetJobStatus(jobId, status) {
+  if (!currentAuthUser || !isAdminUser) {
+    toast("ليس لديك صلاحية تنفيذ هذا الإجراء.");
+    return;
+  }
+  const label = status === "published" ? "الموافقة على نشر الوظيفة" : "رفض الوظيفة";
+  if (!["published", "rejected"].includes(status) || !window.confirm("هل أنت متأكد من " + label + "؟")) return;
+  try {
+    const { error } = await supabaseClient.from("jobs").update({status}).eq("id", jobId).eq("status", "pending");
+    if (error) throw error;
+    toast(status === "published" ? "تمت الموافقة ونشر الوظيفة." : "تم رفض الوظيفة.");
+    await loadAdminPendingJobs();
+  } catch (error) {
+    console.error("Admin job status update failed:", error);
+    toast("تعذر تحديث حالة الوظيفة: " + (error.message || "خطأ غير معروف"));
+  }
 }
 
 async function loadAdminCompanies() {
@@ -2068,6 +2197,14 @@ if (employerRegistrationForm) {
     }
   });
 }
+// Start public listings only after all shared state and helper functions are initialized.
+updateTexts();
+(async()=>{
+  try { await loadWaziftiTaxonomy(); await loadJobCategoryFilters(); }
+  catch(error) { console.error("Taxonomy load failed:",error); }
+  await loadLiveJobs();
+  startLiveJobsUpdates();
+})();
 </script>
 
 </body></html>
