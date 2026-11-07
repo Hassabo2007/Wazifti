@@ -799,6 +799,20 @@ body.modal-open { overflow: hidden; }
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="وظيفتي">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+/* Keep the PWA install action visible on narrow screens. */
+@media (max-width: 760px) {
+  #pwaInstallBtn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    min-height: 38px;
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+}
+</style>
 </head>
 <body>
 <header><div class="nav"><a class="brand" href="/" aria-label="Wazifti home" style="text-decoration:none;color:inherit"><div class="logo">و</div><span data-t="brand">وظيفتي</span></a>
