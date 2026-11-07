@@ -812,7 +812,7 @@ function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.st
   const categoryFilter=document.getElementById("jobCategoryFilter");
   const specialtyFilter=document.getElementById("jobSpecialtyFilter");
   if(categoryFilter) categoryFilter.value="";
-  if(specialtyFilter){specialtyFilter.innerHTML='<option value="">كل التخصصات</option>';specialtyFilter.disabled=true;}
+  if(specialtyFilter){specialtyFilter.innerHTML='<option value="">'+T.allSpecialties+'</option>';specialtyFilter.disabled=true;}
 
   document.querySelectorAll(".filters input").forEach(input => {
     input.checked = false;
