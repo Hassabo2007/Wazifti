@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>وظيفتي | Wazifti</title>
 <meta name="description" content="منصة وظيفتي السودانية للبحث عن فرص العمل.">
-<meta name="wazifti-version" content="1.5.4">
+<meta name="wazifti-version" content="1.6.0">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -595,7 +595,7 @@ footer {
 <div class="layout"><aside class="filters"><button class="btn outline" onclick="clearFilters()" style="width:100%;margin-bottom:12px">
   مسح جميع الفلاتر
 </button> <h3 data-t="filters">تصفية النتائج</h3><div class="group"><strong data-t="jobType">نوع الوظيفة</strong><label><input type="checkbox" value="Full-time" onchange="filterJobs()"> <span data-t="full">دوام كامل</span></label><label><input type="checkbox" value="Part-time" onchange="filterJobs()"> <span data-t="part">دوام جزئي</span></label><label><input type="checkbox" value="Remote" onchange="filterJobs()"> <span data-t="remote">عن بُعد</span></label></div>
-<div class="group"><strong data-t="sector">المجال</strong><label><input type="checkbox" value="Healthcare" onchange="filterJobs()"> <span data-t="health">طبي وصحي</span></label><label><input type="checkbox" value="Admin" onchange="filterJobs()"> <span data-t="admin">إداري</span></label><label><input type="checkbox" value="Tech" onchange="filterJobs()"> <span data-t="tech">تقنية المعلومات</span></label><label><input type="checkbox" value="Engineering" onchange="filterJobs()"> <span data-t="engineering">هندسي</span></label></div></aside><section class="list" id="list"></section></div></main>
+<div class="group"><strong>التصنيف والتخصص</strong><label for="jobCategoryFilter">التصنيف الرئيسي</label><select id="jobCategoryFilter" onchange="onJobCategoryFilterChange()" style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="">كل التصنيفات</option></select><label for="jobSpecialtyFilter">التخصص الفرعي</label><select id="jobSpecialtyFilter" onchange="filterJobs()" disabled style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="">كل التخصصات</option></select></div><div class="group"><strong data-t="sector">المجال (قديم)</strong><label><input type="checkbox" value="Healthcare" onchange="filterJobs()"> <span data-t="health">طبي وصحي</span></label><label><input type="checkbox" value="Admin" onchange="filterJobs()"> <span data-t="admin">إداري</span></label><label><input type="checkbox" value="Tech" onchange="filterJobs()"> <span data-t="tech">تقنية المعلومات</span></label><label><input type="checkbox" value="Engineering" onchange="filterJobs()"> <span data-t="engineering">هندسي</span></label></div></aside><section class="list" id="list"></section></div></main>
 <section class="wrap" id="adminDashboard" style="display:none">
   <div class="head"><h2>لوحة إدارة وظيفتي</h2><button class="btn outline" type="button" onclick="loadAdminCompanies()">تحديث القائمة</button></div>
   <p class="muted">مراجعة طلبات تسجيل الشركات والتحقق من مستنداتها قبل اعتمادها.</p>
@@ -626,7 +626,7 @@ function mapLiveJob(row){
   const category = (row.category || "").toLowerCase();
   const field = /health|medical|healthcare|طبي|صحي/.test(category) ? "Healthcare" : /admin|human|إدار/.test(category) ? "Admin" : /tech|it|تقن/.test(category) ? "Tech" : /engineer|هندس/.test(category) ? "Engineering" : "Admin";
   const salary = row.salary_min != null || row.salary_max != null ? `${row.salary_min ?? ""}${row.salary_min != null && row.salary_max != null ? " - " : ""}${row.salary_max ?? ""} ${row.currency || ""}`.trim() : "حسب الاتفاق";
-  return {id:row.id,title:row.title||"",en:row.title_en||row.title||"",company:company?.name||"جهة العمل",companyEn:company?.name_en||company?.name||"Employer",city:row.city||row.state||"غير محدد",cityEn:row.city||row.state||"Not specified",type:typeMap[row.job_type]||"Full-time",field,salary,salaryEn:salary,icon:"💼",desc:row.description||"",descEn:row.description_en||row.description||""};
+  return {id:row.id,categoryId:row.category_id||null,specialtyId:row.specialty_id||null,title:row.title||"",en:row.title_en||row.title||"",company:company?.name||company?.company_name||"جهة العمل",companyEn:company?.name_en||company?.company_name||"Employer",city:row.city||row.state||row.location||"غير محدد",cityEn:row.city||row.state||row.location||"Not specified",type:typeMap[row.job_type]||"Full-time",field,salary,salaryEn:salary,icon:"💼",desc:row.description||"",descEn:row.description_en||row.description||""};
 }
 async function loadLiveJobs(){
   try {
@@ -656,6 +656,7 @@ function showJob(i){let j=data[i];document.getElementById("modalContent").innerH
 function closeModal(){document.getElementById("modalbg").style.display="none"}
 function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
 updateTexts();
+loadWaziftiTaxonomy().then(loadJobCategoryFilters).catch(error=>console.error("Taxonomy load failed:",error));
 loadLiveJobs();
   function filterJobs(){
   const q = document.getElementById("q").value.toLowerCase().trim();
@@ -670,6 +671,8 @@ loadLiveJobs();
   const fields = checked
     .map(x => x.value)
     .filter(x => ["Healthcare", "Admin", "Tech", "Engineering"].includes(x));
+  const selectedCategory = document.getElementById("jobCategoryFilter")?.value || "";
+  const selectedSpecialty = document.getElementById("jobSpecialtyFilter")?.value || "";
 
   const results = data.filter(j => {
     const jobText = [
@@ -683,14 +686,20 @@ loadLiveJobs();
     const matchesCity = !c || cityText.includes(c);
     const matchesType = types.length === 0 || types.includes(j.type);
     const matchesField = fields.length === 0 || fields.includes(j.field);
+    const matchesCategory = !selectedCategory || j.categoryId === selectedCategory;
+    const matchesSpecialty = !selectedSpecialty || j.specialtyId === selectedSpecialty;
 
-    return matchesSearch && matchesCity && matchesType && matchesField;
+    return matchesSearch && matchesCity && matchesType && matchesField && matchesCategory && matchesSpecialty;
   });
 
   render(results);
 } function clearFilters(){
   document.getElementById("q").value = "";
   document.getElementById("city").value = "";
+  const categoryFilter=document.getElementById("jobCategoryFilter");
+  const specialtyFilter=document.getElementById("jobSpecialtyFilter");
+  if(categoryFilter) categoryFilter.value="";
+  if(specialtyFilter){specialtyFilter.innerHTML='<option value="">كل التخصصات</option>';specialtyFilter.disabled=true;}
 
   document.querySelectorAll(".filters input").forEach(input => {
     input.checked = false;
@@ -807,12 +816,29 @@ loadLiveJobs();
       </select>
       <label id="profileCityLabel" for="profileCity">المدينة / المنطقة</label>
       <input id="profileCity" type="text" maxlength="80">
-      <label id="profileSpecialtyLabel" for="profileSpecialty">التخصص أو المجال المهني</label>
-      <input id="profileSpecialty" type="text" maxlength="120">
+      <label id="profileCategoryLabel" for="profileCategory">التصنيف الرئيسي</label>
+      <select id="profileCategory" required><option value="">اختر التصنيف الرئيسي</option></select>
+      <label id="profileSpecialtyLabel" for="profileSpecialty">التخصص الفرعي</label>
+      <select id="profileSpecialty" required disabled><option value="">اختر التخصص الفرعي</option></select>
       <label id="profileQualificationLabel" for="profileQualification">المؤهل العلمي</label>
       <input id="profileQualification" type="text" maxlength="120">
       <label id="profileBioLabel" for="profileBio">نبذة مهنية مختصرة</label>
       <textarea id="profileBio" rows="4" maxlength="700" style="display:block;width:100%;padding:12px;margin:8px 0 15px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;font:inherit;resize:vertical"></textarea>
+      <section id="candidateExperienceSection" style="margin:18px 0;padding:14px;border:1px solid #e5eee8;border-radius:12px">
+        <h3 id="experienceHeading" style="margin:0 0 12px">الخبرات العملية</h3>
+        <div id="candidateExperiencesList" aria-live="polite" class="muted">جارٍ تحميل الخبرات...</div>
+        <h4 id="experienceFormHeading">إضافة خبرة جديدة</h4>
+        <form id="candidateExperienceForm">
+          <label for="experienceCompany">جهة العمل</label><input id="experienceCompany" type="text" maxlength="150" required>
+          <label for="experienceTitle">المسمى الوظيفي</label><input id="experienceTitle" type="text" maxlength="150" required>
+          <label for="experienceStart">تاريخ البداية</label><input id="experienceStart" type="date">
+          <label for="experienceEnd">تاريخ النهاية</label><input id="experienceEnd" type="date">
+          <label style="display:flex;gap:8px;align-items:center"><input id="experienceCurrent" type="checkbox" style="width:auto"> أعمل هنا حالياً</label>
+          <label for="experienceDescription">وصف المهام (اختياري)</label><textarea id="experienceDescription" rows="3" maxlength="700"></textarea>
+          <button id="addExperienceBtn" type="submit" class="btn outline" style="width:100%">إضافة الخبرة</button>
+          <p id="experienceMessage" role="status" aria-live="polite"></p>
+        </form>
+      </section>
       <button id="saveProfileBtn" type="submit" class="btn primary" style="width:100%;margin-top:10px">حفظ البيانات</button>
       <p id="profileMessage" role="status" aria-live="polite"></p>
     </form>
@@ -956,16 +982,147 @@ function openProfile() {
   document.getElementById("profilePhone").value = meta.phone || "";
   stateSelect.value = savedState;
   document.getElementById("profileCity").value = meta.city || "";
-  document.getElementById("profileSpecialty").value = meta.specialty || "";
   document.getElementById("profileQualification").value = meta.qualification || "";
   document.getElementById("profileBio").value = meta.professional_bio || "";
   document.getElementById("profileMessage").textContent = "";
   document.getElementById("profileModal").style.display = "flex";
+  loadCandidateProfileData();
 }
 
 function closeProfile() {
   const modal = document.getElementById("profileModal");
   if (modal) modal.style.display = "none";
+}
+
+
+const waziftiTaxonomy = {categories:[],specialties:[]};
+function addSelectOptions(select, rows, placeholder, selectedId) {
+  if (!select) return;
+  select.innerHTML = "";
+  const first = document.createElement("option");
+  first.value = ""; first.textContent = placeholder; select.appendChild(first);
+  rows.forEach(row => {
+    const option = document.createElement("option");
+    option.value = row.id;
+    option.textContent = lang === "ar" ? row.name_ar : (row.name_en || row.name_ar);
+    select.appendChild(option);
+  });
+  if (selectedId) select.value = selectedId;
+}
+async function loadWaziftiTaxonomy() {
+  if (waziftiTaxonomy.categories.length) return waziftiTaxonomy;
+  const [{data:categories,error:categoryError},{data:specialties,error:specialtyError}] = await Promise.all([
+    supabaseClient.from("job_categories").select("id,name_ar,name_en,sort_order").eq("is_active",true).order("sort_order"),
+    supabaseClient.from("job_specialties").select("id,category_id,name_ar,name_en,sort_order").eq("is_active",true).order("sort_order")
+  ]);
+  if (categoryError) throw categoryError;
+  if (specialtyError) throw specialtyError;
+  waziftiTaxonomy.categories = categories || [];
+  waziftiTaxonomy.specialties = specialties || [];
+  return waziftiTaxonomy;
+}
+function populateProfileSpecialties(categoryId, selectedId) {
+  const select = document.getElementById("profileSpecialty");
+  const rows = waziftiTaxonomy.specialties.filter(x => x.category_id === categoryId);
+  addSelectOptions(select, rows, lang === "ar" ? "اختر التخصص الفرعي" : "Select a specialty", selectedId);
+  select.disabled = !categoryId || !rows.length;
+}
+async function loadCandidateProfileData() {
+  const categorySelect = document.getElementById("profileCategory");
+  const specialtySelect = document.getElementById("profileSpecialty");
+  const categoryLabel = document.getElementById("profileCategoryLabel");
+  const experienceHeading = document.getElementById("experienceHeading");
+  const experienceFormHeading = document.getElementById("experienceFormHeading");
+  const currentLabel = document.querySelector('label[for="experienceCurrent"]');
+  if (categoryLabel) categoryLabel.textContent = lang === "ar" ? "التصنيف الرئيسي" : "Main category";
+  if (experienceHeading) experienceHeading.textContent = lang === "ar" ? "الخبرات العملية" : "Work experience";
+  if (experienceFormHeading) experienceFormHeading.textContent = lang === "ar" ? "إضافة خبرة جديدة" : "Add new experience";
+  if (currentLabel) currentLabel.lastChild.textContent = lang === "ar" ? " أعمل هنا حالياً" : " I currently work here";
+  try {
+    await loadWaziftiTaxonomy();
+    const {data:profile,error} = await supabaseClient.from("profiles").select("category_id,specialty_id").eq("id",currentAuthUser.id).maybeSingle();
+    if (error) throw error;
+    const savedCategory = profile?.category_id || currentAuthUser.user_metadata?.category_id || "";
+    const savedSpecialty = profile?.specialty_id || currentAuthUser.user_metadata?.specialty_id || "";
+    addSelectOptions(categorySelect,waziftiTaxonomy.categories,lang === "ar" ? "اختر التصنيف الرئيسي" : "Select a category",savedCategory);
+    populateProfileSpecialties(savedCategory,savedSpecialty);
+    if (categorySelect && !categorySelect.dataset.bound) {
+      categorySelect.addEventListener("change",() => populateProfileSpecialties(categorySelect.value,""));
+      categorySelect.dataset.bound = "1";
+    }
+    await loadCandidateExperiences();
+  } catch(error) {
+    console.error("Could not load candidate taxonomy:",error);
+    const message=document.getElementById("profileMessage");
+    if(message) message.textContent=(lang==="ar"?"تعذر تحميل التصنيفات: ":"Could not load categories: ")+(error.message||"");
+  }
+}
+async function loadCandidateExperiences() {
+  const list=document.getElementById("candidateExperiencesList");
+  if(!list || !currentAuthUser) return;
+  list.textContent=lang==="ar"?"جارٍ تحميل الخبرات...":"Loading experience...";
+  const {data,error}=await supabaseClient.from("candidate_experiences")
+    .select("id,company_name,job_title,start_date,end_date,is_current,description")
+    .eq("candidate_id",currentAuthUser.id).order("start_date",{ascending:false});
+  if(error) { list.textContent=(lang==="ar"?"تعذر تحميل الخبرات: ":"Could not load experience: ")+error.message; return; }
+  if(!data?.length) { list.textContent=lang==="ar"?"لم تُضف خبرات عملية بعد.":"No work experience added yet."; return; }
+  list.innerHTML=data.map(item => {
+    const period=[item.start_date||"",item.is_current?(lang==="ar"?"حتى الآن":"Present"):(item.end_date||"")].filter(Boolean).join(" — ");
+    return '<article style="padding:10px;margin:8px 0;border:1px solid #e5eee8;border-radius:9px"><strong>'+escapeAdminHtml(item.job_title)+'</strong><div>'+escapeAdminHtml(item.company_name)+'</div><small class="muted">'+escapeAdminHtml(period)+'</small>'+(item.description?'<p>'+escapeAdminHtml(item.description)+'</p>':'')+'<button type="button" class="btn outline small" data-delete-experience="'+item.id+'">'+(lang==="ar"?"حذف":"Delete")+'</button></article>';
+  }).join("");
+}
+const experienceForm=document.getElementById("candidateExperienceForm");
+if(experienceForm) {
+  experienceForm.addEventListener("submit",async event=>{
+    event.preventDefault();
+    if(!currentAuthUser) return;
+    const button=document.getElementById("addExperienceBtn");
+    const message=document.getElementById("experienceMessage");
+    button.disabled=true;
+    message.textContent=lang==="ar"?"جارٍ حفظ الخبرة...":"Saving experience...";
+    const current=document.getElementById("experienceCurrent").checked;
+    const payload={
+      candidate_id:currentAuthUser.id,
+      company_name:document.getElementById("experienceCompany").value.trim(),
+      job_title:document.getElementById("experienceTitle").value.trim(),
+      start_date:document.getElementById("experienceStart").value||null,
+      end_date:current?null:(document.getElementById("experienceEnd").value||null),
+      is_current:current,
+      description:document.getElementById("experienceDescription").value.trim()||null
+    };
+    try {
+      const {error}=await supabaseClient.from("candidate_experiences").insert(payload);
+      if(error) throw error;
+      experienceForm.reset();
+      message.textContent=lang==="ar"?"تمت إضافة الخبرة بنجاح.":"Experience added successfully.";
+      await loadCandidateExperiences();
+    } catch(error) {
+      message.textContent=(lang==="ar"?"تعذر حفظ الخبرة: ":"Could not save experience: ")+(error.message||"");
+    } finally { button.disabled=false; }
+  });
+}
+document.addEventListener("click",async event=>{
+  const button=event.target.closest("[data-delete-experience]");
+  if(!button || !currentAuthUser) return;
+  if(!confirm(lang==="ar"?"هل تريد حذف هذه الخبرة؟":"Delete this experience?")) return;
+  const {error}=await supabaseClient.from("candidate_experiences").delete().eq("id",button.dataset.deleteExperience).eq("candidate_id",currentAuthUser.id);
+  if(error) { toast((lang==="ar"?"تعذر الحذف: ":"Delete failed: ")+error.message); return; }
+  await loadCandidateExperiences();
+});
+async function loadJobCategoryFilters() {
+  try {
+    await loadWaziftiTaxonomy();
+    const select=document.getElementById("jobCategoryFilter");
+    if(select) addSelectOptions(select,waziftiTaxonomy.categories,lang==="ar"?"كل التصنيفات":"All categories","");
+  } catch(error) { console.error("Job category filters unavailable:",error); }
+}
+function onJobCategoryFilterChange() {
+  const categoryId=document.getElementById("jobCategoryFilter").value;
+  const specialty=document.getElementById("jobSpecialtyFilter");
+  const rows=waziftiTaxonomy.specialties.filter(x=>x.category_id===categoryId);
+  addSelectOptions(specialty,rows,lang==="ar"?"كل التخصصات":"All specialties","");
+  specialty.disabled=!categoryId;
+  filterJobs();
 }
 
 const profileForm = document.getElementById("profileForm");
@@ -986,16 +1143,29 @@ if (profileForm) {
       phone: document.getElementById("profilePhone").value.trim(),
       state: document.getElementById("profileState").value,
       city: document.getElementById("profileCity").value.trim(),
-      specialty: document.getElementById("profileSpecialty").value.trim(),
+      specialty: document.getElementById("profileSpecialty").selectedOptions[0]?.textContent || "",
+      category: document.getElementById("profileCategory").selectedOptions[0]?.textContent || "",
+      category_id: document.getElementById("profileCategory").value || null,
+      specialty_id: document.getElementById("profileSpecialty").value || null,
       qualification: document.getElementById("profileQualification").value.trim(),
       professional_bio: document.getElementById("profileBio").value.trim()
     };
     message.textContent = m.saving;
     button.disabled = true;
     try {
+      if (!updates.category_id || !updates.specialty_id) throw new Error(lang === "ar" ? "يرجى اختيار التصنيف الرئيسي والتخصص الفرعي." : "Please select a category and specialty.");
       const { data, error } = await supabaseClient.auth.updateUser({ data: updates });
       if (error) throw error;
       currentAuthUser = data.user || currentAuthUser;
+      const { error: profileError } = await supabaseClient.from("profiles").upsert({
+        id: currentAuthUser.id,
+        full_name: updates.full_name,
+        email: currentAuthUser.email || null,
+        phone: updates.phone || null,
+        category_id: updates.category_id,
+        specialty_id: updates.specialty_id
+      }, { onConflict: "id" });
+      if (profileError) throw profileError;
       renderAuthUI(currentAuthUser);
       message.textContent = m.saved;
     } catch (error) {
