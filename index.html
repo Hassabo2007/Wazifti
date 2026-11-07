@@ -610,7 +610,115 @@ footer { line-height: 2.2; }
 footer small { display: inline-block; margin-top: 8px; color: #b7d8c4; }
 @media (max-width: 760px) { .hero { padding-top: 34px; } .hero-inner { gap: 22px; } .stats { gap: 12px; margin-top: 20px; } .job { gap: 12px; } .how-grid { grid-template-columns: 1fr; gap: 12px; } .how-card { padding: 20px 17px; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
-</style></head>
+</style><style>
+/* V1.3.2: unified mobile-friendly profile and employer dashboard modals */
+body.modal-open { overflow: hidden; }
+#profileModal,
+#employerDashboardModal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  background: rgba(8, 30, 20, .68);
+  backdrop-filter: blur(3px);
+  box-sizing: border-box;
+}
+#profileModal .modal-content,
+#employerDashboardModal .employer-dashboard-content {
+  width: 100%;
+  max-height: min(92vh, 900px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #fff;
+  color: #17372a;
+  border: 1px solid #e1eee5;
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.22);
+  box-sizing: border-box;
+}
+#profileModal .modal-content {
+  max-width: 600px;
+  padding: 24px;
+  position: relative;
+}
+#employerDashboardModal .employer-dashboard-content {
+  max-width: 900px;
+  padding: 24px;
+  margin: 0;
+}
+#profileModal .close-btn {
+  position: sticky;
+  top: 0;
+  float: left;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: #edf6f0;
+  color: #075b39;
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+}
+#profileModal label,
+#profileModal input,
+#profileModal select,
+#profileModal textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+#profileModal label {
+  margin: 12px 0 6px;
+  color: #244b37;
+  font-weight: 700;
+  font-size: 14px;
+}
+#profileModal input,
+#profileModal select,
+#profileModal textarea {
+  min-height: 44px;
+  padding: 11px 12px;
+  border: 1px solid #d7e4dc;
+  border-radius: 9px;
+  background: #fff;
+  color: #17372a;
+  font: inherit;
+}
+#profileModal input:focus,
+#profileModal select:focus,
+#profileModal textarea:focus {
+  outline: 2px solid #b8dec7;
+  border-color: #087a4b;
+}
+#profileModal input:disabled {
+  background: #f3f6f4;
+  color: #68776e;
+}
+#profileModal #candidateExperienceSection { background: #f8fbf9; }
+#employerDashboardModal .head { align-items: flex-start; }
+@media (max-width: 600px) {
+  #profileModal,
+  #employerDashboardModal { align-items: stretch; padding: 8px; }
+  #profileModal .modal-content,
+  #employerDashboardModal .employer-dashboard-content {
+    width: 100%;
+    max-width: none;
+    max-height: 96vh;
+    padding: 17px;
+    border-radius: 15px;
+  }
+  #profileModal h2,
+  #employerDashboardModal h2 { font-size: 20px; }
+  #employerDashboardModal .head > div:last-child { width: 100%; }
+  #employerDashboardModal .head > div:last-child button { flex: 1; }
+}
+</style>
+</head>
 <body>
 <header><div class="nav"><a class="brand" href="/" aria-label="Wazifti home" style="text-decoration:none;color:inherit"><div class="logo">و</div><span data-t="brand">وظيفتي</span></a>
 <nav><a href="#jobs" data-t="navJobs">الوظائف</a><a href="#how" data-t="navHow">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout">عن وظيفتي</a></nav>
@@ -651,10 +759,11 @@ footer small { display: inline-block; margin-top: 8px; color: #b7d8c4; }
     <div id="adminPendingJobsList"></div>
   </div>
 </section>
-<section class="wrap" id="employerDashboard" style="display:none;margin-top:24px;margin-bottom:30px">
+<div id="employerDashboardModal" class="dashboard-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="employerDashboardTitle" onclick="if(event.target===this)closeEmployerDashboard()">
+<section class="wrap employer-dashboard-content" id="employerDashboard" style="display:block;margin:0">
   <div class="head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-    <div><h2 style="margin:0">لوحة صاحب العمل</h2><p class="muted" style="margin:6px 0 0">إدارة بيانات جهة العمل ومتابعة حالة طلبك ووظائفك.</p></div>
-    <button class="btn outline" type="button" onclick="loadEmployerDashboard()">تحديث البيانات</button>
+    <div><h2 id="employerDashboardTitle" style="margin:0">لوحة صاحب العمل</h2><p class="muted" style="margin:6px 0 0">إدارة بيانات جهة العمل ومتابعة حالة طلبك ووظائفك.</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn outline" type="button" onclick="loadEmployerDashboard()">تحديث البيانات</button><button class="btn outline" type="button" onclick="closeEmployerDashboard()">إغلاق ✕</button></div>
   </div>
   <div id="employerDashboardMessage" role="status" aria-live="polite" class="muted" style="margin:14px 0">جارٍ تحميل بيانات جهة العمل...</div>
   <div id="employerCompanyCard"></div>
@@ -685,6 +794,7 @@ footer small { display: inline-block; margin-top: 8px; color: #b7d8c4; }
     </form>
   </div>
 </section>
+</div>
 <section class="wrap how-section" id="how"><div class="how-heading"><h2 data-t="howTitle">كيف تعمل وظيفتي؟</h2><p class="muted" data-t="howIntro">ثلاث خطوات بسيطة تقرّبك من فرصتك القادمة.</p></div><div class="how-grid"><article class="how-card"><span class="how-number">1</span><h3 data-t="howStep1Title">ابحث عن فرصتك</h3><p data-t="howStep1Text">استخدم البحث والتصنيفات للوصول إلى الوظائف المناسبة لمهاراتك.</p></article><article class="how-card"><span class="how-number">2</span><h3 data-t="howStep2Title">راجع التفاصيل</h3><p data-t="howStep2Text">اقرأ وصف الوظيفة ومتطلباتها ومعلومات جهة العمل بعناية.</p></article><article class="how-card"><span class="how-number">3</span><h3 data-t="howStep3Title">تواصل مع جهة العمل</h3><p data-t="howStep3Text">اتبع طريقة التقديم الموضحة في إعلان الوظيفة.</p></article></div></section>
 <footer id="about"><b data-t="brand">وظيفتي</b> — <span data-t="footerLine">منصة سودانية للبحث عن فرص العمل</span><br><span data-t="disclaimer">تُراجع الوظائف قبل نشرها للعامة.</span><br><small data-t="brandLine">الأمل يبدأ بفرصة.</small></footer>
 <div class="modalbg" id="modalbg" onclick="if(event.target===this)closeModal()"><div class="modal"><button class="close" onclick="closeModal()" data-t="close">إغلاق ✕</button><div id="modalContent"></div></div></div><div class="toast" id="toastbox"></div>
@@ -906,7 +1016,7 @@ function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.st
 #employerRegistrationMessage {line-height:1.8;font-size:14px}
 </style>
 
-<div id="profileModal" class="modal" style="display:none;" onclick="if(event.target===this)closeProfile()">
+<div id="profileModal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="profileTitle" onclick="if(event.target===this)closeProfile()">
   <div class="modal-content">
     <button onclick="closeProfile()" class="close-btn" aria-label="Close">&times;</button>
     <h2 id="profileTitle">الملف الشخصي</h2>
@@ -1099,12 +1209,14 @@ function openProfile() {
   document.getElementById("profileBio").value = meta.professional_bio || "";
   document.getElementById("profileMessage").textContent = "";
   document.getElementById("profileModal").style.display = "flex";
+  document.body.classList.add("modal-open");
   loadCandidateProfileData();
 }
 
 function closeProfile() {
   const modal = document.getElementById("profileModal");
   if (modal) modal.style.display = "none";
+  document.body.classList.remove("modal-open");
 }
 
 
@@ -1937,9 +2049,19 @@ async function saveEmployerCompanyDescription(event) {
 
 function openEmployerDashboard() {
   if (!currentAuthUser) { toast("يرجى تسجيل الدخول أولاً."); openLogin(); return; }
+  const modal = document.getElementById("employerDashboardModal");
   const panel = document.getElementById("employerDashboard");
-  if (panel) { panel.style.display = "block"; panel.scrollIntoView({behavior:"smooth",block:"start"}); }
+  if (panel) panel.style.display = "block";
+  if (modal) modal.style.display = "flex";
+  document.body.classList.add("modal-open");
   loadEmployerDashboard();
+}
+
+function closeEmployerDashboard() {
+  const modal = document.getElementById("employerDashboardModal");
+  if (modal) modal.style.display = "none";
+  closeEmployerJobForm();
+  document.body.classList.remove("modal-open");
 }
 
 function renderAuthUI(user) {
@@ -1951,7 +2073,10 @@ function renderAuthUI(user) {
     employerDashboardCompany = null;
     if (employerButton) employerButton.style.display = "none";
     const employerPanel = document.getElementById("employerDashboard");
-    if (employerPanel) employerPanel.style.display = "none";
+    if (employerPanel) employerPanel.style.display = "block";
+    const employerModal = document.getElementById("employerDashboardModal");
+    if (employerModal) employerModal.style.display = "none";
+    document.body.classList.remove("modal-open");
   } else {
     loadEmployerDashboard();
   }
