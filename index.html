@@ -2280,16 +2280,14 @@ document.getElementById("employerJobForm")?.addEventListener("submit",async even
 });
 
 async function deleteEmployerJob(jobId) {
-  if(!currentAuthUser || (employerJobPostingMode==="company" && !employerDashboardCompany)) return;
+  if(!currentAuthUser || !employerDashboardCompany) return;
   if(!confirm("هل أنت متأكد من حذف هذه الوظيفة؟ لا يمكن التراجع عن الحذف.")) return;
   try {
-    let deleteQuery=supabaseClient.from("jobs").delete().eq("id",jobId);
-    deleteQuery=employerJobPostingMode==="individual" ? deleteQuery.eq("poster_type","individual").eq("posted_by_user_id",currentAuthUser.id) : deleteQuery.eq("company_id",employerDashboardCompany.id);
-    const {error}=await deleteQuery;
+    const {error}=await supabaseClient.from("jobs").delete()
+      .eq("id",jobId).eq("company_id",employerDashboardCompany.id);
     if(error) throw error;
     toast("تم حذف الوظيفة.");
-    if(employerJobPostingMode==="individual") await loadIndividualJobs();
-    else await loadEmployerDashboard();
+    await loadEmployerDashboard();
   } catch(error) {
     toast("تعذر حذف الوظيفة: "+(error.message||""));
   }
