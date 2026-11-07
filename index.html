@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>وظيفتي | Wazifti</title>
 <meta name="description" content="منصة وظيفتي السودانية للبحث عن فرص العمل.">
-<meta name="wazifti-version" content="1.6.1">
+<meta name="wazifti-version" content="1.6.2">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -579,6 +579,7 @@ footer {
 <div id="accountArea" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
   <span id="accountName" style="font-size:13px;font-weight:700;color:var(--d);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
   <button class="btn primary small" id="profileBtn" type="button" onclick="openProfile()">ملفي الشخصي</button>
+  <button class="btn outline small" id="employerDashboardBtn" type="button" style="display:none" onclick="openEmployerDashboard()">لوحة صاحب العمل</button>
    <button class="btn outline small" id="adminBtn" type="button" style="display:none" onclick="openAdminDashboard()">لوحة الإدارة</button>
   <button class="btn outline small" id="logoutBtn" type="button" onclick="logoutUser()">تسجيل الخروج</button>
 </div>
@@ -601,6 +602,19 @@ footer {
   <p class="muted">مراجعة طلبات تسجيل الشركات والتحقق من مستنداتها قبل اعتمادها.</p>
   <div id="adminDashboardMessage" role="status" aria-live="polite" class="muted" style="margin:12px 0"></div>
   <div id="adminCompaniesList"></div>
+</section>
+<section class="wrap" id="employerDashboard" style="display:none;margin-top:24px;margin-bottom:30px">
+  <div class="head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <div><h2 style="margin:0">لوحة صاحب العمل</h2><p class="muted" style="margin:6px 0 0">إدارة بيانات جهة العمل ومتابعة حالة طلبك ووظائفك.</p></div>
+    <button class="btn outline" type="button" onclick="loadEmployerDashboard()">تحديث البيانات</button>
+  </div>
+  <div id="employerDashboardMessage" role="status" aria-live="polite" class="muted" style="margin:14px 0">جارٍ تحميل بيانات جهة العمل...</div>
+  <div id="employerCompanyCard"></div>
+  <div id="employerJobStats" style="display:none;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:16px 0"></div>
+  <div id="employerJobsPanel" style="display:none;margin-top:18px">
+    <h3>وظائف جهة العمل</h3><p class="muted">ستظهر هنا الوظائف التي تنشرها الشركة وحالة مراجعتها.</p>
+    <div id="employerJobsList"></div>
+  </div>
 </section>
 <section class="wrap" id="how" style="text-align:center"><h2 data-t="howTitle">كيف تعمل وظيفتي؟</h2><p class="muted" data-t="howSub">ابحث عن الفرصة المناسبة ← اقرأ التفاصيل ← تواصل مع جهة العمل.</p></section>
 <footer id="about"><b data-t="brand">وظيفتي</b> — <span data-t="footerLine">منصة سودانية للبحث عن فرص العمل</span><br><span data-t="disclaimer">نموذج أولي؛ الوظائف المعروضة بيانات توضيحية وليست إعلانات حقيقية.</span></footer>
@@ -1439,10 +1453,101 @@ async function adminSetCompanyStatus(companyId, status) {
   }
 }
 
+let employerDashboardCompany = null;
+
+function employerCompanyStatusLabel(status) {
+  return ({pending:"قيد المراجعة",verified:"معتمدة",rejected:"مرفوضة",suspended:"موقوفة"})[status] || "غير معروفة";
+}
+
+async function loadEmployerDashboard() {
+  const message = document.getElementById("employerDashboardMessage");
+  const card = document.getElementById("employerCompanyCard");
+  const stats = document.getElementById("employerJobStats");
+  const jobsPanel = document.getElementById("employerJobsPanel");
+  const jobsList = document.getElementById("employerJobsList");
+  const button = document.getElementById("employerDashboardBtn");
+  if (!currentAuthUser) {
+    if (button) button.style.display = "none";
+    if (message) message.textContent = "يرجى تسجيل الدخول أولاً.";
+    return;
+  }
+  if (message) message.textContent = "جارٍ تحميل بيانات جهة العمل...";
+  if (card) card.innerHTML = "";
+  if (stats) { stats.style.display = "none"; stats.innerHTML = ""; }
+  if (jobsPanel) jobsPanel.style.display = "none";
+  if (jobsList) jobsList.innerHTML = "";
+  try {
+    const {data: company, error} = await supabaseClient.from("companies")
+      .select("id,company_name,description,website,status,created_at")
+      .eq("owner_id", currentAuthUser.id).order("created_at", {ascending:false}).limit(1).maybeSingle();
+    if (error) throw error;
+    if (!company) {
+      employerDashboardCompany = null;
+      if (button) button.style.display = "none";
+      if (message) message.textContent = "لم تسجل جهة عمل بهذا الحساب بعد. يمكنك البدء من زر «أعلن عن وظيفة».";
+      return;
+    }
+    employerDashboardCompany = company;
+    if (button) button.style.display = "inline-flex";
+    const statusLabel = employerCompanyStatusLabel(company.status);
+    const statusColor = company.status === "verified" ? "#087a4b" : company.status === "rejected" || company.status === "suspended" ? "#a33b32" : "#946200";
+    if (card) card.innerHTML = '<article style="background:#fff;border:1px solid #e5eee8;border-radius:14px;padding:18px;margin-top:12px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">' + escapeAdminHtml(company.company_name) + '</h3>' +
+      '<span class="tag" style="color:' + statusColor + '">' + escapeAdminHtml(statusLabel) + '</span></div>' +
+      '<p class="muted" style="line-height:1.8">' + escapeAdminHtml(company.description || "لا يوجد وصف مضاف لجهة العمل.") + '</p>' +
+      (company.website ? '<p><a href="' + escapeAdminHtml(company.website) + '" target="_blank" rel="noopener noreferrer">الموقع الإلكتروني</a></p>' : '') +
+      '<small class="muted">تاريخ التسجيل: ' + escapeAdminHtml(new Date(company.created_at).toLocaleDateString("ar")) + '</small></article>';
+    if (company.status !== "verified") {
+      const guidance = company.status === "pending" ? "طلب تسجيل جهة العمل قيد المراجعة. ستتمكن من نشر الوظائف بعد اعتماد الشركة."
+        : company.status === "rejected" ? "تم رفض طلب الشركة. يرجى التواصل مع إدارة وظيفتي لمعرفة الخطوات التالية."
+        : "حساب جهة العمل موقوف حالياً. يرجى التواصل مع إدارة وظيفتي.";
+      if (message) message.textContent = guidance;
+      return;
+    }
+    if (message) message.textContent = "الشركة معتمدة. يمكنك متابعة وظائف جهة العمل من هذه اللوحة.";
+    const {data: jobs, error: jobsError} = await supabaseClient.from("jobs")
+      .select("id,title,status,location,created_at").eq("company_id", company.id).order("created_at", {ascending:false});
+    if (jobsError) throw jobsError;
+    const jobRows = jobs || [];
+    const counts = {total:jobRows.length,published:jobRows.filter(j=>j.status==="published").length,pending:jobRows.filter(j=>j.status==="pending").length,closed:jobRows.filter(j=>j.status==="closed").length};
+    if (stats) {
+      stats.style.display = "grid";
+      stats.innerHTML = [["إجمالي الوظائف",counts.total],["منشورة",counts.published],["قيد المراجعة",counts.pending],["مغلقة",counts.closed]]
+        .map(([label,value])=>'<div style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px"><div class="muted" style="font-size:13px">'+label+'</div><strong style="font-size:24px;color:#064e35">'+value+'</strong></div>').join("");
+    }
+    if (jobsPanel) jobsPanel.style.display = "block";
+    if (jobsList) jobsList.innerHTML = jobRows.length ? jobRows.map(job => {
+      const jobStatus = ({pending:"قيد المراجعة",published:"منشورة",closed:"مغلقة",rejected:"مرفوضة"})[job.status] || job.status;
+      return '<article style="background:#fff;border:1px solid #e5eee8;border-radius:10px;padding:14px;margin:9px 0">' +
+        '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>'+escapeAdminHtml(job.title)+'</strong><span class="tag">'+escapeAdminHtml(jobStatus)+'</span></div>' +
+        '<small class="muted">'+escapeAdminHtml(job.location || "الموقع غير محدد")+'</small></article>';
+    }).join("") : '<p class="muted" style="padding:14px;background:#fff;border-radius:10px">لا توجد وظائف مسجلة لهذه الشركة حتى الآن. سنضيف نموذج نشر الوظائف في الخطوة التالية.</p>';
+  } catch (error) {
+    console.error("Employer dashboard load failed:", error);
+    if (message) message.textContent = "تعذر تحميل لوحة صاحب العمل: " + (error.message || "خطأ غير معروف");
+  }
+}
+
+function openEmployerDashboard() {
+  if (!currentAuthUser) { toast("يرجى تسجيل الدخول أولاً."); openLogin(); return; }
+  const panel = document.getElementById("employerDashboard");
+  if (panel) { panel.style.display = "block"; panel.scrollIntoView({behavior:"smooth",block:"start"}); }
+  loadEmployerDashboard();
+}
+
 function renderAuthUI(user) {
   // Keep the profile editor synchronized with the latest Supabase session.
   currentAuthUser = user || null;
   refreshAdminAccess(currentAuthUser);
+  const employerButton = document.getElementById("employerDashboardBtn");
+  if (!currentAuthUser) {
+    employerDashboardCompany = null;
+    if (employerButton) employerButton.style.display = "none";
+    const employerPanel = document.getElementById("employerDashboard");
+    if (employerPanel) employerPanel.style.display = "none";
+  } else {
+    loadEmployerDashboard();
+  }
 
   const loginBtn = document.getElementById("loginBtn");
   const signupBtn = document.getElementById("signupBtn");
@@ -1594,10 +1699,20 @@ const employerFormText = {
   }
 };
 
-function openEmployerRegistration() {
+async function openEmployerRegistration() {
   if (!currentAuthUser) {
     toast(employerFormText[lang].login);
     openLogin();
+    return;
+  }
+  try {
+    const {data: existingCompany, error} = await supabaseClient.from("companies")
+      .select("id").eq("owner_id", currentAuthUser.id).limit(1).maybeSingle();
+    if (error) throw error;
+    if (existingCompany) { openEmployerDashboard(); return; }
+  } catch (error) {
+    console.error("Employer company lookup failed:", error);
+    toast("تعذر التحقق من بيانات جهة العمل. حاول مرة أخرى.");
     return;
   }
   const t = employerFormText[lang];
@@ -1715,6 +1830,8 @@ if (employerRegistrationForm) {
 
       message.textContent = t.success;
       employerRegistrationForm.reset();
+      closeEmployerRegistration();
+      await loadEmployerDashboard();
       sessionStorage.removeItem("wazifti_pending_company_" + currentAuthUser.id);
       employerPendingCompanyId = null;
       console.info("Wazifti company document uploaded:", uploaded?.path);
