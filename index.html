@@ -598,10 +598,17 @@ footer {
 </button> <h3 data-t="filters">تصفية النتائج</h3><div class="group"><strong data-t="jobType">نوع الوظيفة</strong><label><input type="checkbox" value="Full-time" onchange="filterJobs()"> <span data-t="full">دوام كامل</span></label><label><input type="checkbox" value="Part-time" onchange="filterJobs()"> <span data-t="part">دوام جزئي</span></label><label><input type="checkbox" value="Remote" onchange="filterJobs()"> <span data-t="remote">عن بُعد</span></label></div>
 <div class="group"><strong>التصنيف والتخصص</strong><label for="jobCategoryFilter">التصنيف الرئيسي</label><select id="jobCategoryFilter" onchange="onJobCategoryFilterChange()" style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="">كل التصنيفات</option></select><label for="jobSpecialtyFilter">التخصص الفرعي</label><select id="jobSpecialtyFilter" onchange="filterJobs()" disabled style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="">كل التخصصات</option></select></div></aside><section class="list" id="list"></section></div></main>
 <section class="wrap" id="adminDashboard" style="display:none">
-  <div class="head"><h2>لوحة إدارة وظيفتي</h2><button class="btn outline" type="button" onclick="loadAdminCompanies()">تحديث القائمة</button></div>
-  <p class="muted">مراجعة طلبات تسجيل الشركات والتحقق من مستنداتها قبل اعتمادها.</p>
+  <div class="head"><h2>لوحة إدارة وظيفتي</h2><button class="btn outline" type="button" onclick="loadAdminDashboardData()">تحديث القوائم</button></div>
+  <p class="muted">مراجعة طلبات تسجيل الشركات والوظائف قبل نشرها.</p>
   <div id="adminDashboardMessage" role="status" aria-live="polite" class="muted" style="margin:12px 0"></div>
+  <h3 style="margin-top:22px">طلبات اعتماد الشركات</h3>
   <div id="adminCompaniesList"></div>
+  <div style="margin-top:30px;padding-top:20px;border-top:2px solid #e5eee8">
+    <div class="head"><h3 style="margin:0">الوظائف بانتظار الموافقة</h3><span id="adminPendingJobsCount" class="tag">0 وظيفة</span></div>
+    <p class="muted">راجع تفاصيل الوظيفة قبل نشرها أو رفضها. لن تظهر الوظائف للعامة قبل اعتمادها.</p>
+    <div id="adminPendingJobsMessage" role="status" aria-live="polite" class="muted" style="margin:10px 0"></div>
+    <div id="adminPendingJobsList"></div>
+  </div>
 </section>
 <section class="wrap" id="employerDashboard" style="display:none;margin-top:24px;margin-bottom:30px">
   <div class="head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
@@ -1386,7 +1393,96 @@ function openAdminDashboard() {
     panel.style.display = "block";
     panel.scrollIntoView({behavior:"smooth",block:"start"});
   }
-  loadAdminCompanies();
+  loadAdminDashboardData();
+}
+
+async function loadAdminDashboardData() {
+  await Promise.all([loadAdminCompanies(), loadAdminPendingJobs()]);
+}
+
+async function loadAdminPendingJobs() {
+  if (!currentAuthUser || !isAdminUser) return;
+  const list = document.getElementById("adminPendingJobsList");
+  const message = document.getElementById("adminPendingJobsMessage");
+  const count = document.getElementById("adminPendingJobsCount");
+  if (!list || !message) return;
+  message.textContent = "جارٍ تحميل الوظائف المعلقة...";
+  list.innerHTML = "";
+  try {
+    const { data: jobs, error } = await supabaseClient.from("jobs")
+      .select("id,title,description,location,employment_type,salary_min,salary_max,currency,status,created_at,company_id,category_id,specialty_id")
+      .eq("status", "pending").order("created_at", {ascending:false});
+    if (error) throw error;
+    const rows = jobs || [];
+    if (count) count.textContent = rows.length + " وظيفة";
+    if (!rows.length) {
+      message.textContent = "لا توجد وظائف بانتظار الموافقة حالياً.";
+      return;
+    }
+    const companyIds = [...new Set(rows.map(j => j.company_id).filter(Boolean))];
+    const categoryIds = [...new Set(rows.map(j => j.category_id).filter(Boolean))];
+    const specialtyIds = [...new Set(rows.map(j => j.specialty_id).filter(Boolean))];
+    const [companiesResult, categoriesResult, specialtiesResult] = await Promise.all([
+      companyIds.length ? supabaseClient.from("companies").select("id,company_name").in("id", companyIds) : Promise.resolve({data:[],error:null}),
+      categoryIds.length ? supabaseClient.from("job_categories").select("id,name_ar,name_en").in("id", categoryIds) : Promise.resolve({data:[],error:null}),
+      specialtyIds.length ? supabaseClient.from("job_specialties").select("id,name_ar,name_en").in("id", specialtyIds) : Promise.resolve({data:[],error:null})
+    ]);
+    if (companiesResult.error) throw companiesResult.error;
+    if (categoriesResult.error) throw categoriesResult.error;
+    if (specialtiesResult.error) throw specialtiesResult.error;
+    const companyMap = new Map((companiesResult.data || []).map(x => [x.id, x.company_name]));
+    const categoryMap = new Map((categoriesResult.data || []).map(x => [x.id, x]));
+    const specialtyMap = new Map((specialtiesResult.data || []).map(x => [x.id, x]));
+    const employmentLabels = {full_time:"دوام كامل",part_time:"دوام جزئي",contract:"عقد",temporary:"مؤقت",internship:"تدريب",remote:"عن بُعد"};
+    list.innerHTML = rows.map(job => {
+      const category = categoryMap.get(job.category_id);
+      const specialty = specialtyMap.get(job.specialty_id);
+      const salary = job.salary_min != null || job.salary_max != null
+        ? (job.salary_min != null ? Number(job.salary_min).toLocaleString("ar") : "—") + " - " + (job.salary_max != null ? Number(job.salary_max).toLocaleString("ar") : "—") + " " + escapeAdminHtml(job.currency || "")
+        : "غير محدد";
+      return "<article class='job' style='display:block;margin:12px 0;padding:18px;background:#fff;border:1px solid #e5eee8;border-radius:14px'>" +
+        "<div style='display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap'><h3 style='margin:0'>" + escapeAdminHtml(job.title) + "</h3><span class='tag'>قيد المراجعة</span></div>" +
+        "<p class='muted' style='margin:8px 0'><strong>جهة العمل:</strong> " + escapeAdminHtml(companyMap.get(job.company_id) || "شركة غير معروفة") + "</p>" +
+        "<p style='white-space:pre-wrap;line-height:1.8'>" + escapeAdminHtml(job.description || "لا يوجد وصف.") + "</p>" +
+        "<div class='muted' style='display:grid;gap:5px'>" +
+          "<span>الموقع: " + escapeAdminHtml(job.location || "غير محدد") + "</span>" +
+          "<span>التصنيف: " + escapeAdminHtml(category ? (category.name_ar || category.name_en) : "غير محدد") + "</span>" +
+          "<span>التخصص: " + escapeAdminHtml(specialty ? (specialty.name_ar || specialty.name_en) : "غير محدد") + "</span>" +
+          "<span>نوع العمل: " + escapeAdminHtml(employmentLabels[job.employment_type] || job.employment_type || "غير محدد") + "</span>" +
+          "<span>الراتب: " + salary + "</span>" +
+          "<small>تاريخ الإرسال: " + escapeAdminHtml(new Date(job.created_at).toLocaleString("ar")) + "</small>" +
+        "</div>" +
+        "<div style='display:flex;gap:8px;flex-wrap:wrap;margin-top:14px'>" +
+          "<button class='btn primary' type='button' data-admin-job-action='published' data-job-id='" + escapeAdminHtml(job.id) + "'>الموافقة والنشر</button>" +
+          "<button class='btn outline' type='button' data-admin-job-action='rejected' data-job-id='" + escapeAdminHtml(job.id) + "'>رفض الوظيفة</button>" +
+        "</div></article>";
+    }).join("");
+    list.querySelectorAll("[data-admin-job-action]").forEach(button => {
+      button.addEventListener("click", () => adminSetJobStatus(button.dataset.jobId, button.dataset.adminJobAction));
+    });
+    message.textContent = "تظهر هنا جميع الوظائف الجديدة التي تنتظر مراجعة الإدارة.";
+  } catch (error) {
+    console.error("Admin pending jobs load failed:", error);
+    message.textContent = "تعذر تحميل الوظائف المعلقة: " + (error.message || "خطأ غير معروف");
+  }
+}
+
+async function adminSetJobStatus(jobId, status) {
+  if (!currentAuthUser || !isAdminUser) {
+    toast("ليس لديك صلاحية تنفيذ هذا الإجراء.");
+    return;
+  }
+  const label = status === "published" ? "الموافقة على نشر الوظيفة" : "رفض الوظيفة";
+  if (!["published", "rejected"].includes(status) || !window.confirm("هل أنت متأكد من " + label + "؟")) return;
+  try {
+    const { error } = await supabaseClient.from("jobs").update({status}).eq("id", jobId).eq("status", "pending");
+    if (error) throw error;
+    toast(status === "published" ? "تمت الموافقة ونشر الوظيفة." : "تم رفض الوظيفة.");
+    await loadAdminPendingJobs();
+  } catch (error) {
+    console.error("Admin job status update failed:", error);
+    toast("تعذر تحديث حالة الوظيفة: " + (error.message || "خطأ غير معروف"));
+  }
 }
 
 async function loadAdminCompanies() {
