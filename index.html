@@ -833,6 +833,12 @@ body.modal-open { overflow: hidden; }
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn outline" type="button" onclick="loadEmployerDashboard()">تحديث البيانات</button><button class="btn outline" type="button" onclick="closeEmployerDashboard()">إغلاق ✕</button></div>
   </div>
   <div id="employerDashboardMessage" role="status" aria-live="polite" class="muted" style="margin:14px 0">جارٍ تحميل بيانات جهة العمل...</div>
+  <div id="temporaryCvIsolationTest" style="display:none;background:#fff8e8;border:1px solid #e8d5a4;border-radius:12px;padding:14px;margin:12px 0">
+    <strong>اختبار أمان مؤقت</strong>
+    <p class="muted" style="margin:8px 0">يتحقق هذا الاختبار من أن حساب الشركة الحالية لا يستطيع إنشاء رابط لسيرة ذاتية مرتبطة بطلب شركة أخرى.</p>
+    <button class="btn outline small" type="button" id="runTemporaryCvIsolationTest" onclick="runTemporaryCvIsolationTest()">اختبار منع الوصول</button>
+    <p id="temporaryCvIsolationResult" role="status" aria-live="polite" class="muted" style="margin:8px 0 0"></p>
+  </div>
   <div id="employerCompanyCard"></div>
   <div id="employerJobStats" style="display:none;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:16px 0"></div>
   <div id="employerJobsPanel" style="display:none;margin-top:18px">
@@ -2316,6 +2322,33 @@ async function toggleEmployerApplications(jobId) {
   }
 }
 
+async function runTemporaryCvIsolationTest() {
+  const allowedTestUserId = "3a51e9b8-dd79-4dd7-bfa0-f94a2be64964";
+  const result = document.getElementById("temporaryCvIsolationResult");
+  const button = document.getElementById("runTemporaryCvIsolationTest");
+  if (!currentAuthUser || currentAuthUser.id !== allowedTestUserId) {
+    if (result) result.textContent = "هذا الاختبار غير متاح لهذا الحساب.";
+    return;
+  }
+  if (button) button.disabled = true;
+  if (result) result.textContent = "جارٍ اختبار صلاحية الوصول...";
+  const foreignResumePath = "3a51e9b8-dd79-4dd7-bfa0-f94a2be64964/8ffe3e47-55a9-45b7-ad60-3402de211329-wazifti_pdf_preview_test (1).pdf";
+  try {
+    const { data, error } = await supabaseClient.storage
+      .from(CANDIDATE_CV_BUCKET)
+      .createSignedUrl(foreignResumePath, 60);
+    if (error || !data?.signedUrl) {
+      if (result) result.textContent = "نجح الاختبار: تم رفض الوصول إلى سيرة الشركة الأخرى كما هو متوقع.";
+    } else {
+      if (result) result.textContent = "تنبيه أمني: نجح إنشاء رابط وصول لملف الشركة الأخرى. يجب مراجعة سياسة التخزين فوراً.";
+    }
+  } catch (error) {
+    if (result) result.textContent = "نجح الاختبار: تم رفض الوصول كما هو متوقع.";
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
 async function loadEmployerDashboard() {
   const message=document.getElementById("employerDashboardMessage");
   const card=document.getElementById("employerCompanyCard");
@@ -2346,6 +2379,8 @@ async function loadEmployerDashboard() {
       return;
     }
     employerDashboardCompany=company;
+    const isolationTestPanel=document.getElementById("temporaryCvIsolationTest");
+    if(isolationTestPanel) isolationTestPanel.style.display=currentAuthUser.id==="3a51e9b8-dd79-4dd7-bfa0-f94a2be64964"?"block":"none";
     if(button) button.style.display="inline-flex";
     const statusLabel=employerCompanyStatusLabel(company.status);
     const statusColor=company.status==="verified"?"#087a4b":company.status==="rejected"||company.status==="suspended"?"#a33b32":"#946200";
