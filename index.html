@@ -3480,6 +3480,10 @@ async function loadJobConversationMessages(){
     }).join(""):'<p class="muted" style="text-align:center;padding:22px">ابدأ المحادثة برسالة محترمة وواضحة.</p>';
     if(wasNearBottom)list.scrollTop=list.scrollHeight;
     await supabaseClient.rpc("mark_job_messages_read",{p_job_id:activeJobConversation.job_id,p_application_id:activeJobConversation.application_id});
+    await supabaseClient.from("in_app_notifications").update({read_at:new Date().toISOString()})
+      .eq("user_id",currentAuthUser.id)
+      .eq("application_id",activeJobConversation.application_id)
+      .eq("notification_type","message").is("read_at",null);
     await refreshHeaderNotificationCount();
   }catch(error){
     console.error("Conversation refresh failed:",error);
