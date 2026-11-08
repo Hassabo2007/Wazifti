@@ -23,6 +23,21 @@ create index if not exists job_messages_conversation_idx
 create index if not exists job_messages_recipient_unread_idx
   on public.job_messages(recipient_id, created_at desc) where read_at is null;
 
+-- Allow an individual job poster to see applications on their own ads only.
+drop policy if exists "Individuals view applications for own jobs" on public.applications;
+create policy "Individuals view applications for own jobs"
+on public.applications
+for select
+to authenticated
+using (
+  exists (
+    select 1 from public.jobs j
+    where j.id = applications.job_id
+      and j.poster_type = 'individual'
+      and j.posted_by_user_id = (select auth.uid())
+  )
+);
+
 alter table public.job_messages enable row level security;
 
 revoke all on public.job_messages from anon, authenticated;
