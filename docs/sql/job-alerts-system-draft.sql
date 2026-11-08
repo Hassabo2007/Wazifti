@@ -9,7 +9,7 @@ begin;
 create table if not exists public.job_alert_preferences (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references auth.users(id) on delete cascade,
-  is_enabled boolean not null default true,
+  is_enabled boolean not null default false,
   delivery_mode text not null default 'both'
     check (delivery_mode in ('instant', 'daily', 'both')),
   in_app_enabled boolean not null default true,
