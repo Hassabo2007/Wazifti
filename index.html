@@ -2449,10 +2449,14 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
 
     let idsToNotify=[applicationId];
     if(data.status==="accepted"){
-      const {data:updatedOthers,error:updatedOthersError}=await supabaseClient.from("applications")
-        .select("id,status").in("id",otherApplicantIds);
-      if(updatedOthersError) throw updatedOthersError;
-      const rejectedIds=(updatedOthers||[]).filter(item=>item.status==="rejected").map(item=>item.id);
+      let updatedOthers=[];
+      if(otherApplicantIds.length){
+        const {data,error:updatedOthersError}=await supabaseClient.from("applications")
+          .select("id,status").in("id",otherApplicantIds);
+        if(updatedOthersError) throw updatedOthersError;
+        updatedOthers=data||[];
+      }
+      const rejectedIds=updatedOthers.filter(item=>item.status==="rejected").map(item=>item.id);
       const {data:jobState,error:jobStateError}=await supabaseClient.from("jobs")
         .select("status").eq("id",ownedApplication.job_id).maybeSingle();
       if(jobStateError) throw jobStateError;
