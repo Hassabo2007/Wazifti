@@ -618,6 +618,96 @@ footer small { display: inline-block; margin-top: 8px; color: #b7d8c4; }
 @media (max-width: 760px) { .hero { padding-top: 34px; } .hero-inner { gap: 22px; } .stats { gap: 12px; margin-top: 20px; } .job { gap: 12px; } .how-grid { grid-template-columns: 1fr; gap: 12px; } .how-card { padding: 20px 17px; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
 
+
+/* V1.0 visual polish: clearer hierarchy, warmer Sudan-inspired accents and mobile comfort. */
+:root {
+  --g:#087a4b; --d:#064e35; --mint:#eaf5ed; --ink:#17372a;
+  --muted:#687a70; --line:#e3ece6; --bg:#f7faf8;
+  --gold:#c99b3b; --sand:#f5f0e5;
+}
+body { background:var(--bg); color:var(--ink); }
+.site-header { box-shadow:0 5px 22px rgba(12,55,35,.055); }
+.site-header .brand { gap:11px; letter-spacing:-.4px; }
+.site-header .logo { width:46px; height:46px; object-fit:cover; border-radius:14px; box-shadow:0 4px 12px rgba(6,78,53,.15); }
+.menu-toggle { box-shadow:0 3px 10px rgba(6,78,53,.06); }
+.hero {
+  padding-top:clamp(42px,6vw,76px); padding-bottom:clamp(42px,5vw,66px);
+  background:
+    radial-gradient(ellipse at 88% 12%,rgba(201,155,59,.12),transparent 24%),
+    radial-gradient(ellipse at 10% 85%,rgba(8,122,75,.10),transparent 28%),
+    linear-gradient(128deg,#e8f4eb 0%,#fbfcf8 68%,#f7f1e5 100%);
+}
+.hero-copy { max-width:690px; }
+.hero-eyebrow { display:inline-flex; align-items:center; gap:9px; padding:8px 13px; border:1px solid #d6e8db; border-radius:999px; background:rgba(255,255,255,.78); color:var(--d); font-size:12px; font-weight:800; box-shadow:0 4px 15px rgba(12,55,35,.04); }
+.eyebrow-dot { width:8px; height:8px; border-radius:50%; background:var(--gold); box-shadow:0 0 0 4px rgba(201,155,59,.13); }
+h1 { font-size:clamp(30px,4.2vw,48px); line-height:1.42; letter-spacing:-.7px; }
+.hero-highlight { color:var(--g); }
+.hero p { color:#52685c; font-size:clamp(14px,1.5vw,16px); }
+.search { padding:8px; border:1px solid #d9e8dd; box-shadow:0 14px 34px rgba(15,65,39,.09); }
+.search input { min-height:48px; }
+.search input::placeholder { color:#89978f; }
+.search .btn { min-width:145px; }
+.primary { background:linear-gradient(135deg,#0a8653,#064e35); box-shadow:0 7px 17px rgba(8,122,75,.18); }
+.primary:hover { background:linear-gradient(135deg,#087a4b,#043f2b); }
+.outline { border-color:#c9ddcf; }
+.trust-note { border-color:#e6d9b8; background:#fffaf0; color:#66501f; }
+.trust-note > span:first-child { background:var(--gold); }
+.brand-art { position:relative; min-height:340px; display:flex; flex-direction:column; justify-content:center; align-items:center; overflow:hidden; background:linear-gradient(150deg,#fff 0%,#f2f8f3 72%,#f8f2e6 100%); border:1px solid #dce9df; box-shadow:0 20px 50px rgba(15,65,39,.10); }
+.brand-art::before { content:""; position:absolute; width:270px; height:270px; border:1px solid rgba(201,155,59,.25); border-radius:50%; }
+.art-map { position:relative; z-index:1; width:154px; height:154px; padding:13px; border-radius:38px; background:white; box-shadow:0 15px 36px rgba(6,78,53,.14); }
+.art-map img { width:100%; height:100%; object-fit:contain; }
+.art-caption { position:relative; z-index:2; display:flex; align-items:center; gap:12px; max-width:100%; margin-top:22px; padding:13px 17px; border:1px solid #e2ece5; border-radius:15px; background:rgba(255,255,255,.92); }
+.art-caption p { margin:4px 0 0; font-size:12px; }
+.caption-mark { display:grid; place-items:center; width:38px; height:38px; border-radius:12px; color:#fff; background:var(--d); font-size:21px; font-weight:900; }
+.art-ribbon { position:relative; z-index:2; margin-top:14px; color:#9a7429; font-size:12px; font-weight:900; }
+.art-orbit { border-color:rgba(8,122,75,.12); }
+.wrap { max-width:1180px; }
+.head { margin-bottom:20px; }
+.head h2 { font-size:clamp(21px,2.5vw,27px); letter-spacing:-.3px; }
+#jobs { padding-top:10px; }
+#jobs > .head { padding:0 2px 14px; border-bottom:1px solid #e6eee8; }
+.filters { background:linear-gradient(180deg,#fff,#fbfdfb); border-color:#e1ebe4; box-shadow:0 8px 24px rgba(15,65,39,.045); }
+.filters h3 { color:var(--d); }
+.group { border-color:#edf1ed; }
+.group strong { color:#355746; }
+.group select { background:#fff; color:var(--ink); min-height:42px; }
+.list { gap:14px; }
+.job { border-color:#e4ece6; background:#fff; box-shadow:0 5px 18px rgba(15,65,39,.045); }
+.job:hover { border-color:#b7d7c1; box-shadow:0 12px 28px rgba(15,65,39,.085); }
+.job .icon { background:linear-gradient(145deg,#e8f5ec,#f7f2e5); color:var(--d); }
+.job h3 { font-size:17px; }
+.tag { background:#edf6ef; color:#087a4b; }
+.salary { color:#8c6a24; }
+.how-card { text-align:start; border-color:#e3ece6; box-shadow:0 7px 22px rgba(15,65,39,.045); transition:transform .2s,box-shadow .2s; }
+.how-card:hover { transform:translateY(-3px); box-shadow:0 13px 28px rgba(15,65,39,.08); }
+.how-number { background:#edf6ef; box-shadow:inset 0 0 0 1px #dcebe1; }
+footer { background:linear-gradient(120deg,#103d2a,#064e35); }
+.drawer-actions #accountArea[style*="display:none"] { display:none !important; }
+.drawer-actions #accountArea:not([style*="display:none"]) { display:grid !important; }
+.drawer-nav a { position:relative; }
+.drawer-nav a:hover { padding-inline-start:19px; }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible { outline:3px solid rgba(201,155,59,.48); outline-offset:3px; }
+@media(max-width:760px) {
+  .hero { padding:32px 14px 35px; }
+  .hero-inner { gap:20px; }
+  .hero-copy { width:100%; }
+  .hero-eyebrow { font-size:11px; }
+  h1 { line-height:1.5; }
+  .search { gap:7px; }
+  .search input { border:1px solid #edf1ed; background:#fcfdfc; }
+  .search .btn { min-height:48px; }
+  .brand-art { display:flex; min-height:245px; padding:22px 15px; border-radius:20px; }
+  .art-map { width:105px; height:105px; padding:9px; border-radius:28px; }
+  .brand-art::before { width:190px; height:190px; }
+  .art-caption { margin-top:13px; padding:10px 12px; }
+  .art-ribbon { margin-top:9px; }
+  .stats { align-items:center; }
+  .filters { padding:15px; }
+  .job { border-radius:16px; }
+  .how-card { text-align:start; }
+}
+@media(min-width:761px) { .hero-inner { gap:46px; } }
+
 /* Brand identity: persistent side navigation drawer on desktop and mobile. */
 .site-header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.96); border-bottom: 1px solid #e4eee7; backdrop-filter: blur(12px); }
 .site-header .nav { min-height: 76px; padding: 12px 20px; }
