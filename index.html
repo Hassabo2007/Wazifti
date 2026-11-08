@@ -823,6 +823,68 @@ body.modal-open { overflow: hidden; }
 #employerJobForm .job-salary-grid input{max-width:190px;min-height:40px;font-size:14px}
 @media(max-width:600px){#employerJobForm .job-form-grid{grid-template-columns:1fr 1fr;gap:10px}#employerJobForm .job-salary-grid{grid-template-columns:1fr 1fr}#employerJobForm .job-salary-grid>div:last-child{grid-column:1/-1}}
 </style>
+
+<style>
+/* V1.3.3 mobile header fix: keep primary account actions visible and tappable. */
+@media (max-width: 760px) {
+  header { z-index: 100; }
+  .nav { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+  .brand { flex:1 1 auto; min-width:120px; }
+  .actions {
+    display:flex !important;
+    width:100%;
+    flex:1 1 100%;
+    flex-wrap:wrap;
+    align-items:stretch;
+    justify-content:space-between;
+    gap:8px;
+    position:relative;
+    z-index:101;
+  }
+  #loginBtn, #signupBtn,
+  .actions > button[onclick="openEmployerRegistration()"] {
+    display:inline-flex !important;
+    flex:1 1 calc(33.333% - 8px);
+    min-width:0;
+    min-height:44px;
+    align-items:center;
+    justify-content:center;
+    white-space:nowrap;
+    padding:10px 8px;
+    visibility:visible !important;
+    opacity:1 !important;
+    pointer-events:auto !important;
+    position:relative;
+    z-index:102;
+  }
+  #loginBtn { order:1; }
+  #signupBtn { order:2; }
+  .actions > button[onclick="openEmployerRegistration()"] { order:3; }
+  #pwaInstallBtn, #lang {
+    display:inline-flex !important;
+    flex:0 1 auto;
+    min-height:40px;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    z-index:102;
+    pointer-events:auto !important;
+  }
+  #accountArea {
+    display:flex;
+    flex:1 1 100%;
+    width:100%;
+    flex-wrap:wrap;
+    justify-content:flex-start;
+    position:relative;
+    z-index:102;
+  }
+  .actions .outline:not(#lang):not(#logoutBtn):not(#myApplicationsBtn):not(#loginBtn) {
+    display:inline-flex !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <header><div class="nav"><a class="brand" href="/" aria-label="Wazifti home" style="text-decoration:none;color:inherit"><div class="logo">و</div><span data-t="brand">وظيفتي</span></a>
