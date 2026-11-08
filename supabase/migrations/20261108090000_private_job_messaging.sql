@@ -43,8 +43,17 @@ with check (
     (
       sender_id = candidate_id and recipient_id = poster_id
       and exists (
-        select 1 from public.applications a
-        where a.id = job_messages.application_id and a.job_id = job_messages.job_id and a.candidate_id = job_messages.candidate_id
+        select 1
+        from public.applications a
+        join public.jobs j on j.id = a.job_id
+        left join public.companies c on c.id = j.company_id
+        where a.id = job_messages.application_id
+          and a.job_id = job_messages.job_id
+          and a.candidate_id = job_messages.candidate_id
+          and job_messages.poster_id = case
+            when j.poster_type = 'individual' then j.posted_by_user_id
+            else c.owner_id
+          end
       )
     )
     or
