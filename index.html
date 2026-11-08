@@ -617,6 +617,38 @@ footer { line-height: 2.2; }
 footer small { display: inline-block; margin-top: 8px; color: #b7d8c4; }
 @media (max-width: 760px) { .hero { padding-top: 34px; } .hero-inner { gap: 22px; } .stats { gap: 12px; margin-top: 20px; } .job { gap: 12px; } .how-grid { grid-template-columns: 1fr; gap: 12px; } .how-card { padding: 20px 17px; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+
+/* Brand identity: persistent side navigation drawer on desktop and mobile. */
+.site-header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.96); border-bottom: 1px solid #e4eee7; backdrop-filter: blur(12px); }
+.site-header .nav { min-height: 76px; padding: 12px 20px; }
+.menu-toggle { display:inline-grid; place-items:center; width:46px; height:46px; border:1px solid #d6e8dc; border-radius:14px; background:#f3faf5; color:var(--d); font-size:24px; cursor:pointer; transition:.2s; }
+.menu-toggle:hover { background:#e5f4e9; border-color:#a8cfb6; transform:translateY(-1px); }
+.drawer-backdrop { position:fixed; inset:0; z-index:1000; background:rgba(8,30,20,.48); opacity:0; visibility:hidden; transition:opacity .24s,visibility .24s; }
+.site-drawer { position:fixed; z-index:1001; top:0; bottom:0; inset-inline-start:0; width:min(360px,88vw); padding:22px; background:linear-gradient(180deg,#fff 0%,#f8fcf9 100%); box-shadow:0 18px 60px rgba(10,45,28,.2); transform:translateX(-105%); transition:transform .26s ease; overflow-y:auto; overscroll-behavior:contain; }
+[dir="rtl"] .site-drawer { transform:translateX(105%); }
+.site-drawer.open { transform:translateX(0); }
+.drawer-backdrop.open { opacity:1; visibility:visible; }
+.drawer-head { display:flex; align-items:center; justify-content:space-between; padding-bottom:20px; border-bottom:1px solid var(--line); }
+.drawer-brand { display:flex; align-items:center; gap:10px; color:var(--d); font-size:23px; font-weight:900; }
+.drawer-brand img { width:42px; height:42px; border-radius:13px; }
+.drawer-close { width:40px; height:40px; border:0; border-radius:12px; background:#edf6ef; color:var(--d); font-size:27px; cursor:pointer; }
+.drawer-nav { display:grid; gap:7px; padding:20px 0; border-bottom:1px solid var(--line); }
+.drawer-nav a { display:block; padding:13px 14px; border-radius:12px; color:#365548; text-decoration:none; font-weight:700; transition:.18s; }
+.drawer-nav a:hover,.drawer-nav a:focus-visible { color:var(--d); background:#eaf5ed; }
+.drawer-actions { display:grid; gap:11px; padding-top:20px; }
+.drawer-actions .btn { width:100%; min-height:45px; }
+.drawer-actions .auth-actions { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.drawer-actions #accountArea { display:grid !important; grid-template-columns:1fr 1fr; gap:9px !important; padding:12px; background:#f0f7f2; border:1px solid #e0eee4; border-radius:14px; }
+.drawer-actions #accountName { grid-column:1/-1; max-width:100% !important; padding:5px 2px; }
+.drawer-actions #notificationsBellBtn { grid-column:1/-1; }
+.drawer-actions #logoutBtn { grid-column:1/-1; }
+.drawer-actions #employerDashboardBtn,.drawer-actions #adminBtn { grid-column:1/-1; }
+.drawer-post { margin-top:3px; }
+.drawer-foot { margin-top:28px; padding-top:16px; border-top:1px solid var(--line); color:#a17a25; font-size:13px; font-weight:800; text-align:center; }
+body.drawer-open { overflow:hidden; }
+@media(min-width:761px) { .site-header .nav { max-width:1150px; } }
+@media(max-width:760px) { .site-header .nav { min-height:68px; padding:10px 14px; } .site-drawer { padding:18px; } }
+@media(prefers-reduced-motion:reduce) { .site-drawer,.drawer-backdrop { transition:none; } }
 </style><style>
 /* V1.3.2: unified mobile-friendly profile and employer dashboard modals */
 body.modal-open { overflow: hidden; }
@@ -926,25 +958,31 @@ body.modal-open { overflow: hidden; }
 </style>
 </head>
 <body>
-<header><div class="nav"><a class="brand" href="/" aria-label="Wazifti home" style="text-decoration:none;color:inherit"><img class="logo" src="/icons/icon-192.svg" alt=""><span data-t="brand">وظيفتي</span></a>
-<nav><a href="#jobs" data-t="navJobs">الوظائف</a><a href="#how" data-t="navHow">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout">عن وظيفتي</a></nav>
-<div class="actions">
-<button class="btn outline" id="loginBtn" onclick="openLogin()">دخول</button>
-<button class="btn primary" id="signupBtn" onclick="openSignup()">إنشاء حساب</button>
-<button class="btn outline small" id="pwaInstallBtn" type="button" onclick="installWaziftiApp()">تثبيت التطبيق</button>
+<header class="site-header"><div class="nav">
+<a class="brand" href="/" aria-label="Wazifti home" style="text-decoration:none;color:inherit"><img class="logo" src="/icons/icon-192.svg" alt=""><span data-t="brand">وظيفتي</span></a>
+<button class="menu-toggle" id="menuToggle" type="button" aria-label="فتح القائمة" aria-controls="siteDrawer" aria-expanded="false" onclick="toggleSiteMenu()">☰</button>
+</div></header>
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeSiteMenu()" aria-hidden="true"></div>
+<aside class="site-drawer" id="siteDrawer" aria-label="القائمة الرئيسية" aria-hidden="true">
+<div class="drawer-head"><div class="drawer-brand"><img src="/icons/icon-192.svg" alt=""><span data-t="brand">وظيفتي</span></div><button class="drawer-close" type="button" aria-label="إغلاق القائمة" onclick="closeSiteMenu()">×</button></div>
+<nav class="drawer-nav"><a href="#jobs" data-t="navJobs" onclick="closeSiteMenu()">الوظائف</a><a href="#how" data-t="navHow" onclick="closeSiteMenu()">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout" onclick="closeSiteMenu()">عن وظيفتي</a></nav>
+<div class="drawer-actions">
+<div class="auth-actions"><button class="btn outline" id="loginBtn" onclick="closeSiteMenu();openLogin()">دخول</button><button class="btn primary" id="signupBtn" onclick="closeSiteMenu();openSignup()">إنشاء حساب</button></div>
+<button class="btn outline small" id="pwaInstallBtn" type="button" onclick="closeSiteMenu();installWaziftiApp()">تثبيت التطبيق</button>
 <div id="accountArea" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
-  <span id="accountName" style="font-size:13px;font-weight:700;color:var(--d);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-  <button class="btn primary small" id="profileBtn" type="button" onclick="openProfile()">ملفي الشخصي</button>
-  <button class="btn outline small" id="notificationsBellBtn" type="button" onclick="openMyApplications()" aria-label="الإشعارات" title="الإشعارات" style="position:relative">🔔 <span>الإشعارات</span><span id="headerUnreadNotifications" class="notification-badge" style="display:none">0</span></button>
-  <button class="btn outline small" id="myApplicationsBtn" type="button" onclick="openMyApplications()">طلباتي</button>
-  <button class="btn outline small" id="employerDashboardBtn" type="button" style="display:none" onclick="openEmployerDashboard()">لوحة صاحب العمل</button>
-   <button class="btn outline small" id="adminBtn" type="button" style="display:none" onclick="openAdminDashboard()">لوحة الإدارة</button>
-  <button class="btn outline small" id="logoutBtn" type="button" onclick="logoutUser()">تسجيل الخروج</button>
+<span id="accountName" style="font-size:13px;font-weight:700;color:var(--d);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+<button class="btn primary small" id="profileBtn" type="button" onclick="closeSiteMenu();openProfile()">ملفي الشخصي</button>
+<button class="btn outline small" id="notificationsBellBtn" type="button" onclick="closeSiteMenu();openMyApplications()" aria-label="الإشعارات" title="الإشعارات" style="position:relative">🔔 <span>الإشعارات</span><span id="headerUnreadNotifications" class="notification-badge" style="display:none">0</span></button>
+<button class="btn outline small" id="myApplicationsBtn" type="button" onclick="closeSiteMenu();openMyApplications()">طلباتي</button>
+<button class="btn outline small" id="employerDashboardBtn" type="button" style="display:none" onclick="closeSiteMenu();openEmployerDashboard()">لوحة صاحب العمل</button>
+<button class="btn outline small" id="adminBtn" type="button" style="display:none" onclick="closeSiteMenu();openAdminDashboard()">لوحة الإدارة</button>
+<button class="btn outline small" id="logoutBtn" type="button" onclick="closeSiteMenu();logoutUser()">تسجيل الخروج</button>
 </div>
-<button class="btn primary" onclick="openEmployerRegistration()" data-t="postJob">أعلن عن وظيفة</button>
+<button class="btn primary drawer-post" onclick="closeSiteMenu();openEmployerRegistration()" data-t="postJob">أعلن عن وظيفة</button>
 <button class="btn outline" id="lang" onclick="toggleLang()">EN</button>
-</div></div>
-</header>
+</div>
+<div class="drawer-foot">الأمل يبدأ بفرصة.</div>
+</aside>
 <section class="hero"><div class="hero-inner"><div class="hero-copy">
 <div class="hero-eyebrow"><span class="eyebrow-dot"></span><span data-t="welcomeEyebrow">منصة سودانية تجمع الطموح بالفرصة</span></div>
 <h1 data-t="headline">الأمل يبدأ بفرصة<br><span class="hero-highlight">وفرصتك تبدأ من هنا</span></h1>
@@ -3694,6 +3732,11 @@ function closeJobConversation(){
   if(!others)document.body.classList.remove("modal-open");
 }
 setInterval(()=>{if(currentAuthUser)refreshHeaderNotificationCount();},20000);
+
+function toggleSiteMenu(){const d=document.getElementById('siteDrawer');if(d&&d.classList.contains('open'))closeSiteMenu();else openSiteMenu();}
+function openSiteMenu(){const d=document.getElementById('siteDrawer'),b=document.getElementById('drawerBackdrop'),t=document.getElementById('menuToggle');if(!d||!b)return;d.classList.add('open');b.classList.add('open');d.setAttribute('aria-hidden','false');b.setAttribute('aria-hidden','false');if(t)t.setAttribute('aria-expanded','true');document.body.classList.add('drawer-open');}
+function closeSiteMenu(){const d=document.getElementById('siteDrawer'),b=document.getElementById('drawerBackdrop'),t=document.getElementById('menuToggle');if(!d||!b)return;d.classList.remove('open');b.classList.remove('open');d.setAttribute('aria-hidden','true');b.setAttribute('aria-hidden','true');if(t)t.setAttribute('aria-expanded','false');document.body.classList.remove('drawer-open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSiteMenu();});
 </script>
 
 </body></html>
