@@ -69,6 +69,9 @@ create unique index if not exists job_alert_notifications_user_job_uidx
 create index if not exists job_alert_notifications_user_created_idx
   on public.job_alert_notifications(user_id, available_at, created_at desc);
 
+create index if not exists job_alert_notifications_job_id_idx
+  on public.job_alert_notifications(job_id);
+
 create table if not exists public.job_alert_deliveries (
   id uuid primary key default gen_random_uuid(),
   notification_id uuid not null references public.job_alert_notifications(id) on delete cascade,
@@ -127,6 +130,9 @@ create table if not exists public.job_alert_outbox (
 
 create index if not exists job_alert_outbox_ready_idx
   on public.job_alert_outbox(status, available_at, created_at);
+
+create index if not exists job_alert_outbox_job_id_idx
+  on public.job_alert_outbox(job_id);
 
 create index if not exists job_alert_preference_categories_category_idx
   on public.job_alert_preference_categories(category_id);
