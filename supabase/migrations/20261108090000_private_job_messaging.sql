@@ -7,8 +7,8 @@ alter table public.in_app_notifications
 
 create table if not exists public.job_messages (
   id uuid primary key default gen_random_uuid(),
-  job_id uuid not null references public.jobs(id) on delete cascade,
-  application_id uuid not null references public.applications(id) on delete cascade,
+  job_id uuid not null references public.jobs(id),
+  application_id uuid not null references public.applications(id),
   candidate_id uuid not null references auth.users(id) on delete cascade,
   poster_id uuid not null references auth.users(id) on delete cascade,
   sender_id uuid not null references auth.users(id) on delete cascade,
