@@ -40,16 +40,29 @@ function authorize(req: Request):
   const bearer = req.headers.get("authorization") ?? "";
   const legacyServiceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
+  const bearerToken = bearer.toLowerCase().startsWith("bearer ")
+    ? bearer.slice(7).trim()
+    : "";
+
+  // Require the same server-only secret key in BOTH headers.
+  // This matches Supabase's current secret-key authorization model.
   for (const secret of getSecretKeys()) {
-    if (constantTimeEqual(incomingApiKey, secret)) {
-      return { ok: true, apiKey: secret };
+    if (
+      constantTimeEqual(incomingApiKey, secret) &&
+      constantTimeEqual(bearerToken, secret)
+    ) {
+      return {
+        ok: true,
+        apiKey: secret,
+        authorization: `Bearer ${secret}`,
+      };
     }
   }
 
   if (
     legacyServiceRole &&
-    bearer.toLowerCase().startsWith("bearer ") &&
-    constantTimeEqual(bearer.slice(7).trim(), legacyServiceRole)
+    constantTimeEqual(incomingApiKey, legacyServiceRole) &&
+    constantTimeEqual(bearerToken, legacyServiceRole)
   ) {
     return {
       ok: true,
