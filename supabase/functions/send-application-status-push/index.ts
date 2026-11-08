@@ -68,19 +68,23 @@ Deno.serve(async (req: Request) => {
 
     const { data: job, error: jobError } = await admin
       .from("jobs")
-      .select("id, title, company_id")
+      .select("id, title, company_id, poster_type, posted_by_user_id")
       .eq("id", app.job_id)
       .maybeSingle();
     if (jobError) throw jobError;
     if (!job) return json({ error: "Job not found" }, 404);
 
-    const { data: company, error: companyError } = await admin
-      .from("companies")
-      .select("owner_id")
-      .eq("id", job.company_id)
-      .maybeSingle();
-    if (companyError) throw companyError;
-    if (!company || company.owner_id !== authData.user.id) {
+    let authorizedPoster = job.poster_type === "individual" && job.posted_by_user_id === authData.user.id;
+    if (!authorizedPoster && job.company_id) {
+      const { data: company, error: companyError } = await admin
+        .from("companies")
+        .select("owner_id")
+        .eq("id", job.company_id)
+        .maybeSingle();
+      if (companyError) throw companyError;
+      authorizedPoster = !!company && company.owner_id === authData.user.id;
+    }
+    if (!authorizedPoster) {
       return json({ error: "Not authorized to notify this applicant" }, 403);
     }
 
