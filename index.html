@@ -875,25 +875,72 @@ body.modal-open { overflow: hidden; }
 }
 </style>
 
+
+<style>
+/* V1.0.1 — refined Sudanese identity and mobile-first navigation */
+.brand { gap:10px; flex:0 0 auto; align-items:center; }
+.brand-mark { width:46px; height:46px; display:block; flex:0 0 46px; filter:drop-shadow(0 3px 6px rgba(5,75,45,.16)); }
+.brand-copy { display:flex; flex-direction:column; align-items:flex-start; gap:1px; line-height:1.2; }
+.brand-copy strong { font-size:23px; font-weight:900; letter-spacing:-.3px; color:var(--d); }
+.brand-copy small { font-size:10px; font-weight:700; color:#75877d; white-space:nowrap; letter-spacing:0; }
+.actions { align-items:center; gap:7px; }
+.actions .btn { min-height:40px; padding:9px 13px; border-radius:11px; font-size:13px; }
+.actions .nav-signup { box-shadow:0 5px 14px rgba(8,122,75,.18); }
+.actions .nav-login { background:#f7fbf8; }
+#notificationsBellBtn { display:inline-flex; align-items:center; gap:5px; }
+#notificationsBellBtn .notification-badge { min-width:18px; height:18px; line-height:18px; border-radius:99px; text-align:center; font-size:10px; }
+header { border-bottom-color:#dcebe2; box-shadow:0 5px 20px rgba(13,65,39,.07); }
+.nav { padding-top:11px; padding-bottom:11px; }
+@media (max-width: 760px) {
+  header { position:relative; }
+  .nav { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; padding:10px 12px; }
+  .brand { flex:1 1 auto; min-width:0; gap:8px; }
+  .brand-mark { width:40px; height:40px; flex-basis:40px; }
+  .brand-copy strong { font-size:20px; }
+  .brand-copy small { font-size:9px; }
+  .actions { display:flex; width:100%; flex:1 0 100%; min-width:0; flex-wrap:wrap; align-items:center; justify-content:flex-start; gap:7px; overflow:visible; padding:0; }
+  .actions .btn { min-height:38px; padding:8px 11px; border-radius:10px; font-size:12px; }
+  #loginBtn { display:inline-flex; }
+  #signupBtn { display:inline-flex; }
+  #lang { margin-inline-start:auto; display:inline-flex; }
+  #notificationsBellBtn { display:inline-flex; }
+  #accountArea { width:100%; display:flex; flex-wrap:wrap; justify-content:flex-start; gap:7px; }
+  #accountName { max-width:100px !important; font-size:12px !important; }
+  #profileBtn,#myApplicationsBtn,#logoutBtn { display:inline-flex; }
+  #employerDashboardBtn,#adminBtn { display:none; }
+  .nav-post-job { order:4; }
+  .nav-language { order:8; }
+}
+@media (max-width:380px) {
+  .brand-mark { width:36px; height:36px; flex-basis:36px; }
+  .brand-copy strong { font-size:18px; }
+  .brand-copy small { font-size:8px; }
+  .actions { gap:5px; }
+  .actions .btn { padding:7px 9px; font-size:11px; }
+}
+</style>
+
 </head>
 <body>
-<header><div class="nav"><a class="brand" href="/" aria-label="Wazifti home" style="text-decoration:none;color:inherit"><div class="logo">و</div><span data-t="brand">وظيفتي</span></a>
+<header><div class="nav"><a class="brand" href="/" aria-label="وظيفتي - الصفحة الرئيسية" style="text-decoration:none;color:inherit">
+<img class="brand-mark" src="/assets/wazifti-sudan-mark.svg" alt="" width="46" height="46">
+<span class="brand-copy"><strong data-t="brand">وظيفتي</strong><small data-t="tagline">منصة فرص العمل السودانية</small></span></a>
 <nav><a href="#jobs" data-t="navJobs">الوظائف</a><a href="#how" data-t="navHow">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout">عن وظيفتي</a></nav>
 <div class="actions">
-<button class="btn outline" id="loginBtn" onclick="openLogin()">دخول</button>
-<button class="btn primary" id="signupBtn" onclick="openSignup()">إنشاء حساب</button>
+<button class="btn primary nav-signup" id="signupBtn" onclick="openSignup()">إنشاء حساب</button>
+<button class="btn outline nav-login" id="loginBtn" onclick="openLogin()">دخول</button>
 <button class="btn outline small" id="pwaInstallBtn" type="button" onclick="installWaziftiApp()">تثبيت التطبيق</button>
 <div id="accountArea" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
   <span id="accountName" style="font-size:13px;font-weight:700;color:var(--d);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-  <button class="btn primary small" id="profileBtn" type="button" onclick="openProfile()">ملفي الشخصي</button>
   <button class="btn outline small" id="notificationsBellBtn" type="button" onclick="openMyApplications()" aria-label="الإشعارات" title="الإشعارات" style="position:relative">🔔 <span>الإشعارات</span><span id="headerUnreadNotifications" class="notification-badge" style="display:none">0</span></button>
+  <button class="btn primary small" id="profileBtn" type="button" onclick="openProfile()">ملفي الشخصي</button>
   <button class="btn outline small" id="myApplicationsBtn" type="button" onclick="openMyApplications()">طلباتي</button>
   <button class="btn outline small" id="employerDashboardBtn" type="button" style="display:none" onclick="openEmployerDashboard()">لوحة صاحب العمل</button>
-   <button class="btn outline small" id="adminBtn" type="button" style="display:none" onclick="openAdminDashboard()">لوحة الإدارة</button>
+  <button class="btn outline small" id="adminBtn" type="button" style="display:none" onclick="openAdminDashboard()">لوحة الإدارة</button>
   <button class="btn outline small" id="logoutBtn" type="button" onclick="logoutUser()">تسجيل الخروج</button>
 </div>
-<button class="btn primary" onclick="openEmployerRegistration()" data-t="postJob">أعلن عن وظيفة</button>
-<button class="btn outline" id="lang" onclick="toggleLang()">EN</button>
+<button class="btn primary nav-post-job" onclick="openEmployerRegistration()" data-t="postJob">أعلن عن وظيفة</button>
+<button class="btn outline nav-language" id="lang" onclick="toggleLang()">EN</button>
 </div></div>
 </header>
 <section class="hero"><div class="hero-inner"><div><h1 data-t="headline">خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span></h1>
@@ -1047,8 +1094,8 @@ function startLiveJobsUpdates(){
   }catch(error){console.warn("Realtime subscription unavailable; polling remains active.",error);}
 }
 const words={
-ar:{brand:"وظيفتي",navJobs:"الوظائف",navHow:"كيف تعمل المنصة؟",navAbout:"عن وظيفتي",login:"دخول",signup:"إنشاء حساب",logout:"تسجيل الخروج",profile:"ملفي الشخصي",postJob:"أعلن عن وظيفة",headline:'خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span>',sub:"ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.",searchJob:"المسمى الوظيفي أو المهارة",searchCity:"المدينة",search:"ابحث عن وظيفة",statJobs:"وظيفة منشورة",reviewNote:"وظائف تُراجع قبل النشر",statEmployers:"جهة عمل",statCities:"مدينة",artTitle:"وظيفتك القادمة أقرب مما تتوقع",artSub:"فرص في مختلف القطاعات والمجالات في السودان.",latest:"أحدث فرص العمل",filters:"تصفية النتائج",jobType:"نوع الوظيفة",full:"دوام كامل",part:"دوام جزئي",remote:"عن بُعد",sector:"المجال",health:"طبي وصحي",admin:"إداري",tech:"تقنية المعلومات",engineering:"هندسي",howTitle:"كيف تعمل وظيفتي؟",howIntro:"ثلاث خطوات بسيطة تقرّبك من فرصتك القادمة.",howStep1Title:"ابحث عن فرصتك",howStep1Text:"استخدم البحث والتصنيفات للوصول إلى الوظائف المناسبة لمهاراتك.",howStep2Title:"راجع التفاصيل",howStep2Text:"اقرأ وصف الوظيفة ومتطلباتها ومعلومات جهة العمل بعناية.",howStep3Title:"تواصل مع جهة العمل",howStep3Text:"اتبع طريقة التقديم الموضحة في إعلان الوظيفة.",footerLine:"منصة سودانية للبحث عن فرص العمل",disclaimer:"تُراجع الوظائف قبل نشرها للعامة.",brandLine:"الأمل يبدأ بفرصة.",close:"إغلاق ✕",details:"تفاصيل الوظيفة",company:"جهة العمل",location:"الموقع",type:"نوع العمل",salary:"الراتب",description:"وصف الوظيفة",apply:"تقديم تجريبي",empty:"لا توجد وظائف مطابقة لبحثك.",loginSoon:"ميزة تسجيل الدخول ستكون متاحة قريباً",employerSoon:"نموذج تسجيل صاحب العمل سيكون متاحاً قريباً",demo:"هذه وظيفة تجريبية؛ التقديم الإلكتروني غير مفعّل بعد",count:"وظائف معروضة",clearFilters:"مسح جميع الفلاتر",refreshJobs:"↻ تحديث الوظائف",categorySpecialty:"التصنيف والتخصص",mainCategoryLabel:"التصنيف الرئيسي",allCategories:"كل التصنيفات",subCategoryLabel:"التخصص الفرعي",allSpecialties:"كل التخصصات"},
-en:{brand:"Wazifti",navJobs:"Jobs",navHow:"How it works",navAbout:"About Wazifti",login:"Log in",signup:"Create account",logout:"Log out",profile:"My profile",postJob:"Post a job",headline:'Your first step toward<br><span style="color:var(--g)">a better opportunity</span>',sub:"Find suitable jobs across Sudan and connect with employers in one place.",searchJob:"Job title or skill",searchCity:"City",search:"Find jobs",statJobs:"published jobs",reviewNote:"Jobs reviewed before publishing",statEmployers:"employers",statCities:"cities",artTitle:"Your next opportunity is closer than you think",artSub:"Opportunities across sectors and industries in Sudan.",latest:"Latest opportunities",filters:"Filter results",jobType:"Job type",full:"Full-time",part:"Part-time",remote:"Remote",sector:"Sector",health:"Healthcare",admin:"Administration",tech:"Technology",engineering:"Engineering",howTitle:"How does Wazifti work?",howIntro:"Three simple steps to move closer to your next opportunity.",howStep1Title:"Find an opportunity",howStep1Text:"Use search and categories to find jobs that match your skills.",howStep2Title:"Review the details",howStep2Text:"Read the job description, requirements, and employer information carefully.",howStep3Title:"Contact the employer",howStep3Text:"Follow the application instructions included in the job listing.",footerLine:"A Sudanese job-search platform",disclaimer:"Jobs are reviewed before appearing publicly.",brandLine:"Hope starts with an opportunity.",close:"Close ✕",details:"Job details",company:"Employer",location:"Location",type:"Job type",salary:"Salary",description:"Description",apply:"Demo application",empty:"No jobs match your search.",loginSoon:"Login will be available soon",employerSoon:"Employer registration will be available soon",demo:"This is a sample job; online applications are not enabled yet",count:"jobs shown",clearFilters:"Clear all filters",refreshJobs:"↻ Refresh jobs",categorySpecialty:"Categories and specialties",mainCategoryLabel:"Main category",allCategories:"All categories",subCategoryLabel:"Specialty",allSpecialties:"All specialties"}};
+ar:{brand:"وظيفتي",tagline:"منصة فرص العمل السودانية",navJobs:"الوظائف",navHow:"كيف تعمل المنصة؟",navAbout:"عن وظيفتي",login:"دخول",signup:"إنشاء حساب",logout:"تسجيل الخروج",profile:"ملفي الشخصي",postJob:"أعلن عن وظيفة",headline:'خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span>',sub:"ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.",searchJob:"المسمى الوظيفي أو المهارة",searchCity:"المدينة",search:"ابحث عن وظيفة",statJobs:"وظيفة منشورة",reviewNote:"وظائف تُراجع قبل النشر",statEmployers:"جهة عمل",statCities:"مدينة",artTitle:"وظيفتك القادمة أقرب مما تتوقع",artSub:"فرص في مختلف القطاعات والمجالات في السودان.",latest:"أحدث فرص العمل",filters:"تصفية النتائج",jobType:"نوع الوظيفة",full:"دوام كامل",part:"دوام جزئي",remote:"عن بُعد",sector:"المجال",health:"طبي وصحي",admin:"إداري",tech:"تقنية المعلومات",engineering:"هندسي",howTitle:"كيف تعمل وظيفتي؟",howIntro:"ثلاث خطوات بسيطة تقرّبك من فرصتك القادمة.",howStep1Title:"ابحث عن فرصتك",howStep1Text:"استخدم البحث والتصنيفات للوصول إلى الوظائف المناسبة لمهاراتك.",howStep2Title:"راجع التفاصيل",howStep2Text:"اقرأ وصف الوظيفة ومتطلباتها ومعلومات جهة العمل بعناية.",howStep3Title:"تواصل مع جهة العمل",howStep3Text:"اتبع طريقة التقديم الموضحة في إعلان الوظيفة.",footerLine:"منصة سودانية للبحث عن فرص العمل",disclaimer:"تُراجع الوظائف قبل نشرها للعامة.",brandLine:"الأمل يبدأ بفرصة.",close:"إغلاق ✕",details:"تفاصيل الوظيفة",company:"جهة العمل",location:"الموقع",type:"نوع العمل",salary:"الراتب",description:"وصف الوظيفة",apply:"تقديم تجريبي",empty:"لا توجد وظائف مطابقة لبحثك.",loginSoon:"ميزة تسجيل الدخول ستكون متاحة قريباً",employerSoon:"نموذج تسجيل صاحب العمل سيكون متاحاً قريباً",demo:"هذه وظيفة تجريبية؛ التقديم الإلكتروني غير مفعّل بعد",count:"وظائف معروضة",clearFilters:"مسح جميع الفلاتر",refreshJobs:"↻ تحديث الوظائف",categorySpecialty:"التصنيف والتخصص",mainCategoryLabel:"التصنيف الرئيسي",allCategories:"كل التصنيفات",subCategoryLabel:"التخصص الفرعي",allSpecialties:"كل التخصصات"},
+en:{brand:"Wazifti",tagline:"Sudan’s job opportunity platform",navJobs:"Jobs",navHow:"How it works",navAbout:"About Wazifti",login:"Log in",signup:"Create account",logout:"Log out",profile:"My profile",postJob:"Post a job",headline:'Your first step toward<br><span style="color:var(--g)">a better opportunity</span>',sub:"Find suitable jobs across Sudan and connect with employers in one place.",searchJob:"Job title or skill",searchCity:"City",search:"Find jobs",statJobs:"published jobs",reviewNote:"Jobs reviewed before publishing",statEmployers:"employers",statCities:"cities",artTitle:"Your next opportunity is closer than you think",artSub:"Opportunities across sectors and industries in Sudan.",latest:"Latest opportunities",filters:"Filter results",jobType:"Job type",full:"Full-time",part:"Part-time",remote:"Remote",sector:"Sector",health:"Healthcare",admin:"Administration",tech:"Technology",engineering:"Engineering",howTitle:"How does Wazifti work?",howIntro:"Three simple steps to move closer to your next opportunity.",howStep1Title:"Find an opportunity",howStep1Text:"Use search and categories to find jobs that match your skills.",howStep2Title:"Review the details",howStep2Text:"Read the job description, requirements, and employer information carefully.",howStep3Title:"Contact the employer",howStep3Text:"Follow the application instructions included in the job listing.",footerLine:"A Sudanese job-search platform",disclaimer:"Jobs are reviewed before appearing publicly.",brandLine:"Hope starts with an opportunity.",close:"Close ✕",details:"Job details",company:"Employer",location:"Location",type:"Job type",salary:"Salary",description:"Description",apply:"Demo application",empty:"No jobs match your search.",loginSoon:"Login will be available soon",employerSoon:"Employer registration will be available soon",demo:"This is a sample job; online applications are not enabled yet",count:"jobs shown",clearFilters:"Clear all filters",refreshJobs:"↻ Refresh jobs",categorySpecialty:"Categories and specialties",mainCategoryLabel:"Main category",allCategories:"All categories",subCategoryLabel:"Specialty",allSpecialties:"All specialties"}};
 function updateTexts(){T=words[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";document.querySelectorAll("[data-t]").forEach(e=>{if(T[e.dataset.t]!==undefined)e.innerHTML=T[e.dataset.t]});document.querySelectorAll("[data-ph]").forEach(e=>e.placeholder=T[e.dataset.ph]);document.getElementById("lang").textContent=lang==="ar"?"EN":"عربي";const lb=document.getElementById("loginBtn");if(lb)lb.textContent=T.login;const sb=document.getElementById("signupBtn");if(sb)sb.textContent=T.signup;const ob=document.getElementById("logoutBtn");if(ob)ob.textContent=T.logout;const pb=document.getElementById("profileBtn");if(pb)pb.textContent=T.profile;refreshTaxonomySelectLanguage();filterJobs()}
 function toggleLang(){lang=lang==="ar"?"en":"ar";updateTexts()}
 function typeName(t){return T[t==="Full-time"?"full":t==="Part-time"?"part":"remote"]}
