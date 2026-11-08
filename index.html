@@ -2556,7 +2556,21 @@ async function loadIndividualJobs(){
  try{
   const {data:jobs,error}=await supabaseClient.from("jobs").select("id,title,status,location,created_at").eq("poster_type","individual").eq("posted_by_user_id",currentAuthUser.id).order("created_at",{ascending:false});
   if(error)throw error;const rows=jobs||[];
-  list.innerHTML=rows.length?rows.map(j=>'<article style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px;margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>'+escapeAdminHtml(j.title)+'</strong><span class="tag">'+escapeAdminHtml(employerJobStatusLabel(j.status))+'</span></div><div class="muted" style="margin:8px 0">'+escapeAdminHtml(j.location||"الموقع غير محدد")+'</div><div style="display:flex;gap:8px;flex-wrap:wrap">'+(j.status==="pending"?'<button class="btn outline small" type="button" onclick="openIndividualJobForm(\\''+j.id+'\\')">تعديل</button>':'')+(['published','closed'].includes(j.status)?'<button class="btn outline small" type="button" onclick="toggleEmployerApplications(\\''+j.id+'\\')">طلبات التقديم</button><div id="employerApplications-'+j.id+'" style="display:none;width:100%"></div>':'')+(['pending','rejected'].includes(j.status)?'<button class="btn outline small" type="button" onclick="deleteIndividualJob(\\''+j.id+'\\')">حذف</button>':'')+'</div></article>').join(""):'<p class="muted" style="padding:12px;background:#fff;border-radius:10px">لم تنشر أي وظائف بعد.</p>'
+  list.innerHTML = rows.length ? rows.map(j => {
+    const actions = [];
+    if (j.status === "pending") actions.push('<button class="btn outline small" type="button" data-individual-action="edit" data-job-id="' + escapeAdminHtml(j.id) + '">تعديل</button>');
+    if (["published", "closed"].includes(j.status)) actions.push('<button class="btn outline small" type="button" data-individual-action="applications" data-job-id="' + escapeAdminHtml(j.id) + '">طلبات التقديم</button><div id="employerApplications-' + escapeAdminHtml(j.id) + '" style="display:none;width:100%"></div>');
+    if (["pending", "rejected"].includes(j.status)) actions.push('<button class="btn outline small" type="button" data-individual-action="delete" data-job-id="' + escapeAdminHtml(j.id) + '">حذف</button>');
+    return '<article style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px;margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>' + escapeAdminHtml(j.title) + '</strong><span class="tag">' + escapeAdminHtml(employerJobStatusLabel(j.status)) + '</span></div><div class="muted" style="margin:8px 0">' + escapeAdminHtml(j.location || "الموقع غير محدد") + '</div><div style="display:flex;gap:8px;flex-wrap:wrap">' + actions.join("") + '</div></article>';
+  }).join("") : '<p class="muted" style="padding:12px;background:#fff;border-radius:10px">لم تنشر أي وظائف بعد.</p>';
+  list.querySelectorAll("[data-individual-action]").forEach(button => {
+    button.addEventListener("click", () => {
+      const id = button.dataset.jobId;
+      if (button.dataset.individualAction === "edit") openIndividualJobForm(id);
+      else if (button.dataset.individualAction === "applications") toggleEmployerApplications(id);
+      else if (button.dataset.individualAction === "delete") deleteIndividualJob(id);
+    });
+  });
  }catch(e){list.innerHTML='<p class="muted">تعذر تحميل إعلاناتك: '+escapeAdminHtml(e.message||"")+'</p>';}
 }
 async function deleteIndividualJob(id){
