@@ -33,6 +33,21 @@ using (
 -- Do not grant broad UPDATE access to application rows.
 
 
+-- Keep filled company-job history as well; closed jobs remain in the owner's archive.
+drop policy if exists "Employers delete own non-published jobs" on public.jobs;
+create policy "Employers delete own pending or rejected jobs"
+on public.jobs
+for delete
+to authenticated
+using (
+  status in ('pending', 'rejected')
+  and exists (
+    select 1 from public.companies c
+    where c.id = jobs.company_id
+      and c.owner_id = (select auth.uid())
+  )
+);
+
 -- Keep filled individual-job history: owners may delete only pending/rejected ads.
 drop policy if exists "Individuals delete own non-published jobs" on public.jobs;
 create policy "Individuals delete own pending or rejected jobs"
