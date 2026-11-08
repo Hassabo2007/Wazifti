@@ -2392,17 +2392,44 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
     return;
   }
   const previousStatus = selectElement?.dataset.previousStatus || "submitted";
-  if (selectElement) selectElement.disabled = true;
+  let ownedApplication = null;
+  let otherApplicantIds = [];
   try {
-    const {data:ownedApplication,error:ownershipError}=await supabaseClient
+    const {data:application,error:ownershipError}=await supabaseClient
       .from("applications").select("id,job_id").eq("id",applicationId).maybeSingle();
     if(ownershipError) throw ownershipError;
-    if(!ownedApplication) throw new Error("لا تملك صلاحية تعديل هذا الطلب.");
+    if(!application) throw new Error("لا تملك صلاحية تعديل هذا الطلب.");
+    ownedApplication=application;
+
+    if(newStatus==="accepted" && previousStatus!=="accepted"){
+      const {data:otherApplications,error:otherApplicationsError}=await supabaseClient
+        .from("applications").select("id,status").eq("job_id",ownedApplication.job_id);
+      if(otherApplicationsError) throw otherApplicationsError;
+      otherApplicantIds=(otherApplications||[])
+        .filter(item=>item.id!==applicationId && !["accepted","rejected"].includes(item.status))
+        .map(item=>item.id);
+      const confirmText="اعتماد هذا المتقدم سيغلق الوظيفة تلقائياً، ويحوّل "+otherApplicantIds.length+
+        " من طلبات المتقدمين الآخرين إلى «لم يتم الاختيار»، ويرسل لهم إشعارات. هل تريد المتابعة؟";
+      if(!window.confirm(confirmText)){
+        if(selectElement) selectElement.value=previousStatus;
+        return;
+      }
+    }
+
+    if(selectElement) selectElement.disabled=true;
     const {data:ownedJob,error:jobError}=await supabaseClient.from("jobs")
       .select("poster_type,posted_by_user_id,company_id").eq("id",ownedApplication.job_id).maybeSingle();
     if(jobError) throw jobError;
     let data=null;
-    if(ownedJob?.poster_type==="individual" && ownedJob.posted_by_user_id===currentAuthUser.id){
+    if(newStatus==="accepted"){
+      // This RPC exists only after the reviewed database migration is applied.
+      // If it is unavailable, the acceptance is not written and no false notices are sent.
+      const {error}=await supabaseClient.rpc("finalize_job_hiring",{
+        p_application_id:applicationId
+      });
+      if(error) throw error;
+      data={id:applicationId,status:"accepted"};
+    } else if(ownedJob?.poster_type==="individual" && ownedJob.posted_by_user_id===currentAuthUser.id){
       const {error}=await supabaseClient.rpc("update_individual_job_application_status",{
         p_application_id:applicationId,p_new_status:newStatus
       });
@@ -2416,6 +2443,7 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
       data=result.data;
       if(!data) throw new Error("لا تملك صلاحية تعديل هذا الطلب أو لم يعد متاحاً.");
     }
+
     if (selectElement) {
       selectElement.dataset.previousStatus = data.status;
       selectElement.value = data.status;
@@ -2424,15 +2452,43 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
     const label = employerApplicationStatusLabels[data.status] || data.status;
     const statusNode = document.querySelector('[data-application-status="' + applicationId + '"]');
     if (statusNode) statusNode.textContent = label;
-    toast("تم تحديث حالة الطلب بنجاح.");
+
+    let idsToNotify=[applicationId];
+    if(data.status==="accepted"){
+      let updatedOthers=[];
+      if(otherApplicantIds.length){
+        const {data,error:updatedOthersError}=await supabaseClient.from("applications")
+          .select("id,status").in("id",otherApplicantIds);
+        if(updatedOthersError) throw updatedOthersError;
+        updatedOthers=data||[];
+      }
+      const rejectedIds=updatedOthers.filter(item=>item.status==="rejected").map(item=>item.id);
+      const {data:jobState,error:jobStateError}=await supabaseClient.from("jobs")
+        .select("status").eq("id",ownedApplication.job_id).maybeSingle();
+      if(jobStateError) throw jobStateError;
+      const workflowComplete=jobState?.status==="closed" && rejectedIds.length===otherApplicantIds.length;
+      if(workflowComplete){
+        toast("تم قبول المتقدم وإغلاق الوظيفة وإبلاغ بقية المتقدمين بنتيجة طلباتهم.");
+        idsToNotify=[applicationId,...rejectedIds];
+      }else{
+        toast("تم تحديث حالة القبول، لكن لم نتمكن من تأكيد إغلاق الوظيفة ورفض بقية الطلبات. لم نرسل لهم إشعارات دفع.");
+      }
+      const target=document.getElementById("employerApplications-"+ownedApplication.job_id);
+      if(target){target.style.display="none";employerViewingApplicationsFor=null;await toggleEmployerApplications(ownedApplication.job_id);}
+    } else {
+      toast("تم تحديث حالة الطلب بنجاح.");
+    }
+
     if(data.status !== previousStatus){
-      try{
-        const {error:pushError}=await supabaseClient.functions.invoke("send-application-status-push",{
-          body:{applicationId}
-        });
-        if(pushError) console.warn("Status updated, but push notification could not be sent:",pushError);
-      }catch(pushError){
-        console.warn("Status updated, but push notification could not be sent:",pushError);
+      for(const notifyApplicationId of idsToNotify){
+        try{
+          const {error:pushError}=await supabaseClient.functions.invoke("send-application-status-push",{
+            body:{applicationId:notifyApplicationId}
+          });
+          if(pushError) console.warn("Status updated, but push notification could not be sent:",pushError);
+        }catch(pushError){
+          console.warn("Status updated, but push notification could not be sent:",pushError);
+        }
       }
     }
   } catch (error) {
@@ -2699,12 +2755,7 @@ async function saveEmployerCompanyDescription(event) {
 }
 
 function navigateEmployerDashboard(section){
-  const targets={
-    overview:"employerJobStats",
-    jobs:"employerJobsPanel",
-    applicants:"employerJobsPanel",
-    company:"employerCompanyCard"
-  };
+  const targets={overview:"employerJobStats",jobs:"employerJobsPanel",applicants:"employerJobsPanel",company:"employerCompanyCard"};
   const target=document.getElementById(targets[section]||"employerJobStats");
   document.querySelectorAll(".employer-dashboard-nav [data-dashboard-target]").forEach(button=>{
     const active=button.dataset.dashboardTarget===section;
