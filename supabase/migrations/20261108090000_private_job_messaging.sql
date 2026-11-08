@@ -123,7 +123,7 @@ begin
   insert into public.in_app_notifications
     (user_id, application_id, job_title, old_status, new_status, message, notification_type)
   values
-    (new.recipient_id, null, coalesce(v_title, 'وظيفة'), null, 'message',
+    (new.recipient_id, new.application_id, coalesce(v_title, 'وظيفة'), null, 'message',
      'وصلتك رسالة جديدة بخصوص وظيفة: ' || coalesce(v_title, 'وظيفة'), 'message');
   return new;
 end;
