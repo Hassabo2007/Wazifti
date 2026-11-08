@@ -617,6 +617,128 @@ footer { line-height: 2.2; }
 footer small { display: inline-block; margin-top: 8px; color: #b7d8c4; }
 @media (max-width: 760px) { .hero { padding-top: 34px; } .hero-inner { gap: 22px; } .stats { gap: 12px; margin-top: 20px; } .job { gap: 12px; } .how-grid { grid-template-columns: 1fr; gap: 12px; } .how-card { padding: 20px 17px; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+
+
+/* V1.0 visual polish: clearer hierarchy, warmer Sudan-inspired accents and mobile comfort. */
+:root {
+  --g:#087a4b; --d:#064e35; --mint:#eaf5ed; --ink:#17372a;
+  --muted:#687a70; --line:#e3ece6; --bg:#f7faf8;
+  --gold:#c99b3b; --sand:#f5f0e5;
+}
+body { background:var(--bg); color:var(--ink); }
+.site-header { box-shadow:0 5px 22px rgba(12,55,35,.055); }
+.site-header .brand { gap:11px; letter-spacing:-.4px; }
+.site-header .logo { width:46px; height:46px; object-fit:cover; border-radius:14px; box-shadow:0 4px 12px rgba(6,78,53,.15); }
+.menu-toggle { box-shadow:0 3px 10px rgba(6,78,53,.06); }
+.hero {
+  padding-top:clamp(42px,6vw,76px); padding-bottom:clamp(42px,5vw,66px);
+  background:
+    radial-gradient(ellipse at 88% 12%,rgba(201,155,59,.12),transparent 24%),
+    radial-gradient(ellipse at 10% 85%,rgba(8,122,75,.10),transparent 28%),
+    linear-gradient(128deg,#e8f4eb 0%,#fbfcf8 68%,#f7f1e5 100%);
+}
+.hero-copy { max-width:690px; }
+.hero-eyebrow { display:inline-flex; align-items:center; gap:9px; padding:8px 13px; border:1px solid #d6e8db; border-radius:999px; background:rgba(255,255,255,.78); color:var(--d); font-size:12px; font-weight:800; box-shadow:0 4px 15px rgba(12,55,35,.04); }
+.eyebrow-dot { width:8px; height:8px; border-radius:50%; background:var(--gold); box-shadow:0 0 0 4px rgba(201,155,59,.13); }
+h1 { font-size:clamp(30px,4.2vw,48px); line-height:1.42; letter-spacing:-.7px; }
+.hero-highlight { color:var(--g); }
+.hero p { color:#52685c; font-size:clamp(14px,1.5vw,16px); }
+.search { padding:8px; border:1px solid #d9e8dd; box-shadow:0 14px 34px rgba(15,65,39,.09); }
+.search input { min-height:48px; }
+.search input::placeholder { color:#89978f; }
+.search .btn { min-width:145px; }
+.primary { background:linear-gradient(135deg,#0a8653,#064e35); box-shadow:0 7px 17px rgba(8,122,75,.18); }
+.primary:hover { background:linear-gradient(135deg,#087a4b,#043f2b); }
+.outline { border-color:#c9ddcf; }
+.trust-note { border-color:#e6d9b8; background:#fffaf0; color:#66501f; }
+.trust-note > span:first-child { background:var(--gold); }
+.brand-art { position:relative; min-height:340px; display:flex; flex-direction:column; justify-content:center; align-items:center; overflow:hidden; background:linear-gradient(150deg,#fff 0%,#f2f8f3 72%,#f8f2e6 100%); border:1px solid #dce9df; box-shadow:0 20px 50px rgba(15,65,39,.10); }
+.brand-art::before { content:""; position:absolute; width:270px; height:270px; border:1px solid rgba(201,155,59,.25); border-radius:50%; }
+.art-map { position:relative; z-index:1; width:154px; height:154px; padding:13px; border-radius:38px; background:white; box-shadow:0 15px 36px rgba(6,78,53,.14); }
+.art-map img { width:100%; height:100%; object-fit:contain; }
+.art-caption { position:relative; z-index:2; display:flex; align-items:center; gap:12px; max-width:100%; margin-top:22px; padding:13px 17px; border:1px solid #e2ece5; border-radius:15px; background:rgba(255,255,255,.92); }
+.art-caption p { margin:4px 0 0; font-size:12px; }
+.caption-mark { display:grid; place-items:center; width:38px; height:38px; border-radius:12px; color:#fff; background:var(--d); font-size:21px; font-weight:900; }
+.art-ribbon { position:relative; z-index:2; margin-top:14px; color:#9a7429; font-size:12px; font-weight:900; }
+.art-orbit { border-color:rgba(8,122,75,.12); }
+.wrap { max-width:1180px; }
+.head { margin-bottom:20px; }
+.head h2 { font-size:clamp(21px,2.5vw,27px); letter-spacing:-.3px; }
+#jobs { padding-top:10px; }
+#jobs > .head { padding:0 2px 14px; border-bottom:1px solid #e6eee8; }
+.filters { background:linear-gradient(180deg,#fff,#fbfdfb); border-color:#e1ebe4; box-shadow:0 8px 24px rgba(15,65,39,.045); }
+.filters h3 { color:var(--d); }
+.group { border-color:#edf1ed; }
+.group strong { color:#355746; }
+.group select { background:#fff; color:var(--ink); min-height:42px; }
+.list { gap:14px; }
+.job { border-color:#e4ece6; background:#fff; box-shadow:0 5px 18px rgba(15,65,39,.045); }
+.job:hover { border-color:#b7d7c1; box-shadow:0 12px 28px rgba(15,65,39,.085); }
+.job .icon { background:linear-gradient(145deg,#e8f5ec,#f7f2e5); color:var(--d); }
+.job h3 { font-size:17px; }
+.tag { background:#edf6ef; color:#087a4b; }
+.salary { color:#8c6a24; }
+.how-card { text-align:start; border-color:#e3ece6; box-shadow:0 7px 22px rgba(15,65,39,.045); transition:transform .2s,box-shadow .2s; }
+.how-card:hover { transform:translateY(-3px); box-shadow:0 13px 28px rgba(15,65,39,.08); }
+.how-number { background:#edf6ef; box-shadow:inset 0 0 0 1px #dcebe1; }
+footer { background:linear-gradient(120deg,#103d2a,#064e35); }
+.drawer-actions #accountArea[style*="display:none"] { display:none !important; }
+.drawer-actions #accountArea:not([style*="display:none"]) { display:grid !important; }
+.drawer-nav a { position:relative; }
+.drawer-nav a:hover { padding-inline-start:19px; }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible { outline:3px solid rgba(201,155,59,.48); outline-offset:3px; }
+@media(max-width:760px) {
+  .hero { padding:32px 14px 35px; }
+  .hero-inner { gap:20px; }
+  .hero-copy { width:100%; }
+  .hero-eyebrow { font-size:11px; }
+  h1 { line-height:1.5; }
+  .search { gap:7px; }
+  .search input { border:1px solid #edf1ed; background:#fcfdfc; }
+  .search .btn { min-height:48px; }
+  .brand-art { display:flex; min-height:245px; padding:22px 15px; border-radius:20px; }
+  .art-map { width:105px; height:105px; padding:9px; border-radius:28px; }
+  .brand-art::before { width:190px; height:190px; }
+  .art-caption { margin-top:13px; padding:10px 12px; }
+  .art-ribbon { margin-top:9px; }
+  .stats { align-items:center; }
+  .filters { padding:15px; }
+  .job { border-radius:16px; }
+  .how-card { text-align:start; }
+}
+@media(min-width:761px) { .hero-inner { gap:46px; } }
+
+/* Brand identity: persistent side navigation drawer on desktop and mobile. */
+.site-header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.96); border-bottom: 1px solid #e4eee7; backdrop-filter: blur(12px); }
+.site-header .nav { min-height: 76px; padding: 12px 20px; }
+.menu-toggle { display:inline-grid; place-items:center; width:46px; height:46px; border:1px solid #d6e8dc; border-radius:14px; background:#f3faf5; color:var(--d); font-size:24px; cursor:pointer; transition:.2s; }
+.menu-toggle:hover { background:#e5f4e9; border-color:#a8cfb6; transform:translateY(-1px); }
+.drawer-backdrop { position:fixed; inset:0; z-index:1000; background:rgba(8,30,20,.48); opacity:0; visibility:hidden; transition:opacity .24s,visibility .24s; }
+.site-drawer { position:fixed; z-index:1001; top:0; bottom:0; inset-inline-start:0; width:min(360px,88vw); padding:22px; background:linear-gradient(180deg,#fff 0%,#f8fcf9 100%); box-shadow:0 18px 60px rgba(10,45,28,.2); transform:translateX(-105%); transition:transform .26s ease; overflow-y:auto; overscroll-behavior:contain; }
+[dir="rtl"] .site-drawer { transform:translateX(105%); }
+.site-drawer.open { transform:translateX(0); }
+.drawer-backdrop.open { opacity:1; visibility:visible; }
+.drawer-head { display:flex; align-items:center; justify-content:space-between; padding-bottom:20px; border-bottom:1px solid var(--line); }
+.drawer-brand { display:flex; align-items:center; gap:10px; color:var(--d); font-size:23px; font-weight:900; }
+.drawer-brand img { width:42px; height:42px; border-radius:13px; }
+.drawer-close { width:40px; height:40px; border:0; border-radius:12px; background:#edf6ef; color:var(--d); font-size:27px; cursor:pointer; }
+.drawer-nav { display:grid; gap:7px; padding:20px 0; border-bottom:1px solid var(--line); }
+.drawer-nav a { display:block; padding:13px 14px; border-radius:12px; color:#365548; text-decoration:none; font-weight:700; transition:.18s; }
+.drawer-nav a:hover,.drawer-nav a:focus-visible { color:var(--d); background:#eaf5ed; }
+.drawer-actions { display:grid; gap:11px; padding-top:20px; }
+.drawer-actions .btn { width:100%; min-height:45px; }
+.drawer-actions .auth-actions { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.drawer-actions #accountArea { display:grid !important; grid-template-columns:1fr 1fr; gap:9px !important; padding:12px; background:#f0f7f2; border:1px solid #e0eee4; border-radius:14px; }
+.drawer-actions #accountName { grid-column:1/-1; max-width:100% !important; padding:5px 2px; }
+.drawer-actions #notificationsBellBtn { grid-column:1/-1; }
+.drawer-actions #logoutBtn { grid-column:1/-1; }
+.drawer-actions #employerDashboardBtn,.drawer-actions #adminBtn { grid-column:1/-1; }
+.drawer-post { margin-top:3px; }
+.drawer-foot { margin-top:28px; padding-top:16px; border-top:1px solid var(--line); color:#a17a25; font-size:13px; font-weight:800; text-align:center; }
+body.drawer-open { overflow:hidden; }
+@media(min-width:761px) { .site-header .nav { max-width:1150px; } }
+@media(max-width:760px) { .site-header .nav { min-height:68px; padding:10px 14px; } .site-drawer { padding:18px; } }
+@media(prefers-reduced-motion:reduce) { .site-drawer,.drawer-backdrop { transition:none; } }
 </style><style>
 /* V1.3.2: unified mobile-friendly profile and employer dashboard modals */
 body.modal-open { overflow: hidden; }
@@ -875,32 +997,109 @@ body.modal-open { overflow: hidden; }
 }
 </style>
 
+<style>
+/* V1.4 brand identity: Sudan-inspired mark, warm welcome and gold accents. */
+:root{--gold:#d5a747;--gold-soft:#fbf4e4;--g:#087a4b;--d:#064e35;--mint:#e9f6ee}
+.brand{gap:9px;letter-spacing:-.3px}
+.brand .logo{width:48px;height:48px;object-fit:contain;background:transparent;border-radius:13px;display:block}
+.hero{padding:68px 20px 62px;background:radial-gradient(ellipse at 84% 15%,rgba(213,167,71,.15),transparent 29%),radial-gradient(ellipse at 7% 80%,rgba(8,122,75,.11),transparent 34%),linear-gradient(125deg,#e8f5ec 0%,#fbfdfb 58%,#f7f8f1 100%)}
+.hero-inner{grid-template-columns:minmax(0,1.12fr) minmax(300px,.88fr);gap:48px}
+.hero-copy{min-width:0}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:9px;padding:9px 14px;margin-bottom:15px;border:1px solid #d9e9dd;border-radius:999px;background:rgba(255,255,255,.82);color:#35634b;font-size:13px;font-weight:800}
+.eyebrow-dot{width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(213,167,71,.15)}
+.hero h1{font-size:clamp(34px,4.1vw,51px);line-height:1.45;letter-spacing:-1.1px;margin-bottom:12px}
+.hero-highlight{color:var(--g);position:relative;white-space:nowrap}
+.hero p{font-size:16px;line-height:2.05;max-width:650px;color:#526b5d}
+.search{max-width:720px;padding:8px;border-color:#d9e9dd;box-shadow:0 14px 35px rgba(20,65,43,.09)}
+.search .primary{background:linear-gradient(135deg,#087a4b,#075d3b)}
+.brand-art{min-height:355px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 24px 22px;background:linear-gradient(145deg,#075d3b 0%,#087a4b 58%,#0c6845 100%);border:1px solid rgba(255,255,255,.45);box-shadow:0 24px 55px rgba(6,78,53,.19)}
+.brand-art:before{content:"";position:absolute;width:330px;height:330px;border:1px solid rgba(255,255,255,.13);border-radius:50%;top:-170px;left:-115px}
+.brand-art:after{content:"";position:absolute;width:250px;height:250px;border:1px solid rgba(255,255,255,.12);border-radius:50%;bottom:-145px;right:-80px}
+.art-map{position:relative;z-index:1;width:190px;height:190px;display:grid;place-items:center;border-radius:42px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);box-shadow:0 18px 40px rgba(0,0,0,.12);transform:rotate(-4deg)}
+.art-map img{width:164px;height:164px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.16))}
+.art-orbit{position:absolute;border:1px solid rgba(255,255,255,.18);border-radius:50%;pointer-events:none}
+.orbit-one{width:270px;height:270px}.orbit-two{width:340px;height:340px}
+.art-spark{position:absolute;color:#f0cc77;font-size:31px;z-index:2}
+.spark-one{top:62px;right:54px}.spark-two{bottom:115px;left:55px;font-size:25px}
+.art-caption{position:relative;z-index:2;display:flex;align-items:center;gap:12px;width:100%;max-width:330px;margin-top:24px;padding:13px 15px;text-align:right;background:rgba(255,255,255,.96);border-radius:15px;box-shadow:0 10px 28px rgba(0,0,0,.12)}
+.caption-mark{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:12px;background:var(--gold-soft);color:#9b7225;font-size:23px;font-weight:900}
+.art-caption strong{display:block;color:var(--d);font-size:14px}
+.art-caption p{margin:3px 0 0;font-size:11px;line-height:1.6;color:#718078}
+.art-ribbon{position:absolute;top:17px;left:18px;z-index:2;color:#f5dfa8;font-size:11px;font-weight:800;letter-spacing:.3px}
+.trust-note{border-color:#e7d7ad;background:#fffdf7}
+.trust-note>span:first-child{background:var(--gold);color:#17372a}
+.btn.primary{background:linear-gradient(135deg,#087a4b,#06613d)}
+.btn.primary:hover{filter:brightness(1.04)}
+@media(max-width:760px){
+ .hero{padding:34px 15px 30px}
+ .hero-inner{grid-template-columns:1fr;gap:25px}
+ .hero h1{font-size:31px;line-height:1.55}
+ .hero p{font-size:14px;line-height:1.95;margin-bottom:18px}
+ .hero-eyebrow{font-size:11px;padding:8px 11px}
+ .brand-art{display:flex;min-height:270px;padding:22px 17px 17px;border-radius:21px}
+ .art-map{width:135px;height:135px;border-radius:32px}
+ .art-map img{width:122px;height:122px}
+ .art-caption{max-width:290px;margin-top:18px;padding:10px 12px}
+ .art-ribbon{font-size:10px;top:13px;left:13px}
+ .spark-one{top:48px;right:35px}.spark-two{bottom:92px;left:34px}
+ .orbit-one{width:210px;height:210px}.orbit-two{width:275px;height:275px}
+}
+@media(min-width:761px) and (max-width:980px){.hero-inner{gap:25px}.brand-art{min-height:320px}.art-map{width:160px;height:160px}.art-map img{width:145px;height:145px}}
+</style>
+
+<style>
+/* Mobile UX and accessibility refinement: touch targets, compact forms, and drawer focus. */
+.menu-toggle,.drawer-close { min-width:44px; min-height:44px; }
+.drawer-nav a { min-height:44px; display:flex; align-items:center; }
+.drawer-actions .btn { min-height:46px; }
+#profileModal input,#profileModal select,#profileModal textarea,
+#employerJobForm input,#employerJobForm select,#employerJobForm textarea,
+#jobApplicationModal input,#jobApplicationModal select,#jobApplicationModal textarea { font-size:16px; }
+#profileModal button,#employerDashboardModal button,#jobApplicationModal button { min-height:44px; }
+@media(max-width:430px){
+  #employerJobForm .job-form-grid,
+  #employerJobForm .job-salary-grid { grid-template-columns:minmax(0,1fr); }
+  #employerJobForm .job-salary-grid>div:last-child { grid-column:auto; }
+  #employerJobForm .job-salary-grid input { max-width:none; }
+  #profileModal .modal-content,#employerDashboardModal .employer-dashboard-content { padding:14px; }
+  .site-drawer { width:min(360px,92vw); }
+}
+@media(prefers-reduced-motion:reduce){.menu-toggle,.drawer-nav a { transition:none; }}
+</style>
 </head>
 <body>
-<header><div class="nav"><a class="brand" href="/" aria-label="Wazifti home" style="text-decoration:none;color:inherit"><div class="logo">و</div><span data-t="brand">وظيفتي</span></a>
-<nav><a href="#jobs" data-t="navJobs">الوظائف</a><a href="#how" data-t="navHow">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout">عن وظيفتي</a></nav>
-<div class="actions">
-<button class="btn outline" id="loginBtn" onclick="openLogin()">دخول</button>
-<button class="btn primary" id="signupBtn" onclick="openSignup()">إنشاء حساب</button>
-<button class="btn outline small" id="pwaInstallBtn" type="button" onclick="installWaziftiApp()">تثبيت التطبيق</button>
+<header class="site-header"><div class="nav">
+<a class="brand" href="/" aria-label="Wazifti home" style="text-decoration:none;color:inherit"><img class="logo" src="/icons/icon-192.svg" alt=""><span data-t="brand">وظيفتي</span></a>
+<button class="menu-toggle" id="menuToggle" type="button" aria-label="فتح القائمة" aria-controls="siteDrawer" aria-expanded="false" onclick="toggleSiteMenu()">☰</button>
+</div></header>
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeSiteMenu()" aria-hidden="true"></div>
+<aside class="site-drawer" id="siteDrawer" role="dialog" aria-modal="true" aria-labelledby="drawerBrandTitle" tabindex="-1" aria-label="القائمة الرئيسية" aria-hidden="true">
+<div class="drawer-head"><div class="drawer-brand" id="drawerBrandTitle"><img src="/icons/icon-192.svg" alt=""><span data-t="brand">وظيفتي</span></div><button class="drawer-close" type="button" aria-label="إغلاق القائمة" onclick="closeSiteMenu()">×</button></div>
+<nav class="drawer-nav"><a href="#jobs" data-t="navJobs" onclick="closeSiteMenu()">الوظائف</a><a href="#how" data-t="navHow" onclick="closeSiteMenu()">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout" onclick="closeSiteMenu()">عن وظيفتي</a></nav>
+<div class="drawer-actions">
+<div class="auth-actions"><button class="btn outline" id="loginBtn" onclick="closeSiteMenu();openLogin()">دخول</button><button class="btn primary" id="signupBtn" onclick="closeSiteMenu();openSignup()">إنشاء حساب</button></div>
+<button class="btn outline small" id="pwaInstallBtn" type="button" onclick="closeSiteMenu();installWaziftiApp()">تثبيت التطبيق</button>
 <div id="accountArea" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
-  <span id="accountName" style="font-size:13px;font-weight:700;color:var(--d);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-  <button class="btn primary small" id="profileBtn" type="button" onclick="openProfile()">ملفي الشخصي</button>
-  <button class="btn outline small" id="notificationsBellBtn" type="button" onclick="openMyApplications()" aria-label="الإشعارات" title="الإشعارات" style="position:relative">🔔 <span>الإشعارات</span><span id="headerUnreadNotifications" class="notification-badge" style="display:none">0</span></button>
-  <button class="btn outline small" id="myApplicationsBtn" type="button" onclick="openMyApplications()">طلباتي</button>
-  <button class="btn outline small" id="employerDashboardBtn" type="button" style="display:none" onclick="openEmployerDashboard()">لوحة صاحب العمل</button>
-   <button class="btn outline small" id="adminBtn" type="button" style="display:none" onclick="openAdminDashboard()">لوحة الإدارة</button>
-  <button class="btn outline small" id="logoutBtn" type="button" onclick="logoutUser()">تسجيل الخروج</button>
+<span id="accountName" style="font-size:13px;font-weight:700;color:var(--d);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+<button class="btn primary small" id="profileBtn" type="button" onclick="closeSiteMenu();openProfile()">ملفي الشخصي</button>
+<button class="btn outline small" id="notificationsBellBtn" type="button" onclick="closeSiteMenu();openMyApplications()" aria-label="الإشعارات" title="الإشعارات" style="position:relative">🔔 <span>الإشعارات</span><span id="headerUnreadNotifications" class="notification-badge" style="display:none">0</span></button>
+<button class="btn outline small" id="myApplicationsBtn" type="button" onclick="closeSiteMenu();openMyApplications()">طلباتي</button>
+<button class="btn outline small" id="employerDashboardBtn" type="button" style="display:none" onclick="closeSiteMenu();openEmployerDashboard()">لوحة صاحب العمل</button>
+<button class="btn outline small" id="adminBtn" type="button" style="display:none" onclick="closeSiteMenu();openAdminDashboard()">لوحة الإدارة</button>
+<button class="btn outline small" id="logoutBtn" type="button" onclick="closeSiteMenu();logoutUser()">تسجيل الخروج</button>
 </div>
-<button class="btn primary" onclick="openEmployerRegistration()" data-t="postJob">أعلن عن وظيفة</button>
+<button class="btn primary drawer-post" onclick="closeSiteMenu();openEmployerRegistration()" data-t="postJob">أعلن عن وظيفة</button>
 <button class="btn outline" id="lang" onclick="toggleLang()">EN</button>
-</div></div>
-</header>
-<section class="hero"><div class="hero-inner"><div><h1 data-t="headline">خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span></h1>
-<p data-t="sub">ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.</p>
-<div class="search"><input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة"><input id="city" data-ph="searchCity" placeholder="المدينة"><button class="btn primary" onclick="filterJobs()" data-t="search">ابحث عن وظيفة</button></div>
+</div>
+<div class="drawer-foot">الأمل يبدأ بفرصة.</div>
+</aside>
+<section class="hero"><div class="hero-inner"><div class="hero-copy">
+<div class="hero-eyebrow"><span class="eyebrow-dot"></span><span data-t="welcomeEyebrow">منصة سودانية تجمع الطموح بالفرصة</span></div>
+<h1 data-t="headline">الأمل يبدأ بفرصة<br><span class="hero-highlight">وفرصتك تبدأ من هنا</span></h1>
+<p data-t="sub">مرحباً بك في وظيفتي؛ منصتك السودانية لاكتشاف فرص العمل والتواصل مع أصحاب العمل، أينما كنت ومهما كانت خبرتك.</p>
+<div class="search"><input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة"><input id="city" data-ph="searchCity" placeholder="المدينة"><button class="btn primary" onclick="filterJobs()" data-t="search">اكتشف الفرص</button></div>
 <div class="stats"><span class="live-stat"><b id="liveJobCount">0</b><span data-t="statJobs">وظيفة منشورة</span></span><span class="trust-note"><span aria-hidden="true">✓</span> <span data-t="reviewNote">وظائف تُراجع قبل النشر</span></span></div></div>
-<div class="art"><div class="articon">💼</div><h3 data-t="artTitle">وظيفتك القادمة أقرب مما تتوقع</h3><p class="muted" data-t="artSub">فرص في مختلف القطاعات والمجالات في السودان.</p></div></div></section>
+<div class="art brand-art" aria-label="هوية وظيفتي السودانية"><div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div><div class="art-map"><img src="/icons/icon-512.svg" alt=""></div><div class="art-spark spark-one">✦</div><div class="art-spark spark-two">✧</div><div class="art-caption"><span class="caption-mark">و</span><div><strong data-t="artTitle">فرصتك القادمة تبدأ بخطوة</strong><p class="muted" data-t="artSub">لكل طموح في السودان فرصة يستحقها.</p></div></div><div class="art-ribbon" data-t="brandLine">الأمل يبدأ بفرصة.</div></div></div></section>
 <main class="wrap" id="jobs"><div class="head"><h2 data-t="latest">أحدث فرص العمل</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="muted" id="count"></span><button class="btn outline" id="refreshLiveJobsBtn" type="button" onclick="loadLiveJobs()" data-t="refreshJobs">↻ تحديث الوظائف</button></div></div>
 <div class="layout"><aside class="filters"><button class="btn outline" onclick="clearFilters()" style="width:100%;margin-bottom:12px" data-t="clearFilters">
   مسح جميع الفلاتر
@@ -1041,8 +1240,8 @@ function startLiveJobsUpdates(){
   }catch(error){console.warn("Realtime subscription unavailable; polling remains active.",error);}
 }
 const words={
-ar:{brand:"وظيفتي",navJobs:"الوظائف",navHow:"كيف تعمل المنصة؟",navAbout:"عن وظيفتي",login:"دخول",signup:"إنشاء حساب",logout:"تسجيل الخروج",profile:"ملفي الشخصي",postJob:"أعلن عن وظيفة",headline:'خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span>',sub:"ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.",searchJob:"المسمى الوظيفي أو المهارة",searchCity:"المدينة",search:"ابحث عن وظيفة",statJobs:"وظيفة منشورة",reviewNote:"وظائف تُراجع قبل النشر",statEmployers:"جهة عمل",statCities:"مدينة",artTitle:"وظيفتك القادمة أقرب مما تتوقع",artSub:"فرص في مختلف القطاعات والمجالات في السودان.",latest:"أحدث فرص العمل",filters:"تصفية النتائج",jobType:"نوع الوظيفة",full:"دوام كامل",part:"دوام جزئي",remote:"عن بُعد",sector:"المجال",health:"طبي وصحي",admin:"إداري",tech:"تقنية المعلومات",engineering:"هندسي",howTitle:"كيف تعمل وظيفتي؟",howIntro:"ثلاث خطوات بسيطة تقرّبك من فرصتك القادمة.",howStep1Title:"ابحث عن فرصتك",howStep1Text:"استخدم البحث والتصنيفات للوصول إلى الوظائف المناسبة لمهاراتك.",howStep2Title:"راجع التفاصيل",howStep2Text:"اقرأ وصف الوظيفة ومتطلباتها ومعلومات جهة العمل بعناية.",howStep3Title:"تواصل مع جهة العمل",howStep3Text:"اتبع طريقة التقديم الموضحة في إعلان الوظيفة.",footerLine:"منصة سودانية للبحث عن فرص العمل",disclaimer:"تُراجع الوظائف قبل نشرها للعامة.",brandLine:"الأمل يبدأ بفرصة.",close:"إغلاق ✕",details:"تفاصيل الوظيفة",company:"جهة العمل",location:"الموقع",type:"نوع العمل",salary:"الراتب",description:"وصف الوظيفة",apply:"تقديم تجريبي",empty:"لا توجد وظائف مطابقة لبحثك.",loginSoon:"ميزة تسجيل الدخول ستكون متاحة قريباً",employerSoon:"نموذج تسجيل صاحب العمل سيكون متاحاً قريباً",demo:"هذه وظيفة تجريبية؛ التقديم الإلكتروني غير مفعّل بعد",count:"وظائف معروضة",clearFilters:"مسح جميع الفلاتر",refreshJobs:"↻ تحديث الوظائف",categorySpecialty:"التصنيف والتخصص",mainCategoryLabel:"التصنيف الرئيسي",allCategories:"كل التصنيفات",subCategoryLabel:"التخصص الفرعي",allSpecialties:"كل التخصصات"},
-en:{brand:"Wazifti",navJobs:"Jobs",navHow:"How it works",navAbout:"About Wazifti",login:"Log in",signup:"Create account",logout:"Log out",profile:"My profile",postJob:"Post a job",headline:'Your first step toward<br><span style="color:var(--g)">a better opportunity</span>',sub:"Find suitable jobs across Sudan and connect with employers in one place.",searchJob:"Job title or skill",searchCity:"City",search:"Find jobs",statJobs:"published jobs",reviewNote:"Jobs reviewed before publishing",statEmployers:"employers",statCities:"cities",artTitle:"Your next opportunity is closer than you think",artSub:"Opportunities across sectors and industries in Sudan.",latest:"Latest opportunities",filters:"Filter results",jobType:"Job type",full:"Full-time",part:"Part-time",remote:"Remote",sector:"Sector",health:"Healthcare",admin:"Administration",tech:"Technology",engineering:"Engineering",howTitle:"How does Wazifti work?",howIntro:"Three simple steps to move closer to your next opportunity.",howStep1Title:"Find an opportunity",howStep1Text:"Use search and categories to find jobs that match your skills.",howStep2Title:"Review the details",howStep2Text:"Read the job description, requirements, and employer information carefully.",howStep3Title:"Contact the employer",howStep3Text:"Follow the application instructions included in the job listing.",footerLine:"A Sudanese job-search platform",disclaimer:"Jobs are reviewed before appearing publicly.",brandLine:"Hope starts with an opportunity.",close:"Close ✕",details:"Job details",company:"Employer",location:"Location",type:"Job type",salary:"Salary",description:"Description",apply:"Demo application",empty:"No jobs match your search.",loginSoon:"Login will be available soon",employerSoon:"Employer registration will be available soon",demo:"This is a sample job; online applications are not enabled yet",count:"jobs shown",clearFilters:"Clear all filters",refreshJobs:"↻ Refresh jobs",categorySpecialty:"Categories and specialties",mainCategoryLabel:"Main category",allCategories:"All categories",subCategoryLabel:"Specialty",allSpecialties:"All specialties"}};
+ar:{brand:"وظيفتي",navJobs:"الوظائف",navHow:"كيف تعمل المنصة؟",navAbout:"عن وظيفتي",login:"دخول",signup:"إنشاء حساب",logout:"تسجيل الخروج",profile:"ملفي الشخصي",postJob:"أعلن عن وظيفة",headline:'الأمل يبدأ بفرصة<br><span class="hero-highlight">وفرصتك تبدأ من هنا</span>',welcomeEyebrow:"منصة سودانية تجمع الطموح بالفرصة",sub:"مرحباً بك في وظيفتي؛ منصتك السودانية لاكتشاف فرص العمل والتواصل مع أصحاب العمل، أينما كنت ومهما كانت خبرتك.",searchJob:"المسمى الوظيفي أو المهارة",searchCity:"المدينة",search:"ابحث عن وظيفة",statJobs:"وظيفة منشورة",reviewNote:"وظائف تُراجع قبل النشر",statEmployers:"جهة عمل",statCities:"مدينة",artTitle:"فرصتك القادمة تبدأ بخطوة",artSub:"لكل طموح في السودان فرصة يستحقها.",latest:"أحدث فرص العمل",filters:"تصفية النتائج",jobType:"نوع الوظيفة",full:"دوام كامل",part:"دوام جزئي",remote:"عن بُعد",sector:"المجال",health:"طبي وصحي",admin:"إداري",tech:"تقنية المعلومات",engineering:"هندسي",howTitle:"كيف تعمل وظيفتي؟",howIntro:"ثلاث خطوات بسيطة تقرّبك من فرصتك القادمة.",howStep1Title:"ابحث عن فرصتك",howStep1Text:"استخدم البحث والتصنيفات للوصول إلى الوظائف المناسبة لمهاراتك.",howStep2Title:"راجع التفاصيل",howStep2Text:"اقرأ وصف الوظيفة ومتطلباتها ومعلومات جهة العمل بعناية.",howStep3Title:"تواصل مع جهة العمل",howStep3Text:"اتبع طريقة التقديم الموضحة في إعلان الوظيفة.",footerLine:"منصة سودانية للبحث عن فرص العمل",disclaimer:"تُراجع الوظائف قبل نشرها للعامة.",brandLine:"الأمل يبدأ بفرصة.",close:"إغلاق ✕",details:"تفاصيل الوظيفة",company:"جهة العمل",location:"الموقع",type:"نوع العمل",salary:"الراتب",description:"وصف الوظيفة",apply:"تقديم تجريبي",empty:"لا توجد وظائف مطابقة لبحثك.",loginSoon:"ميزة تسجيل الدخول ستكون متاحة قريباً",employerSoon:"نموذج تسجيل صاحب العمل سيكون متاحاً قريباً",demo:"هذه وظيفة تجريبية؛ التقديم الإلكتروني غير مفعّل بعد",count:"وظائف معروضة",clearFilters:"مسح جميع الفلاتر",refreshJobs:"↻ تحديث الوظائف",categorySpecialty:"التصنيف والتخصص",mainCategoryLabel:"التصنيف الرئيسي",allCategories:"كل التصنيفات",subCategoryLabel:"التخصص الفرعي",allSpecialties:"كل التخصصات"},
+en:{brand:"Wazifti",navJobs:"Jobs",navHow:"How it works",navAbout:"About Wazifti",login:"Log in",signup:"Create account",logout:"Log out",profile:"My profile",postJob:"Post a job",headline:'Hope starts with an opportunity<br><span class="hero-highlight">Your next step starts here</span>',welcomeEyebrow:"A Sudanese platform connecting ambition with opportunity",sub:"Welcome to Wazifti, your Sudanese platform to discover jobs and connect with employers, wherever you are and whatever your experience.",searchJob:"Job title or skill",searchCity:"City",search:"Find jobs",statJobs:"published jobs",reviewNote:"Jobs reviewed before publishing",statEmployers:"employers",statCities:"cities",artTitle:"Your next opportunity starts with one step",artSub:"Every ambition in Sudan deserves an opportunity.",latest:"Latest opportunities",filters:"Filter results",jobType:"Job type",full:"Full-time",part:"Part-time",remote:"Remote",sector:"Sector",health:"Healthcare",admin:"Administration",tech:"Technology",engineering:"Engineering",howTitle:"How does Wazifti work?",howIntro:"Three simple steps to move closer to your next opportunity.",howStep1Title:"Find an opportunity",howStep1Text:"Use search and categories to find jobs that match your skills.",howStep2Title:"Review the details",howStep2Text:"Read the job description, requirements, and employer information carefully.",howStep3Title:"Contact the employer",howStep3Text:"Follow the application instructions included in the job listing.",footerLine:"A Sudanese job-search platform",disclaimer:"Jobs are reviewed before appearing publicly.",brandLine:"Hope starts with an opportunity.",close:"Close ✕",details:"Job details",company:"Employer",location:"Location",type:"Job type",salary:"Salary",description:"Description",apply:"Demo application",empty:"No jobs match your search.",loginSoon:"Login will be available soon",employerSoon:"Employer registration will be available soon",demo:"This is a sample job; online applications are not enabled yet",count:"jobs shown",clearFilters:"Clear all filters",refreshJobs:"↻ Refresh jobs",categorySpecialty:"Categories and specialties",mainCategoryLabel:"Main category",allCategories:"All categories",subCategoryLabel:"Specialty",allSpecialties:"All specialties"}};
 function updateTexts(){T=words[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";document.querySelectorAll("[data-t]").forEach(e=>{if(T[e.dataset.t]!==undefined)e.innerHTML=T[e.dataset.t]});document.querySelectorAll("[data-ph]").forEach(e=>e.placeholder=T[e.dataset.ph]);document.getElementById("lang").textContent=lang==="ar"?"EN":"عربي";const lb=document.getElementById("loginBtn");if(lb)lb.textContent=T.login;const sb=document.getElementById("signupBtn");if(sb)sb.textContent=T.signup;const ob=document.getElementById("logoutBtn");if(ob)ob.textContent=T.logout;const pb=document.getElementById("profileBtn");if(pb)pb.textContent=T.profile;refreshTaxonomySelectLanguage();filterJobs()}
 function toggleLang(){lang=lang==="ar"?"en":"ar";updateTexts()}
 function typeName(t){return T[t==="Full-time"?"full":t==="Part-time"?"part":"remote"]}
@@ -3643,6 +3842,254 @@ function closeJobConversation(){
   if(!others)document.body.classList.remove("modal-open");
 }
 setInterval(()=>{if(currentAuthUser)refreshHeaderNotificationCount();},20000);
+
+let siteMenuReturnFocus=null;
+function toggleSiteMenu(){const d=document.getElementById('siteDrawer');if(d&&d.classList.contains('open'))closeSiteMenu();else openSiteMenu();}
+function openSiteMenu(){
+  const d=document.getElementById('siteDrawer'),b=document.getElementById('drawerBackdrop'),t=document.getElementById('menuToggle');
+  if(!d||!b||d.classList.contains('open'))return;
+  siteMenuReturnFocus=document.activeElement;
+  d.classList.add('open');b.classList.add('open');
+  d.setAttribute('aria-hidden','false');b.setAttribute('aria-hidden','false');
+  if(t)t.setAttribute('aria-expanded','true');
+  document.body.classList.add('drawer-open');
+  const closeButton=d.querySelector('.drawer-close');
+  if(closeButton)closeButton.focus({preventScroll:true});
+}
+function closeSiteMenu(){
+  const d=document.getElementById('siteDrawer'),b=document.getElementById('drawerBackdrop'),t=document.getElementById('menuToggle');
+  if(!d||!b||!d.classList.contains('open'))return;
+  d.classList.remove('open');b.classList.remove('open');
+  d.setAttribute('aria-hidden','true');b.setAttribute('aria-hidden','true');
+  if(t)t.setAttribute('aria-expanded','false');
+  document.body.classList.remove('drawer-open');
+  const returnTarget=siteMenuReturnFocus&&siteMenuReturnFocus.isConnected?siteMenuReturnFocus:t;
+  if(returnTarget)returnTarget.focus({preventScroll:true});
+  siteMenuReturnFocus=null;
+}
+document.addEventListener('keydown',e=>{
+  const d=document.getElementById('siteDrawer');
+  if(!d||!d.classList.contains('open'))return;
+  if(e.key==='Escape'){e.preventDefault();closeSiteMenu();return;}
+  if(e.key==='Tab'){
+    const focusable=[...d.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(el=>el.getClientRects().length);
+    if(!focusable.length){e.preventDefault();d.focus();return;}
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  }
+});
 </script>
+
+
+<style>
+/* Modal layout correction: keep dialogs clear of the mobile browser/header safe areas. */
+#jobApplicationModal {
+  position:fixed !important;
+  inset:0 !important;
+  z-index:11050 !important;
+  display:none;
+  align-items:flex-start !important;
+  justify-content:center !important;
+  padding:calc(env(safe-area-inset-top, 0px) + 14px) 12px calc(env(safe-area-inset-bottom, 0px) + 14px) !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  box-sizing:border-box !important;
+}
+#jobApplicationModal .modal-content {
+  flex:0 0 auto;
+  width:min(100%, 540px) !important;
+  max-height:calc(100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  max-height:calc(100dvh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  margin:0 auto !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+}
+#jobApplicationModal h2 { margin:4px 0 10px; line-height:1.45; }
+#jobApplicationModal textarea { min-height:130px; line-height:1.7; }
+#jobApplicationModal .close-btn { position:sticky; top:0; }
+
+/* My applications: balanced dialog width, readable cards and controls. */
+#myApplicationsModal {
+  position:fixed !important;
+  inset:0 !important;
+  z-index:11040 !important;
+  align-items:flex-start !important;
+  justify-content:center !important;
+  padding:calc(env(safe-area-inset-top, 0px) + 14px) 12px calc(env(safe-area-inset-bottom, 0px) + 14px) !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  box-sizing:border-box;
+}
+#myApplicationsModal > .modal {
+  width:min(100%, 760px) !important;
+  max-width:760px !important;
+  max-height:calc(100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  max-height:calc(100dvh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  margin:0 auto !important;
+  padding:22px !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  box-sizing:border-box;
+}
+#myApplicationsModal .head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+#myApplicationsModal .head h2 { margin:0; line-height:1.4; }
+#myApplicationsModal #inAppNotificationsPanel { padding:14px; }
+#myApplicationsModal .my-application-card { padding:16px; overflow-wrap:anywhere; }
+#myApplicationsModal .my-application-card h3 { font-size:17px; line-height:1.5; overflow-wrap:anywhere; }
+#myApplicationsModal button { min-height:42px; }
+#myApplicationsModal .my-application-card .btn { white-space:normal; }
+
+/* Conversation and other modal cards use the same safe viewport boundaries. */
+#jobConversationModal {
+  position:fixed !important;
+  inset:0 !important;
+  z-index:11030 !important;
+  align-items:flex-start !important;
+  justify-content:center !important;
+  padding:calc(env(safe-area-inset-top, 0px) + 14px) 12px calc(env(safe-area-inset-bottom, 0px) + 14px) !important;
+  overflow-y:auto !important;
+  box-sizing:border-box;
+}
+#jobConversationModal > .modal {
+  width:min(100%, 760px) !important;
+  max-width:760px !important;
+  max-height:calc(100dvh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  margin:0 auto !important;
+  overflow-y:auto !important;
+  box-sizing:border-box;
+}
+@media(max-width:600px) {
+  #jobApplicationModal { padding:calc(env(safe-area-inset-top, 0px) + 10px) 9px calc(env(safe-area-inset-bottom, 0px) + 10px) !important; }
+  #jobApplicationModal .modal-content { padding:17px !important; border-radius:15px; }
+  #myApplicationsModal { padding:calc(env(safe-area-inset-top, 0px) + 10px) 9px calc(env(safe-area-inset-bottom, 0px) + 10px) !important; }
+  #myApplicationsModal > .modal { padding:15px !important; border-radius:15px; }
+  #myApplicationsModal .head { align-items:flex-start; }
+  #myApplicationsModal .head > button { flex:0 0 auto; }
+  #myApplicationsModal #inAppNotificationsPanel { padding:11px !important; }
+  #myApplicationsModal .my-application-card { padding:13px; }
+  #jobConversationModal { padding:calc(env(safe-area-inset-top, 0px) + 10px) 9px calc(env(safe-area-inset-bottom, 0px) + 10px) !important; }
+  #jobConversationModal > .modal { padding:15px !important; }
+}
+@media(max-width:380px) {
+  #myApplicationsModal > .modal { padding:12px !important; }
+  #myApplicationsModal .head { gap:8px; }
+  #myApplicationsModal .head h2 { font-size:19px; }
+  #myApplicationsModal .my-application-card h3 { font-size:16px; }
+}
+</style>
+
+
+
+<style>
+/* Mobile interface review: safe viewport sizing for every remaining dialog. */
+@media (max-width: 760px) {
+  .site-header { position:sticky; top:0; }
+  .hero-highlight { white-space:normal; overflow-wrap:anywhere; }
+  .company, .company > div { min-width:0; }
+  .job h3 { overflow-wrap:anywhere; }
+  .job .meta { row-gap:7px; }
+  .salary { white-space:normal; overflow-wrap:anywhere; }
+  .side { min-width:0; flex-wrap:wrap; }
+  .filters select { width:100%; min-height:44px; box-sizing:border-box; }
+  .list, .job { min-width:0; }
+}
+
+/* Profile and employer dashboards: scroll the overlay and the card independently
+   within the actual visible mobile viewport, including browser safe areas. */
+#profileModal, #employerDashboardModal {
+  align-items:flex-start !important;
+  justify-content:center !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  padding:calc(env(safe-area-inset-top, 0px) + 10px) 10px
+          calc(env(safe-area-inset-bottom, 0px) + 10px) !important;
+}
+#profileModal .modal-content,
+#employerDashboardModal .employer-dashboard-content {
+  width:min(100%, 900px) !important;
+  max-height:calc(100vh - 20px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  max-height:calc(100dvh - 20px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  margin:0 auto !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+}
+#profileModal .modal-content { max-width:600px !important; }
+#employerDashboardModal .employer-dashboard-content { max-width:900px !important; }
+#employerDashboardModal .employerJobStats,
+#employerDashboardModal #employerJobStats {
+  grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr));
+}
+@media(max-width:600px) {
+  #profileModal, #employerDashboardModal {
+    padding:calc(env(safe-area-inset-top, 0px) + 8px) 8px
+            calc(env(safe-area-inset-bottom, 0px) + 8px) !important;
+  }
+  #profileModal .modal-content,
+  #employerDashboardModal .employer-dashboard-content {
+    max-height:calc(100vh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    max-height:calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    padding:14px !important;
+  }
+  #employerDashboardModal .head { gap:10px; }
+  #employerDashboardModal .head > div:last-child {
+    display:flex; flex-wrap:wrap; gap:8px; width:100%;
+  }
+  #employerDashboardModal .head > div:last-child button { flex:1 1 130px; }
+  #employerDashboardModal #employerJobFormBox { padding:12px !important; }
+  #employerDashboardModal #employerJobForm .job-form-grid {
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  }
+  #employerDashboardModal #employerJobForm .job-salary-grid {
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  }
+}
+
+/* Registration, sign-in and sign-up dialogs: avoid clipping behind mobile
+   browser chrome and keep long forms reachable with one continuous scroll. */
+#employerRegistrationModal, #signupModal, #loginModal {
+  align-items:flex-start !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  padding:calc(env(safe-area-inset-top, 0px) + 12px) 10px
+          calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+}
+#employerRegistrationModal .employer-modal,
+#signupModal .modal-content, #loginModal .modal-content {
+  width:min(100%, 520px) !important;
+  max-height:calc(100vh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  max-height:calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  margin:0 auto !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  box-sizing:border-box;
+}
+#signupModal .modal-content, #loginModal .modal-content { max-width:420px !important; }
+@media(max-width:600px) {
+  #employerRegistrationModal, #signupModal, #loginModal {
+    padding:calc(env(safe-area-inset-top, 0px) + 8px) 8px
+            calc(env(safe-area-inset-bottom, 0px) + 8px) !important;
+  }
+  #employerRegistrationModal .employer-modal,
+  #signupModal .modal-content, #loginModal .modal-content {
+    max-height:calc(100vh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    max-height:calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    padding:16px !important;
+  }
+}
+
+/* Avoid horizontal clipping on compact Android screens and long job details. */
+@media(max-width:380px) {
+  .hero { padding-inline:12px; }
+  .hero h1 { font-size:clamp(25px, 7.4vw, 30px); }
+  .hero-eyebrow { max-width:100%; white-space:normal; line-height:1.6; }
+  .art-caption { max-width:100%; }
+  .art-caption strong, .art-caption p { overflow-wrap:anywhere; }
+  .job { padding:12px !important; }
+  .job .company { gap:10px; }
+  .job .icon { width:44px; height:44px; flex:0 0 44px; }
+  .side .btn { min-width:0; flex:1 1 120px; }
+}
+</style>
 
 </body></html>
