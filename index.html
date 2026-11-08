@@ -3536,9 +3536,17 @@ async function openJobConversation(applicationId){
     if(error)throw error;
     const ctx=Array.isArray(rows)?rows[0]:rows;
     if(!ctx)throw new Error("لا تملك صلاحية الوصول إلى هذه المحادثة.");
-    activeJobConversation=ctx;
+    activeJobConversation={...ctx,candidate_name:"مقدم الطلب"};
+    try{
+      const {data:profile,error:profileError}=await supabaseClient.from("profiles")
+        .select("full_name").eq("id",ctx.candidate_id).maybeSingle();
+      if(profileError)throw profileError;
+      if(profile?.full_name)activeJobConversation.candidate_name=profile.full_name;
+    }catch(profileError){
+      console.warn("Applicant display name unavailable:",profileError);
+    }
     document.getElementById("jobConversationTitle").textContent="محادثة: "+(ctx.job_title||"الوظيفة");
-    document.getElementById("jobConversationSubtitle").textContent="محادثة خاصة وآمنة حول طلب التقديم.";
+    document.getElementById("jobConversationSubtitle").textContent=(currentAuthUser.id===ctx.candidate_id?"أنت مقدم الطلب • صاحب الإعلان: ":"مقدم الطلب: ")+(currentAuthUser.id===ctx.candidate_id?"صاحب الإعلان":activeJobConversation.candidate_name)+" • الوظيفة: "+(ctx.job_title||"");
     await loadJobConversationMessages();
     if(jobConversationPoll)clearInterval(jobConversationPoll);
     jobConversationPoll=setInterval(()=>{if(activeJobConversation)loadJobConversationMessages();},12000);
@@ -3571,7 +3579,10 @@ async function loadJobConversationMessages(){
   list.innerHTML=messages.length?messages.map(item=>{
     const mine=item.sender_id===currentAuthUser.id;
     const date=item.created_at?new Date(item.created_at).toLocaleString("ar-SD"):"";
-    return '<div class="job-message '+(mine?"mine":"theirs")+'">'+escapeAdminHtml(item.body)+'<small>'+(mine?"أنت":"الطرف الآخر")+' • '+escapeAdminHtml(date)+'</small></div>';
+    const senderLabel=mine
+      ? (currentAuthUser.id===conversation.candidate_id?"أنت • مقدم الطلب":"أنت • صاحب الإعلان")
+      : (currentAuthUser.id===conversation.candidate_id?"صاحب الإعلان":(conversation.candidate_name||"مقدم الطلب")+" • مقدم طلب");
+    return '<div class="job-message '+(mine?"mine":"theirs")+'">'+escapeAdminHtml(item.body)+'<small>'+escapeAdminHtml(senderLabel)+' • '+escapeAdminHtml(date)+'</small></div>';
   }).join(""):'<p class="muted" style="text-align:center;padding:22px">ابدأ المحادثة برسالة محترمة وواضحة.</p>';
   if(wasNearBottom)list.scrollTop=list.scrollHeight;
 
