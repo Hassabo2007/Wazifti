@@ -12,21 +12,7 @@ create index if not exists jobs_filled_archive_due_idx
 create index if not exists applications_job_status_idx
   on public.applications (job_id, status);
 
--- Let an individual who posted a job view and manage applications to that job.
-drop policy if exists "Individual job owners view applications" on public.applications;
-create policy "Individual job owners view applications"
-on public.applications
-for select
-to authenticated
-using (
-  exists (
-    select 1
-    from public.jobs j
-    where j.id = applications.job_id
-      and j.poster_type = 'individual'
-      and j.posted_by_user_id = (select auth.uid())
-  )
-);
+-- The existing individual-poster application SELECT policy is retained; do not create a duplicate.
 
 -- Application status changes for individual-job owners will be exposed through
 -- a narrowly scoped RPC after the existing company policies are audited.
