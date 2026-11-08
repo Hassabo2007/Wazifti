@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#087a4b">
 <title>وظيفتي | Wazifti</title>
 <meta name="description" content="منصة وظيفتي السودانية للبحث عن فرص العمل.">
-<meta name="wazifti-version" content="1.0.0">
+<meta name="wazifti-version" content="1.0.2">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -920,27 +920,91 @@ header { border-bottom-color:#dcebe2; box-shadow:0 5px 20px rgba(13,65,39,.07); 
 }
 </style>
 
+
+<style id="mobileSideDrawerStyles">
+/* V1.0.2 — compact mobile header with an accessible slide-out menu. */
+.drawer-toggle { display:none; border:1px solid #d7e9dd; background:#f3faf5; color:#075b39; width:43px; height:43px; border-radius:12px; font-size:23px; line-height:1; cursor:pointer; align-items:center; justify-content:center; }
+.drawer-backdrop { display:contents; }
+.drawer-panel { display:contents; }
+.drawer-heading,.drawer-close { display:none; }
+@media (max-width:760px) {
+  header { position:sticky; top:0; z-index:100; }
+  .nav { flex-wrap:nowrap !important; align-items:center; justify-content:space-between; gap:10px; min-height:66px; padding:9px 12px !important; }
+  .brand { flex:1 1 auto !important; min-width:0; }
+  .brand-mark { width:40px !important; height:40px !important; flex-basis:40px !important; }
+  .brand-copy strong { font-size:20px !important; }
+  .brand-copy small { font-size:9px !important; }
+  .drawer-toggle { display:inline-flex; flex:0 0 43px; }
+  .drawer-backdrop { display:block; position:fixed; inset:0; z-index:10050; background:rgba(7,28,18,.48); opacity:0; visibility:hidden; transition:opacity .22s ease,visibility .22s ease; }
+  .drawer-backdrop.open { opacity:1; visibility:visible; }
+  .drawer-panel { position:absolute; inset-block:0; inset-inline-start:0; width:min(86vw,360px); height:100%; overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:17px; padding:18px 16px 28px; background:#fff; box-shadow:0 12px 38px rgba(0,0,0,.2); transform:translateX(-105%); transition:transform .24s ease; }
+  [dir="rtl"] .drawer-panel { transform:translateX(105%); }
+  .drawer-backdrop.open .drawer-panel { transform:translateX(0); }
+  .drawer-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:13px; border-bottom:1px solid #e5eee8; color:#064e35; font-weight:900; font-size:17px; }
+  .drawer-close { display:inline-grid; place-items:center; width:36px; height:36px; border:0; border-radius:10px; background:#edf6f0; color:#075b39; font-size:25px; cursor:pointer; }
+  .drawer-panel nav { display:flex !important; flex-direction:column; gap:4px; font-size:15px; }
+  .drawer-panel nav a { display:block; padding:12px 10px; border-radius:10px; color:#315644; }
+  .drawer-panel nav a:hover { background:#f0f8f3; color:#087a4b; }
+  .drawer-panel .actions { display:flex !important; flex-direction:column; align-items:stretch !important; justify-content:flex-start; gap:9px; width:100%; min-width:0; overflow:visible; padding:0; }
+  .drawer-panel .actions > .btn { display:flex !important; width:100%; min-height:46px; justify-content:center; align-items:center; margin:0; white-space:normal; }
+  .drawer-panel #accountArea { display:flex; flex-direction:column; align-items:stretch !important; gap:9px; width:100%; overflow:visible; }
+  .drawer-panel #accountArea[style*="display: none"] { display:none !important; }
+  .drawer-panel #accountArea > * { width:100%; max-width:none !important; min-height:44px; justify-content:center; }
+  .drawer-panel #accountName { text-align:center; padding:8px; background:#f5faf7; border-radius:9px; }
+  body.drawer-open { overflow:hidden; }
+}
+@media (prefers-reduced-motion:reduce) { .drawer-backdrop,.drawer-panel { transition:none !important; } }
+</style>
+<script>
+function toggleMobileDrawer(){
+  const backdrop=document.getElementById("drawerBackdrop");
+  if(!backdrop)return;
+  const opening=!backdrop.classList.contains("open");
+  backdrop.classList.toggle("open",opening);
+  backdrop.setAttribute("aria-hidden",String(!opening));
+  const toggle=document.getElementById("drawerToggle");
+  if(toggle)toggle.setAttribute("aria-expanded",String(opening));
+  document.body.classList.toggle("drawer-open",opening);
+}
+function closeMobileDrawer(){
+  const backdrop=document.getElementById("drawerBackdrop");
+  if(!backdrop)return;
+  backdrop.classList.remove("open");
+  backdrop.setAttribute("aria-hidden","true");
+  const toggle=document.getElementById("drawerToggle");
+  if(toggle)toggle.setAttribute("aria-expanded","false");
+  document.body.classList.remove("drawer-open");
+}
+document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileDrawer();});
+</script>
+
 </head>
 <body>
 <header><div class="nav"><a class="brand" href="/" aria-label="وظيفتي - الصفحة الرئيسية" style="text-decoration:none;color:inherit">
 <img class="brand-mark" src="/assets/wazifti-sudan-mark.svg" alt="" width="46" height="46">
 <span class="brand-copy"><strong data-t="brand">وظيفتي</strong><small data-t="tagline">منصة فرص العمل السودانية</small></span></a>
-<nav><a href="#jobs" data-t="navJobs">الوظائف</a><a href="#how" data-t="navHow">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout">عن وظيفتي</a></nav>
-<div class="actions">
-<button class="btn primary nav-signup" id="signupBtn" onclick="openSignup()">إنشاء حساب</button>
-<button class="btn outline nav-login" id="loginBtn" onclick="openLogin()">دخول</button>
-<button class="btn outline small" id="pwaInstallBtn" type="button" onclick="installWaziftiApp()">تثبيت التطبيق</button>
-<div id="accountArea" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
-  <span id="accountName" style="font-size:13px;font-weight:700;color:var(--d);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-  <button class="btn outline small" id="notificationsBellBtn" type="button" onclick="openMyApplications()" aria-label="الإشعارات" title="الإشعارات" style="position:relative">🔔 <span>الإشعارات</span><span id="headerUnreadNotifications" class="notification-badge" style="display:none">0</span></button>
-  <button class="btn primary small" id="profileBtn" type="button" onclick="openProfile()">ملفي الشخصي</button>
-  <button class="btn outline small" id="myApplicationsBtn" type="button" onclick="openMyApplications()">طلباتي</button>
-  <button class="btn outline small" id="employerDashboardBtn" type="button" style="display:none" onclick="openEmployerDashboard()">لوحة صاحب العمل</button>
-  <button class="btn outline small" id="adminBtn" type="button" style="display:none" onclick="openAdminDashboard()">لوحة الإدارة</button>
-  <button class="btn outline small" id="logoutBtn" type="button" onclick="logoutUser()">تسجيل الخروج</button>
-</div>
-<button class="btn primary nav-post-job" onclick="openEmployerRegistration()" data-t="postJob">أعلن عن وظيفة</button>
-<button class="btn outline nav-language" id="lang" onclick="toggleLang()">EN</button>
+<button class="drawer-toggle" id="drawerToggle" type="button" aria-label="فتح القائمة" aria-controls="mobileDrawer" aria-expanded="false" onclick="toggleMobileDrawer()">☰</button>
+<div class="drawer-backdrop" id="drawerBackdrop" aria-hidden="true" onclick="closeMobileDrawer()">
+  <aside class="drawer-panel" id="mobileDrawer" aria-label="القائمة الرئيسية" onclick="event.stopPropagation()">
+    <div class="drawer-heading"><span data-t="menuTitle">القائمة الرئيسية</span><button type="button" class="drawer-close" aria-label="إغلاق القائمة" onclick="closeMobileDrawer()">×</button></div>
+    <nav><a href="#jobs" data-t="navJobs" onclick="closeMobileDrawer()">الوظائف</a><a href="#how" data-t="navHow" onclick="closeMobileDrawer()">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout" onclick="closeMobileDrawer()">عن وظيفتي</a></nav>
+    <div class="actions">
+      <button class="btn primary nav-signup" id="signupBtn" onclick="openSignup()">إنشاء حساب</button>
+      <button class="btn outline nav-login" id="loginBtn" onclick="openLogin()">دخول</button>
+      <button class="btn outline small" id="pwaInstallBtn" type="button" onclick="installWaziftiApp()">تثبيت التطبيق</button>
+      <div id="accountArea" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
+        <span id="accountName" style="font-size:13px;font-weight:700;color:var(--d);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        <button class="btn outline small" id="notificationsBellBtn" type="button" onclick="openMyApplications()" aria-label="الإشعارات" title="الإشعارات" style="position:relative">🔔 <span>الإشعارات</span><span id="headerUnreadNotifications" class="notification-badge" style="display:none">0</span></button>
+        <button class="btn primary small" id="profileBtn" type="button" onclick="openProfile()">ملفي الشخصي</button>
+        <button class="btn outline small" id="myApplicationsBtn" type="button" onclick="openMyApplications()">طلباتي</button>
+        <button class="btn outline small" id="employerDashboardBtn" type="button" style="display:none" onclick="openEmployerDashboard()">لوحة صاحب العمل</button>
+        <button class="btn outline small" id="adminBtn" type="button" style="display:none" onclick="openAdminDashboard()">لوحة الإدارة</button>
+        <button class="btn outline small" id="logoutBtn" type="button" onclick="logoutUser()">تسجيل الخروج</button>
+      </div>
+      <button class="btn primary nav-post-job" onclick="openEmployerRegistration()" data-t="postJob">أعلن عن وظيفة</button>
+      <button class="btn outline nav-language" id="lang" onclick="toggleLang()">EN</button>
+    </div>
+  </aside>
 </div></div>
 </header>
 <section class="hero"><div class="hero-inner"><div><h1 data-t="headline">خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span></h1>
