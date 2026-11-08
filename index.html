@@ -2437,6 +2437,7 @@ async function toggleEmployerApplications(jobId) {
       }
       return '<article style="padding:12px;margin:8px 0;background:#fff;border:1px solid #e5eee8;border-radius:9px">'+
         '<strong>'+escapeAdminHtml(applicantName)+'</strong>'+
+        '<div style="margin-top:8px"><button class="btn outline small" type="button" onclick="openJobConversation(\\''+escapeAdminHtml(app.id)+'\\')">مراسلة المتقدم</button></div>'+
         '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px"><span class="muted">الحالة:</span><strong data-application-status="'+escapeAdminHtml(app.id)+'">'+escapeAdminHtml(employerApplicationStatusLabels[app.status]||app.status||"غير محددة")+'</strong></div>'+
         '<label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:13px;font-weight:700">تحديث حالة الطلب'+
         '<select data-application-status-select="'+escapeAdminHtml(app.id)+'" data-previous-status="'+escapeAdminHtml(app.status||"submitted")+'" onchange="updateEmployerApplicationStatus(\''+escapeAdminHtml(app.id)+'\',this.value,this)" style="padding:8px;border:1px solid #d7e4dc;border-radius:8px;background:#fff;font:14px Tahoma,Arial">'+
@@ -3336,7 +3337,7 @@ async function loadMyApplications(){
   list.innerHTML="";
   try{
     const {data:apps,error}=await supabaseClient.from("applications")
-      .select("id,status,created_at,cover_letter,jobs(title,location,companies(company_name))")
+      .select("id,status,created_at,cover_letter,jobs(id,title,location,companies(company_name))")
       .eq("candidate_id",currentAuthUser.id)
       .order("created_at",{ascending:false});
     if(error) throw error;
@@ -3354,6 +3355,7 @@ async function loadMyApplications(){
         '<h3 style="margin:0 0 7px;color:var(--d)">'+escapeAdminHtml(job?.title||"وظيفة")+'</h3>'+
         '<div class="muted">'+escapeAdminHtml(company?.company_name||"جهة العمل")+(job?.location?" • "+escapeAdminHtml(job.location):"")+'</div>'+
         '<p style="margin:12px 0"><span class="my-application-status">'+escapeAdminHtml(status)+'</span></p>'+
+        (job?.id?'<div style="margin:10px 0"><button class="btn outline small" type="button" onclick="openJobConversation(\\''+escapeAdminHtml(app.id)+'\\')">مراسلة صاحب الإعلان</button></div>':'')+
         '<small class="muted">تاريخ التقديم: '+escapeAdminHtml(date)+'</small>'+
         (app.cover_letter?'<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--g);font-weight:700">عرض خطاب التقديم</summary><p>'+escapeAdminHtml(app.cover_letter)+'</p></details>':"")+
         '</article>';
@@ -3406,6 +3408,124 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+</script>
+
+
+<div id="jobConversationModal" class="modalbg" role="dialog" aria-modal="true" aria-labelledby="jobConversationTitle" onclick="if(event.target===this)closeJobConversation()" style="z-index:10060;display:none">
+  <div class="modal" style="max-width:680px;width:100%;max-height:92vh;overflow:auto">
+    <button type="button" class="close" onclick="closeJobConversation()" aria-label="إغلاق">✕</button>
+    <h2 id="jobConversationTitle">محادثة الوظيفة</h2>
+    <p id="jobConversationSubtitle" class="muted"></p>
+    <div id="jobConversationMessages" aria-live="polite" style="min-height:150px;max-height:48vh;overflow:auto;padding:10px;background:#f5faf7;border:1px solid #e1ece5;border-radius:12px"></div>
+    <form id="jobConversationForm" onsubmit="sendJobMessage(event)" style="margin-top:12px">
+      <label for="jobConversationInput" style="display:block;font-weight:700;margin-bottom:6px">رسالتك</label>
+      <textarea id="jobConversationInput" rows="3" maxlength="3000" required placeholder="اكتب رسالتك هنا..." style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #d7e4dc;border-radius:10px;font:inherit"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px">
+        <small class="muted">المحادثة خاصة بينك وبين طرف الإعلان، ولا تظهر أرقام الهواتف.</small>
+        <button id="jobConversationSend" class="btn primary" type="submit">إرسال الرسالة</button>
+      </div>
+      <p id="jobConversationStatus" class="muted" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</div>
+<style>
+#jobConversationModal .modal{box-sizing:border-box}
+.job-message{max-width:88%;padding:10px 12px;margin:8px 0;border-radius:12px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.job-message.mine{margin-right:auto;background:#e2f3e8;border:1px solid #cce8d6}
+.job-message.theirs{margin-left:auto;background:#fff;border:1px solid #e3eae5}
+.job-message small{display:block;color:#65756b;font-size:11px;margin-top:4px}
+</style>
+<script>
+let activeJobConversation=null;
+let jobConversationPoll=null;
+async function openJobConversation(applicationId){
+  if(!currentAuthUser){toast("يرجى تسجيل الدخول أولاً.");openLogin();return;}
+  const modal=document.getElementById("jobConversationModal");
+  const list=document.getElementById("jobConversationMessages");
+  const status=document.getElementById("jobConversationStatus");
+  modal.style.display="flex";document.body.classList.add("modal-open");
+  list.innerHTML='<p class="muted">جارٍ فتح المحادثة الخاصة...</p>';
+  status.textContent="";
+  try{
+    const {data:rows,error}=await supabaseClient.rpc("get_job_conversation_context",{p_application_id:applicationId});
+    if(error)throw error;
+    const ctx=Array.isArray(rows)?rows[0]:rows;
+    if(!ctx)throw new Error("لا تملك صلاحية الوصول إلى هذه المحادثة.");
+    activeJobConversation=ctx;
+    document.getElementById("jobConversationTitle").textContent="محادثة: "+(ctx.job_title||"الوظيفة");
+    document.getElementById("jobConversationSubtitle").textContent="محادثة خاصة وآمنة حول طلب التقديم.";
+    await loadJobConversationMessages();
+    if(jobConversationPoll)clearInterval(jobConversationPoll);
+    jobConversationPoll=setInterval(()=>{if(activeJobConversation)loadJobConversationMessages();},12000);
+    document.getElementById("jobConversationInput").focus();
+  }catch(error){
+    list.innerHTML='<p class="muted">تعذر فتح المحادثة: '+escapeAdminHtml(error.message||"حدث خطأ")+'</p>';
+  }
+}
+async function loadJobConversationMessages(){
+  if(!activeJobConversation)return;
+  const list=document.getElementById("jobConversationMessages");
+  const wasNearBottom=list.scrollHeight-list.scrollTop-list.clientHeight<70;
+  try{
+    const {data:messages,error}=await supabaseClient.from("job_messages")
+      .select("id,sender_id,body,created_at")
+      .eq("job_id",activeJobConversation.job_id)
+      .eq("application_id",activeJobConversation.application_id)
+      .order("created_at",{ascending:true}).limit(200);
+    if(error)throw error;
+    list.innerHTML=(messages||[]).length?(messages||[]).map(item=>{
+      const mine=item.sender_id===currentAuthUser.id;
+      const date=item.created_at?new Date(item.created_at).toLocaleString("ar-SD"):"";
+      return '<div class="job-message '+(mine?"mine":"theirs")+'">'+escapeAdminHtml(item.body)+'<small>'+(mine?"أنت":"الطرف الآخر")+' • '+escapeAdminHtml(date)+'</small></div>';
+    }).join(""):'<p class="muted" style="text-align:center;padding:22px">ابدأ المحادثة برسالة محترمة وواضحة.</p>';
+    if(wasNearBottom)list.scrollTop=list.scrollHeight;
+    await supabaseClient.rpc("mark_job_messages_read",{p_job_id:activeJobConversation.job_id,p_application_id:activeJobConversation.application_id});
+    await refreshHeaderNotificationCount();
+  }catch(error){
+    console.error("Conversation refresh failed:",error);
+    if(!list.innerHTML)list.innerHTML='<p class="muted">تعذر تحميل الرسائل حالياً.</p>';
+  }
+}
+async function sendJobMessage(event){
+  event.preventDefault();
+  if(!currentAuthUser||!activeJobConversation)return;
+  const input=document.getElementById("jobConversationInput");
+  const button=document.getElementById("jobConversationSend");
+  const status=document.getElementById("jobConversationStatus");
+  const body=input.value.trim();
+  if(!body){status.textContent="اكتب رسالة قبل الإرسال.";return;}
+  if(body.length>3000){status.textContent="الرسالة أطول من الحد المسموح.";return;}
+  const isCandidate=currentAuthUser.id===activeJobConversation.candidate_id;
+  const isPoster=currentAuthUser.id===activeJobConversation.poster_id;
+  if(!isCandidate&&!isPoster){status.textContent="لا تملك صلاحية إرسال رسالة في هذه المحادثة.";return;}
+  button.disabled=true;status.textContent="جارٍ إرسال الرسالة...";
+  try{
+    const {error}=await supabaseClient.from("job_messages").insert({
+      job_id:activeJobConversation.job_id,
+      application_id:activeJobConversation.application_id,
+      candidate_id:activeJobConversation.candidate_id,
+      poster_id:activeJobConversation.poster_id,
+      sender_id:currentAuthUser.id,
+      recipient_id:isCandidate?activeJobConversation.poster_id:activeJobConversation.candidate_id,
+      body
+    });
+    if(error)throw error;
+    input.value="";status.textContent="تم إرسال الرسالة.";
+    await loadJobConversationMessages();
+  }catch(error){
+    console.error("Send message failed:",error);
+    status.textContent="تعذر إرسال الرسالة: "+(error.message||"حدث خطأ غير متوقع");
+  }finally{button.disabled=false;}
+}
+function closeJobConversation(){
+  const modal=document.getElementById("jobConversationModal");
+  if(modal)modal.style.display="none";
+  if(jobConversationPoll)clearInterval(jobConversationPoll);
+  jobConversationPoll=null;activeJobConversation=null;
+  const others=["myApplicationsModal","employerDashboardModal","profileModal","jobApplicationModal"].some(id=>{const el=document.getElementById(id);return el&&el.style.display==="flex";});
+  if(!others)document.body.classList.remove("modal-open");
+}
+setInterval(()=>{if(currentAuthUser)refreshHeaderNotificationCount();},20000);
 </script>
 
 </body></html>
