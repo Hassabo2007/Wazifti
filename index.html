@@ -925,11 +925,17 @@ body.modal-open { overflow: hidden; }
     <div><h2 id="employerDashboardTitle" style="margin:0">لوحة صاحب العمل</h2><p class="muted" style="margin:6px 0 0">إدارة بيانات جهة العمل ومتابعة حالة طلبك ووظائفك.</p></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn outline" type="button" onclick="loadEmployerDashboard()">تحديث البيانات</button><button class="btn outline" type="button" onclick="closeEmployerDashboard()">إغلاق ✕</button></div>
   </div>
+  <nav class="employer-dashboard-nav" aria-label="أقسام لوحة صاحب العمل">
+    <button type="button" class="active" data-dashboard-target="overview" onclick="navigateEmployerDashboard('overview')">الرئيسية</button>
+    <button type="button" data-dashboard-target="jobs" onclick="navigateEmployerDashboard('jobs')">وظائفي</button>
+    <button type="button" data-dashboard-target="applicants" onclick="navigateEmployerDashboard('applicants')">المتقدمون والرسائل</button>
+    <button type="button" data-dashboard-target="company" onclick="navigateEmployerDashboard('company')">بيانات الشركة</button>
+  </nav>
   <div id="employerDashboardMessage" role="status" aria-live="polite" class="muted" style="margin:14px 0">جارٍ تحميل بيانات جهة العمل...</div>
-  <div id="individualJobsPanel" style="display:none;margin:16px 0;padding:16px;background:#f7fbf8;border:1px solid #dcebe1;border-radius:14px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><h3 style="margin:0">وظائفي كفرد</h3><p class="muted" style="margin:6px 0">انشر فرصة عمل باسمك وتابع مراجعتها من الإدارة.</p></div><button class="btn primary" type="button" onclick="openIndividualJobForm()">+ نشر وظيفة</button></div><div id="individualJobsList"></div></div>
-  <div id="employerCompanyCard"></div>
-  <div id="employerJobStats" style="display:none;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:16px 0"></div>
-  <div id="employerJobsPanel" style="display:none;margin-top:18px">
+  <div id="individualJobsPanel" class="employer-dashboard-section" style="display:none;margin:16px 0;padding:16px;background:#f7fbf8;border:1px solid #dcebe1;border-radius:14px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><h3 style="margin:0">وظائفي كفرد</h3><p class="muted" style="margin:6px 0">انشر فرصة عمل باسمك وتابع مراجعتها من الإدارة.</p></div><button class="btn primary" type="button" onclick="openIndividualJobForm()">+ نشر وظيفة</button></div><div id="individualJobsList"></div></div>
+  <div id="employerCompanyCard" class="employer-dashboard-section"></div>
+  <div id="employerJobStats" class="employer-dashboard-section" style="display:none;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:16px 0"></div>
+  <div id="employerJobsPanel" class="employer-dashboard-section" style="display:none;margin-top:18px">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
       <div><h3>وظائف جهة العمل</h3><p class="muted">أضف الوظائف وتابع حالة مراجعتها وطلبات التقديم.</p></div>
       <button class="btn primary" type="button" id="addEmployerJobBtn" onclick="openEmployerJobForm()">+ نشر وظيفة</button>
@@ -2748,6 +2754,31 @@ async function saveEmployerCompanyDescription(event) {
   }
 }
 
+function navigateEmployerDashboard(section){
+  const targets={overview:"employerJobStats",jobs:"employerJobsPanel",applicants:"employerJobsPanel",company:"employerCompanyCard"};
+  const target=document.getElementById(targets[section]||"employerJobStats");
+  document.querySelectorAll(".employer-dashboard-nav [data-dashboard-target]").forEach(button=>{
+    const active=button.dataset.dashboardTarget===section;
+    button.classList.toggle("active",active);
+    button.setAttribute("aria-current",active?"location":"false");
+  });
+  if(section==="applicants"||section==="jobs"){
+    const panel=document.getElementById("employerJobsPanel");
+    if(panel&&panel.style.display==="none")panel.style.display="block";
+  }
+  if(target)target.scrollIntoView({behavior:"smooth",block:"start"});
+  if(section==="applicants"){
+    const panel=document.getElementById("employerJobsPanel");
+    if(panel&&!panel.querySelector(".employer-applicants-hint")){
+      const hint=document.createElement("p");
+      hint.className="muted employer-applicants-hint";
+      hint.textContent="اختر «طلبات التقديم» بجوار الوظيفة لمراجعة المتقدمين وفتح المحادثات المرتبطة بكل طلب.";
+      hint.style.cssText="padding:10px 12px;background:#f3f8f5;border-radius:10px;margin:8px 0 14px";
+      panel.insertBefore(hint,panel.children[1]||null);
+    }
+  }
+}
+
 function openEmployerDashboard() {
   if (!currentAuthUser) { toast("يرجى تسجيل الدخول أولاً."); openLogin(); return; }
   const modal = document.getElementById("employerDashboardModal");
@@ -3701,4 +3732,12 @@ function closeJobConversation(){
 setInterval(()=>{if(currentAuthUser)refreshHeaderNotificationCount();},20000);
 </script>
 
+
+<style id="employerDashboardNavStyles">
+.employer-dashboard-nav{position:sticky;top:0;z-index:20;display:flex;gap:8px;overflow-x:auto;white-space:nowrap;padding:10px;margin:10px 0 16px;background:rgba(255,255,255,.97);border:1px solid #e1ece5;border-radius:14px;box-shadow:0 4px 14px rgba(20,70,45,.07);scrollbar-width:thin}
+.employer-dashboard-nav button{flex:0 0 auto;border:1px solid transparent;background:#f3f8f5;color:#24543c;border-radius:10px;padding:10px 15px;font:600 14px Tahoma,Arial;cursor:pointer}
+.employer-dashboard-nav button.active,.employer-dashboard-nav button:focus-visible{background:#087a4b;color:#fff;outline:2px solid #b7dfc7;outline-offset:1px}
+.employer-dashboard-section{scroll-margin-top:86px}
+@media(max-width:600px){.employer-dashboard-nav{margin-inline:-4px;padding:8px}.employer-dashboard-nav button{padding:10px 12px;font-size:13px}}
+</style>
 </body></html>
