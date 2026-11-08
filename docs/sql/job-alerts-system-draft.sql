@@ -92,9 +92,6 @@ create index if not exists job_alert_deliveries_batch_idx
   on public.job_alert_deliveries(batch_id)
   where batch_id is not null;
 
-create index if not exists job_alert_digest_runs_due_idx
-  on public.job_alert_digest_runs(status, digest_date, created_at);
-
 create table if not exists public.job_alert_digest_runs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -109,6 +106,9 @@ create table if not exists public.job_alert_digest_runs (
   sent_at timestamptz,
   unique (user_id, digest_date, channel)
 );
+
+create index if not exists job_alert_digest_runs_due_idx
+  on public.job_alert_digest_runs(status, digest_date, created_at);
 
 create table if not exists public.job_alert_outbox (
   id uuid primary key default gen_random_uuid(),
