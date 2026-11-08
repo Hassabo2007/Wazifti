@@ -58,6 +58,7 @@ create table if not exists public.job_alert_notifications (
   job_title_snapshot text not null,
   job_location_snapshot text,
   created_at timestamptz not null default now(),
+  available_at timestamptz not null default now(),
   read_at timestamptz
 );
 
@@ -66,12 +67,14 @@ create unique index if not exists job_alert_notifications_user_job_uidx
   where job_id is not null;
 
 create index if not exists job_alert_notifications_user_created_idx
-  on public.job_alert_notifications(user_id, created_at desc);
+  on public.job_alert_notifications(user_id, available_at, created_at desc);
 
 create table if not exists public.job_alert_deliveries (
   id uuid primary key default gen_random_uuid(),
   notification_id uuid not null references public.job_alert_notifications(id) on delete cascade,
-  channel text not null check (channel in ('in_app', 'push', 'daily_digest')),
+  channel text not null check (channel in ('in_app', 'push')),
+  delivery_kind text not null default 'instant'
+    check (delivery_kind in ('instant', 'daily_digest')),
   batch_id uuid,
   status text not null default 'pending'
     check (status in ('pending', 'processing', 'sent', 'failed', 'skipped')),
@@ -79,7 +82,7 @@ create table if not exists public.job_alert_deliveries (
   last_error text,
   created_at timestamptz not null default now(),
   sent_at timestamptz,
-  unique (notification_id, channel)
+  unique (notification_id, channel, delivery_kind)
 );
 
 create index if not exists job_alert_deliveries_status_created_idx
@@ -88,6 +91,24 @@ create index if not exists job_alert_deliveries_status_created_idx
 create index if not exists job_alert_deliveries_batch_idx
   on public.job_alert_deliveries(batch_id)
   where batch_id is not null;
+
+create index if not exists job_alert_digest_runs_due_idx
+  on public.job_alert_digest_runs(status, digest_date, created_at);
+
+create table if not exists public.job_alert_digest_runs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  digest_date date not null,
+  channel text not null check (channel in ('in_app', 'push')),
+  batch_id uuid not null unique default gen_random_uuid(),
+  status text not null default 'pending'
+    check (status in ('pending', 'processing', 'sent', 'failed', 'skipped')),
+  attempt_count integer not null default 0 check (attempt_count >= 0),
+  last_error text,
+  created_at timestamptz not null default now(),
+  sent_at timestamptz,
+  unique (user_id, digest_date, channel)
+);
 
 create table if not exists public.job_alert_outbox (
   id uuid primary key default gen_random_uuid(),
@@ -127,6 +148,7 @@ alter table public.job_alert_preference_locations enable row level security;
 alter table public.job_alert_preference_employment_types enable row level security;
 alter table public.job_alert_notifications enable row level security;
 alter table public.job_alert_deliveries enable row level security;
+alter table public.job_alert_digest_runs enable row level security;
 alter table public.job_alert_outbox enable row level security;
 
 drop policy if exists "Users manage own job alert preferences" on public.job_alert_preferences;
@@ -269,6 +291,7 @@ revoke all on public.job_alert_preferences,
   public.job_alert_preference_employment_types,
   public.job_alert_notifications,
   public.job_alert_deliveries,
+  public.job_alert_digest_runs,
   public.job_alert_outbox
 from anon, authenticated;
 
@@ -287,6 +310,7 @@ grant all on public.job_alert_preferences,
   public.job_alert_preference_employment_types,
   public.job_alert_notifications,
   public.job_alert_deliveries,
+  public.job_alert_digest_runs,
   public.job_alert_outbox
 to service_role;
 
@@ -330,7 +354,9 @@ comment on table public.job_alert_preferences is
 comment on table public.job_alert_notifications is
   'In-app job alert inbox, separate from application-status notifications.';
 comment on table public.job_alert_deliveries is
-  'Worker-managed delivery attempts for in-app, push, and daily digest channels.';
+  'Worker-managed delivery attempts per channel and delivery kind; digest items share a batch id.';
+comment on table public.job_alert_digest_runs is
+  'Worker-managed per-user, per-local-date digest run; prevents duplicate daily summaries.';
 comment on table public.job_alert_outbox is
   'Worker queue populated when a job first becomes published.';
 
