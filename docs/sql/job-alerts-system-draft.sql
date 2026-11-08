@@ -300,11 +300,18 @@ security definer
 set search_path = pg_catalog
 as $$
 begin
-  if new.status = 'published'
-     and (tg_op = 'INSERT' or old.status is distinct from new.status) then
-    insert into public.job_alert_outbox (event_type, job_id)
-    values ('job_published', new.id)
-    on conflict (event_type, job_id) do nothing;
+  if tg_op = 'INSERT' then
+    if new.status = 'published' then
+      insert into public.job_alert_outbox (event_type, job_id)
+      values ('job_published', new.id)
+      on conflict (event_type, job_id) do nothing;
+    end if;
+  elsif tg_op = 'UPDATE' then
+    if new.status = 'published' and old.status is distinct from new.status then
+      insert into public.job_alert_outbox (event_type, job_id)
+      values ('job_published', new.id)
+      on conflict (event_type, job_id) do nothing;
+    end if;
   end if;
   return new;
 end;
