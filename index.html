@@ -3542,29 +3542,46 @@ async function loadJobConversationMessages(){
   if(!activeJobConversation)return;
   const list=document.getElementById("jobConversationMessages");
   const wasNearBottom=list.scrollHeight-list.scrollTop-list.clientHeight<70;
+  const conversation={...activeJobConversation};
+  let messages=[];
   try{
-    const {data:messages,error}=await supabaseClient.from("job_messages")
+    const {data,error}=await supabaseClient.from("job_messages")
       .select("id,sender_id,body,created_at")
-      .eq("job_id",activeJobConversation.job_id)
-      .eq("application_id",activeJobConversation.application_id)
+      .eq("job_id",conversation.job_id)
+      .eq("application_id",conversation.application_id)
       .order("created_at",{ascending:true}).limit(200);
     if(error)throw error;
-    list.innerHTML=(messages||[]).length?(messages||[]).map(item=>{
-      const mine=item.sender_id===currentAuthUser.id;
-      const date=item.created_at?new Date(item.created_at).toLocaleString("ar-SD"):"";
-      return '<div class="job-message '+(mine?"mine":"theirs")+'">'+escapeAdminHtml(item.body)+'<small>'+(mine?"أنت":"الطرف الآخر")+' • '+escapeAdminHtml(date)+'</small></div>';
-    }).join(""):'<p class="muted" style="text-align:center;padding:22px">ابدأ المحادثة برسالة محترمة وواضحة.</p>';
-    if(wasNearBottom)list.scrollTop=list.scrollHeight;
-    await supabaseClient.rpc("mark_job_messages_read",{p_job_id:activeJobConversation.job_id,p_application_id:activeJobConversation.application_id});
-    await supabaseClient.from("in_app_notifications").update({read_at:new Date().toISOString()})
-      .eq("user_id",currentAuthUser.id)
-      .eq("application_id",activeJobConversation.application_id)
-      .eq("notification_type","message").is("read_at",null);
-    await refreshHeaderNotificationCount();
+    messages=data||[];
   }catch(error){
-    console.error("Conversation refresh failed:",error);
-    if(!list.innerHTML)list.innerHTML='<p class="muted">تعذر تحميل الرسائل حالياً.</p>';
+    console.error("Conversation messages fetch failed:",error);
+    const detail=error?.message||error?.details||"تعذر الاتصال بالخادم";
+    list.innerHTML='<p class="muted" style="text-align:center;padding:22px">تعذر تحميل الرسائل. تحقق من الاتصال ثم أعد فتح المحادثة.<br><small>'+escapeAdminHtml(detail)+'</small></p>';
+    return;
   }
+
+  list.innerHTML=messages.length?messages.map(item=>{
+    const mine=item.sender_id===currentAuthUser.id;
+    const date=item.created_at?new Date(item.created_at).toLocaleString("ar-SD"):"";
+    return '<div class="job-message '+(mine?"mine":"theirs")+'">'+escapeAdminHtml(item.body)+'<small>'+(mine?"أنت":"الطرف الآخر")+' • '+escapeAdminHtml(date)+'</small></div>';
+  }).join(""):'<p class="muted" style="text-align:center;padding:22px">ابدأ المحادثة برسالة محترمة وواضحة.</p>';
+  if(wasNearBottom)list.scrollTop=list.scrollHeight;
+
+  // Read receipts and notification refresh must not block message display.
+  try{
+    const {error}=await supabaseClient.rpc("mark_job_messages_read",{p_job_id:conversation.job_id,p_application_id:conversation.application_id});
+    if(error)throw error;
+  }catch(error){console.warn("Could not mark conversation messages as read:",error);}
+
+  try{
+    const {error}=await supabaseClient.from("in_app_notifications").update({read_at:new Date().toISOString()})
+      .eq("user_id",currentAuthUser.id)
+      .eq("application_id",conversation.application_id)
+      .eq("notification_type","message").is("read_at",null);
+    if(error)throw error;
+  }catch(error){console.warn("Could not mark message notifications as read:",error);}
+
+  try{await refreshHeaderNotificationCount();}
+  catch(error){console.warn("Could not refresh notification count:",error);}
 }
 async function sendJobMessage(event){
   event.preventDefault();
