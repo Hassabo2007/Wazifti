@@ -2386,12 +2386,33 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
     return;
   }
   const previousStatus = selectElement?.dataset.previousStatus || "submitted";
-  if (selectElement) selectElement.disabled = true;
+  let ownedApplication = null;
+  let otherApplicantIds = [];
   try {
-    const {data:ownedApplication,error:ownershipError}=await supabaseClient
+    const {data:application,error:ownershipError}=await supabaseClient
       .from("applications").select("id,job_id").eq("id",applicationId).maybeSingle();
     if(ownershipError) throw ownershipError;
-    if(!ownedApplication) throw new Error("لا تملك صلاحية تعديل هذا الطلب.");
+    if(!application) throw new Error("لا تملك صلاحية تعديل هذا الطلب.");
+    ownedApplication=application;
+
+    // Accepting one applicant is the final hiring decision: the database closes
+    // the vacancy and rejects all other active applications in one transaction.
+    if(newStatus==="accepted" && previousStatus!=="accepted"){
+      const {data:otherApplications,error:otherApplicationsError}=await supabaseClient
+        .from("applications").select("id,status").eq("job_id",ownedApplication.job_id);
+      if(otherApplicationsError) throw otherApplicationsError;
+      otherApplicantIds=(otherApplications||[])
+        .filter(item=>item.id!==applicationId && !["accepted","rejected"].includes(item.status))
+        .map(item=>item.id);
+      const confirmText="اعتماد هذا المتقدم سيغلق الوظيفة تلقائياً، ويحوّل "+otherApplicantIds.length+
+        " من طلبات المتقدمين الآخرين إلى «لم يتم الاختيار»، ويرسل لهم إشعارات. هل تريد المتابعة؟";
+      if(!window.confirm(confirmText)){
+        if(selectElement) selectElement.value=previousStatus;
+        return;
+      }
+    }
+
+    if(selectElement) selectElement.disabled=true;
     const {data:ownedJob,error:jobError}=await supabaseClient.from("jobs")
       .select("poster_type,posted_by_user_id,company_id").eq("id",ownedApplication.job_id).maybeSingle();
     if(jobError) throw jobError;
@@ -2418,15 +2439,26 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
     const label = employerApplicationStatusLabels[data.status] || data.status;
     const statusNode = document.querySelector('[data-application-status="' + applicationId + '"]');
     if (statusNode) statusNode.textContent = label;
-    toast("تم تحديث حالة الطلب بنجاح.");
+
+    if(data.status==="accepted"){
+      toast("تم قبول المتقدم وإغلاق الوظيفة. سيتم إبلاغ بقية المتقدمين بنتيجة طلباتهم.");
+      const target=document.getElementById("employerApplications-"+ownedApplication.job_id);
+      if(target){target.style.display="none";employerViewingApplicationsFor=null;await toggleEmployerApplications(ownedApplication.job_id);}
+    } else {
+      toast("تم تحديث حالة الطلب بنجاح.");
+    }
+
     if(data.status !== previousStatus){
-      try{
-        const {error:pushError}=await supabaseClient.functions.invoke("send-application-status-push",{
-          body:{applicationId}
-        });
-        if(pushError) console.warn("Status updated, but push notification could not be sent:",pushError);
-      }catch(pushError){
-        console.warn("Status updated, but push notification could not be sent:",pushError);
+      const idsToNotify=[applicationId,...(data.status==="accepted"?otherApplicantIds:[])];
+      for(const notifyApplicationId of idsToNotify){
+        try{
+          const {error:pushError}=await supabaseClient.functions.invoke("send-application-status-push",{
+            body:{applicationId:notifyApplicationId}
+          });
+          if(pushError) console.warn("Status updated, but push notification could not be sent:",pushError);
+        }catch(pushError){
+          console.warn("Status updated, but push notification could not be sent:",pushError);
+        }
       }
     }
   } catch (error) {
