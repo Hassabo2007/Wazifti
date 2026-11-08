@@ -1,5 +1,7 @@
 -- Allow an individual job poster to view only the profiles of people
 -- who applied to that poster's own individual job.
+drop policy if exists "Individual job posters view applicant profiles" on public.profiles;
+
 create policy "Individual job posters view applicant profiles"
 on public.profiles
 for select
