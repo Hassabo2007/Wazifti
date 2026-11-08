@@ -2395,8 +2395,6 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
     if(!application) throw new Error("لا تملك صلاحية تعديل هذا الطلب.");
     ownedApplication=application;
 
-    // Accepting one applicant is the final hiring decision: the database closes
-    // the vacancy and rejects all other active applications in one transaction.
     if(newStatus==="accepted" && previousStatus!=="accepted"){
       const {data:otherApplications,error:otherApplicationsError}=await supabaseClient
         .from("applications").select("id,status").eq("job_id",ownedApplication.job_id);
@@ -2417,7 +2415,15 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
       .select("poster_type,posted_by_user_id,company_id").eq("id",ownedApplication.job_id).maybeSingle();
     if(jobError) throw jobError;
     let data=null;
-    if(ownedJob?.poster_type==="individual" && ownedJob.posted_by_user_id===currentAuthUser.id){
+    if(newStatus==="accepted"){
+      // This RPC exists only after the reviewed database migration is applied.
+      // If it is unavailable, the acceptance is not written and no false notices are sent.
+      const {error}=await supabaseClient.rpc("finalize_job_hiring",{
+        p_application_id:applicationId
+      });
+      if(error) throw error;
+      data={id:applicationId,status:"accepted"};
+    } else if(ownedJob?.poster_type==="individual" && ownedJob.posted_by_user_id===currentAuthUser.id){
       const {error}=await supabaseClient.rpc("update_individual_job_application_status",{
         p_application_id:applicationId,p_new_status:newStatus
       });
@@ -2431,6 +2437,7 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
       data=result.data;
       if(!data) throw new Error("لا تملك صلاحية تعديل هذا الطلب أو لم يعد متاحاً.");
     }
+
     if (selectElement) {
       selectElement.dataset.previousStatus = data.status;
       selectElement.value = data.status;
@@ -2440,8 +2447,22 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
     const statusNode = document.querySelector('[data-application-status="' + applicationId + '"]');
     if (statusNode) statusNode.textContent = label;
 
+    let idsToNotify=[applicationId];
     if(data.status==="accepted"){
-      toast("تم قبول المتقدم وإغلاق الوظيفة. سيتم إبلاغ بقية المتقدمين بنتيجة طلباتهم.");
+      const {data:updatedOthers,error:updatedOthersError}=await supabaseClient.from("applications")
+        .select("id,status").in("id",otherApplicantIds);
+      if(updatedOthersError) throw updatedOthersError;
+      const rejectedIds=(updatedOthers||[]).filter(item=>item.status==="rejected").map(item=>item.id);
+      const {data:jobState,error:jobStateError}=await supabaseClient.from("jobs")
+        .select("status").eq("id",ownedApplication.job_id).maybeSingle();
+      if(jobStateError) throw jobStateError;
+      const workflowComplete=jobState?.status==="closed" && rejectedIds.length===otherApplicantIds.length;
+      if(workflowComplete){
+        toast("تم قبول المتقدم وإغلاق الوظيفة وإبلاغ بقية المتقدمين بنتيجة طلباتهم.");
+        idsToNotify=[applicationId,...rejectedIds];
+      }else{
+        toast("تم تحديث حالة القبول، لكن لم نتمكن من تأكيد إغلاق الوظيفة ورفض بقية الطلبات. لم نرسل لهم إشعارات دفع.");
+      }
       const target=document.getElementById("employerApplications-"+ownedApplication.job_id);
       if(target){target.style.display="none";employerViewingApplicationsFor=null;await toggleEmployerApplications(ownedApplication.job_id);}
     } else {
@@ -2449,7 +2470,6 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
     }
 
     if(data.status !== previousStatus){
-      const idsToNotify=[applicationId,...(data.status==="accepted"?otherApplicantIds:[])];
       for(const notifyApplicationId of idsToNotify){
         try{
           const {error:pushError}=await supabaseClient.functions.invoke("send-application-status-push",{
