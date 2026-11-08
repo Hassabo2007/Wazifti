@@ -875,9 +875,58 @@ body.modal-open { overflow: hidden; }
 }
 </style>
 
+<style>
+/* V1.4 brand identity: Sudan-inspired mark, warm welcome and gold accents. */
+:root{--gold:#d5a747;--gold-soft:#fbf4e4;--g:#087a4b;--d:#064e35;--mint:#e9f6ee}
+.brand{gap:9px;letter-spacing:-.3px}
+.brand .logo{width:48px;height:48px;object-fit:contain;background:transparent;border-radius:13px;display:block}
+.hero{padding:68px 20px 62px;background:radial-gradient(ellipse at 84% 15%,rgba(213,167,71,.15),transparent 29%),radial-gradient(ellipse at 7% 80%,rgba(8,122,75,.11),transparent 34%),linear-gradient(125deg,#e8f5ec 0%,#fbfdfb 58%,#f7f8f1 100%)}
+.hero-inner{grid-template-columns:minmax(0,1.12fr) minmax(300px,.88fr);gap:48px}
+.hero-copy{min-width:0}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:9px;padding:9px 14px;margin-bottom:15px;border:1px solid #d9e9dd;border-radius:999px;background:rgba(255,255,255,.82);color:#35634b;font-size:13px;font-weight:800}
+.eyebrow-dot{width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(213,167,71,.15)}
+.hero h1{font-size:clamp(34px,4.1vw,51px);line-height:1.45;letter-spacing:-1.1px;margin-bottom:12px}
+.hero-highlight{color:var(--g);position:relative;white-space:nowrap}
+.hero p{font-size:16px;line-height:2.05;max-width:650px;color:#526b5d}
+.search{max-width:720px;padding:8px;border-color:#d9e9dd;box-shadow:0 14px 35px rgba(20,65,43,.09)}
+.search .primary{background:linear-gradient(135deg,#087a4b,#075d3b)}
+.brand-art{min-height:355px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 24px 22px;background:linear-gradient(145deg,#075d3b 0%,#087a4b 58%,#0c6845 100%);border:1px solid rgba(255,255,255,.45);box-shadow:0 24px 55px rgba(6,78,53,.19)}
+.brand-art:before{content:"";position:absolute;width:330px;height:330px;border:1px solid rgba(255,255,255,.13);border-radius:50%;top:-170px;left:-115px}
+.brand-art:after{content:"";position:absolute;width:250px;height:250px;border:1px solid rgba(255,255,255,.12);border-radius:50%;bottom:-145px;right:-80px}
+.art-map{position:relative;z-index:1;width:190px;height:190px;display:grid;place-items:center;border-radius:42px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);box-shadow:0 18px 40px rgba(0,0,0,.12);transform:rotate(-4deg)}
+.art-map img{width:164px;height:164px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.16))}
+.art-orbit{position:absolute;border:1px solid rgba(255,255,255,.18);border-radius:50%;pointer-events:none}
+.orbit-one{width:270px;height:270px}.orbit-two{width:340px;height:340px}
+.art-spark{position:absolute;color:#f0cc77;font-size:31px;z-index:2}
+.spark-one{top:62px;right:54px}.spark-two{bottom:115px;left:55px;font-size:25px}
+.art-caption{position:relative;z-index:2;display:flex;align-items:center;gap:12px;width:100%;max-width:330px;margin-top:24px;padding:13px 15px;text-align:right;background:rgba(255,255,255,.96);border-radius:15px;box-shadow:0 10px 28px rgba(0,0,0,.12)}
+.caption-mark{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:12px;background:var(--gold-soft);color:#9b7225;font-size:23px;font-weight:900}
+.art-caption strong{display:block;color:var(--d);font-size:14px}
+.art-caption p{margin:3px 0 0;font-size:11px;line-height:1.6;color:#718078}
+.art-ribbon{position:absolute;top:17px;left:18px;z-index:2;color:#f5dfa8;font-size:11px;font-weight:800;letter-spacing:.3px}
+.trust-note{border-color:#e7d7ad;background:#fffdf7}
+.trust-note>span:first-child{background:var(--gold);color:#17372a}
+.btn.primary{background:linear-gradient(135deg,#087a4b,#06613d)}
+.btn.primary:hover{filter:brightness(1.04)}
+@media(max-width:760px){
+ .hero{padding:34px 15px 30px}
+ .hero-inner{grid-template-columns:1fr;gap:25px}
+ .hero h1{font-size:31px;line-height:1.55}
+ .hero p{font-size:14px;line-height:1.95;margin-bottom:18px}
+ .hero-eyebrow{font-size:11px;padding:8px 11px}
+ .brand-art{display:flex;min-height:270px;padding:22px 17px 17px;border-radius:21px}
+ .art-map{width:135px;height:135px;border-radius:32px}
+ .art-map img{width:122px;height:122px}
+ .art-caption{max-width:290px;margin-top:18px;padding:10px 12px}
+ .art-ribbon{font-size:10px;top:13px;left:13px}
+ .spark-one{top:48px;right:35px}.spark-two{bottom:92px;left:34px}
+ .orbit-one{width:210px;height:210px}.orbit-two{width:275px;height:275px}
+}
+@media(min-width:761px) and (max-width:980px){.hero-inner{gap:25px}.brand-art{min-height:320px}.art-map{width:160px;height:160px}.art-map img{width:145px;height:145px}}
+</style>
 </head>
 <body>
-<header><div class="nav"><a class="brand" href="/" aria-label="Wazifti home" style="text-decoration:none;color:inherit"><div class="logo">و</div><span data-t="brand">وظيفتي</span></a>
+<header><div class="nav"><a class="brand" href="/" aria-label="Wazifti home" style="text-decoration:none;color:inherit"><img class="logo" src="/icons/icon-192.svg" alt=""><span data-t="brand">وظيفتي</span></a>
 <nav><a href="#jobs" data-t="navJobs">الوظائف</a><a href="#how" data-t="navHow">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout">عن وظيفتي</a></nav>
 <div class="actions">
 <button class="btn outline" id="loginBtn" onclick="openLogin()">دخول</button>
@@ -896,11 +945,13 @@ body.modal-open { overflow: hidden; }
 <button class="btn outline" id="lang" onclick="toggleLang()">EN</button>
 </div></div>
 </header>
-<section class="hero"><div class="hero-inner"><div><h1 data-t="headline">خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span></h1>
-<p data-t="sub">ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.</p>
-<div class="search"><input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة"><input id="city" data-ph="searchCity" placeholder="المدينة"><button class="btn primary" onclick="filterJobs()" data-t="search">ابحث عن وظيفة</button></div>
+<section class="hero"><div class="hero-inner"><div class="hero-copy">
+<div class="hero-eyebrow"><span class="eyebrow-dot"></span><span data-t="welcomeEyebrow">منصة سودانية تجمع الطموح بالفرصة</span></div>
+<h1 data-t="headline">الأمل يبدأ بفرصة<br><span class="hero-highlight">وفرصتك تبدأ من هنا</span></h1>
+<p data-t="sub">مرحباً بك في وظيفتي؛ منصتك السودانية لاكتشاف فرص العمل والتواصل مع أصحاب العمل، أينما كنت ومهما كانت خبرتك.</p>
+<div class="search"><input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة"><input id="city" data-ph="searchCity" placeholder="المدينة"><button class="btn primary" onclick="filterJobs()" data-t="search">اكتشف الفرص</button></div>
 <div class="stats"><span class="live-stat"><b id="liveJobCount">0</b><span data-t="statJobs">وظيفة منشورة</span></span><span class="trust-note"><span aria-hidden="true">✓</span> <span data-t="reviewNote">وظائف تُراجع قبل النشر</span></span></div></div>
-<div class="art"><div class="articon">💼</div><h3 data-t="artTitle">وظيفتك القادمة أقرب مما تتوقع</h3><p class="muted" data-t="artSub">فرص في مختلف القطاعات والمجالات في السودان.</p></div></div></section>
+<div class="art brand-art" aria-label="هوية وظيفتي السودانية"><div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div><div class="art-map"><img src="/icons/icon-512.svg" alt=""></div><div class="art-spark spark-one">✦</div><div class="art-spark spark-two">✧</div><div class="art-caption"><span class="caption-mark">و</span><div><strong data-t="artTitle">فرصتك القادمة تبدأ بخطوة</strong><p class="muted" data-t="artSub">لكل طموح في السودان فرصة يستحقها.</p></div></div><div class="art-ribbon" data-t="brandLine">الأمل يبدأ بفرصة.</div></div></div></section>
 <main class="wrap" id="jobs"><div class="head"><h2 data-t="latest">أحدث فرص العمل</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="muted" id="count"></span><button class="btn outline" id="refreshLiveJobsBtn" type="button" onclick="loadLiveJobs()" data-t="refreshJobs">↻ تحديث الوظائف</button></div></div>
 <div class="layout"><aside class="filters"><button class="btn outline" onclick="clearFilters()" style="width:100%;margin-bottom:12px" data-t="clearFilters">
   مسح جميع الفلاتر
@@ -1041,8 +1092,8 @@ function startLiveJobsUpdates(){
   }catch(error){console.warn("Realtime subscription unavailable; polling remains active.",error);}
 }
 const words={
-ar:{brand:"وظيفتي",navJobs:"الوظائف",navHow:"كيف تعمل المنصة؟",navAbout:"عن وظيفتي",login:"دخول",signup:"إنشاء حساب",logout:"تسجيل الخروج",profile:"ملفي الشخصي",postJob:"أعلن عن وظيفة",headline:'خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span>',sub:"ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.",searchJob:"المسمى الوظيفي أو المهارة",searchCity:"المدينة",search:"ابحث عن وظيفة",statJobs:"وظيفة منشورة",reviewNote:"وظائف تُراجع قبل النشر",statEmployers:"جهة عمل",statCities:"مدينة",artTitle:"وظيفتك القادمة أقرب مما تتوقع",artSub:"فرص في مختلف القطاعات والمجالات في السودان.",latest:"أحدث فرص العمل",filters:"تصفية النتائج",jobType:"نوع الوظيفة",full:"دوام كامل",part:"دوام جزئي",remote:"عن بُعد",sector:"المجال",health:"طبي وصحي",admin:"إداري",tech:"تقنية المعلومات",engineering:"هندسي",howTitle:"كيف تعمل وظيفتي؟",howIntro:"ثلاث خطوات بسيطة تقرّبك من فرصتك القادمة.",howStep1Title:"ابحث عن فرصتك",howStep1Text:"استخدم البحث والتصنيفات للوصول إلى الوظائف المناسبة لمهاراتك.",howStep2Title:"راجع التفاصيل",howStep2Text:"اقرأ وصف الوظيفة ومتطلباتها ومعلومات جهة العمل بعناية.",howStep3Title:"تواصل مع جهة العمل",howStep3Text:"اتبع طريقة التقديم الموضحة في إعلان الوظيفة.",footerLine:"منصة سودانية للبحث عن فرص العمل",disclaimer:"تُراجع الوظائف قبل نشرها للعامة.",brandLine:"الأمل يبدأ بفرصة.",close:"إغلاق ✕",details:"تفاصيل الوظيفة",company:"جهة العمل",location:"الموقع",type:"نوع العمل",salary:"الراتب",description:"وصف الوظيفة",apply:"تقديم تجريبي",empty:"لا توجد وظائف مطابقة لبحثك.",loginSoon:"ميزة تسجيل الدخول ستكون متاحة قريباً",employerSoon:"نموذج تسجيل صاحب العمل سيكون متاحاً قريباً",demo:"هذه وظيفة تجريبية؛ التقديم الإلكتروني غير مفعّل بعد",count:"وظائف معروضة",clearFilters:"مسح جميع الفلاتر",refreshJobs:"↻ تحديث الوظائف",categorySpecialty:"التصنيف والتخصص",mainCategoryLabel:"التصنيف الرئيسي",allCategories:"كل التصنيفات",subCategoryLabel:"التخصص الفرعي",allSpecialties:"كل التخصصات"},
-en:{brand:"Wazifti",navJobs:"Jobs",navHow:"How it works",navAbout:"About Wazifti",login:"Log in",signup:"Create account",logout:"Log out",profile:"My profile",postJob:"Post a job",headline:'Your first step toward<br><span style="color:var(--g)">a better opportunity</span>',sub:"Find suitable jobs across Sudan and connect with employers in one place.",searchJob:"Job title or skill",searchCity:"City",search:"Find jobs",statJobs:"published jobs",reviewNote:"Jobs reviewed before publishing",statEmployers:"employers",statCities:"cities",artTitle:"Your next opportunity is closer than you think",artSub:"Opportunities across sectors and industries in Sudan.",latest:"Latest opportunities",filters:"Filter results",jobType:"Job type",full:"Full-time",part:"Part-time",remote:"Remote",sector:"Sector",health:"Healthcare",admin:"Administration",tech:"Technology",engineering:"Engineering",howTitle:"How does Wazifti work?",howIntro:"Three simple steps to move closer to your next opportunity.",howStep1Title:"Find an opportunity",howStep1Text:"Use search and categories to find jobs that match your skills.",howStep2Title:"Review the details",howStep2Text:"Read the job description, requirements, and employer information carefully.",howStep3Title:"Contact the employer",howStep3Text:"Follow the application instructions included in the job listing.",footerLine:"A Sudanese job-search platform",disclaimer:"Jobs are reviewed before appearing publicly.",brandLine:"Hope starts with an opportunity.",close:"Close ✕",details:"Job details",company:"Employer",location:"Location",type:"Job type",salary:"Salary",description:"Description",apply:"Demo application",empty:"No jobs match your search.",loginSoon:"Login will be available soon",employerSoon:"Employer registration will be available soon",demo:"This is a sample job; online applications are not enabled yet",count:"jobs shown",clearFilters:"Clear all filters",refreshJobs:"↻ Refresh jobs",categorySpecialty:"Categories and specialties",mainCategoryLabel:"Main category",allCategories:"All categories",subCategoryLabel:"Specialty",allSpecialties:"All specialties"}};
+ar:{brand:"وظيفتي",navJobs:"الوظائف",navHow:"كيف تعمل المنصة؟",navAbout:"عن وظيفتي",login:"دخول",signup:"إنشاء حساب",logout:"تسجيل الخروج",profile:"ملفي الشخصي",postJob:"أعلن عن وظيفة",headline:'الأمل يبدأ بفرصة<br><span class="hero-highlight">وفرصتك تبدأ من هنا</span>',welcomeEyebrow:"منصة سودانية تجمع الطموح بالفرصة",sub:"مرحباً بك في وظيفتي؛ منصتك السودانية لاكتشاف فرص العمل والتواصل مع أصحاب العمل، أينما كنت ومهما كانت خبرتك.",searchJob:"المسمى الوظيفي أو المهارة",searchCity:"المدينة",search:"ابحث عن وظيفة",statJobs:"وظيفة منشورة",reviewNote:"وظائف تُراجع قبل النشر",statEmployers:"جهة عمل",statCities:"مدينة",artTitle:"فرصتك القادمة تبدأ بخطوة",artSub:"لكل طموح في السودان فرصة يستحقها.",latest:"أحدث فرص العمل",filters:"تصفية النتائج",jobType:"نوع الوظيفة",full:"دوام كامل",part:"دوام جزئي",remote:"عن بُعد",sector:"المجال",health:"طبي وصحي",admin:"إداري",tech:"تقنية المعلومات",engineering:"هندسي",howTitle:"كيف تعمل وظيفتي؟",howIntro:"ثلاث خطوات بسيطة تقرّبك من فرصتك القادمة.",howStep1Title:"ابحث عن فرصتك",howStep1Text:"استخدم البحث والتصنيفات للوصول إلى الوظائف المناسبة لمهاراتك.",howStep2Title:"راجع التفاصيل",howStep2Text:"اقرأ وصف الوظيفة ومتطلباتها ومعلومات جهة العمل بعناية.",howStep3Title:"تواصل مع جهة العمل",howStep3Text:"اتبع طريقة التقديم الموضحة في إعلان الوظيفة.",footerLine:"منصة سودانية للبحث عن فرص العمل",disclaimer:"تُراجع الوظائف قبل نشرها للعامة.",brandLine:"الأمل يبدأ بفرصة.",close:"إغلاق ✕",details:"تفاصيل الوظيفة",company:"جهة العمل",location:"الموقع",type:"نوع العمل",salary:"الراتب",description:"وصف الوظيفة",apply:"تقديم تجريبي",empty:"لا توجد وظائف مطابقة لبحثك.",loginSoon:"ميزة تسجيل الدخول ستكون متاحة قريباً",employerSoon:"نموذج تسجيل صاحب العمل سيكون متاحاً قريباً",demo:"هذه وظيفة تجريبية؛ التقديم الإلكتروني غير مفعّل بعد",count:"وظائف معروضة",clearFilters:"مسح جميع الفلاتر",refreshJobs:"↻ تحديث الوظائف",categorySpecialty:"التصنيف والتخصص",mainCategoryLabel:"التصنيف الرئيسي",allCategories:"كل التصنيفات",subCategoryLabel:"التخصص الفرعي",allSpecialties:"كل التخصصات"},
+en:{brand:"Wazifti",navJobs:"Jobs",navHow:"How it works",navAbout:"About Wazifti",login:"Log in",signup:"Create account",logout:"Log out",profile:"My profile",postJob:"Post a job",headline:'Hope starts with an opportunity<br><span class="hero-highlight">Your next step starts here</span>',welcomeEyebrow:"A Sudanese platform connecting ambition with opportunity",sub:"Welcome to Wazifti, your Sudanese platform to discover jobs and connect with employers, wherever you are and whatever your experience.",searchJob:"Job title or skill",searchCity:"City",search:"Find jobs",statJobs:"published jobs",reviewNote:"Jobs reviewed before publishing",statEmployers:"employers",statCities:"cities",artTitle:"Your next opportunity starts with one step",artSub:"Every ambition in Sudan deserves an opportunity.",latest:"Latest opportunities",filters:"Filter results",jobType:"Job type",full:"Full-time",part:"Part-time",remote:"Remote",sector:"Sector",health:"Healthcare",admin:"Administration",tech:"Technology",engineering:"Engineering",howTitle:"How does Wazifti work?",howIntro:"Three simple steps to move closer to your next opportunity.",howStep1Title:"Find an opportunity",howStep1Text:"Use search and categories to find jobs that match your skills.",howStep2Title:"Review the details",howStep2Text:"Read the job description, requirements, and employer information carefully.",howStep3Title:"Contact the employer",howStep3Text:"Follow the application instructions included in the job listing.",footerLine:"A Sudanese job-search platform",disclaimer:"Jobs are reviewed before appearing publicly.",brandLine:"Hope starts with an opportunity.",close:"Close ✕",details:"Job details",company:"Employer",location:"Location",type:"Job type",salary:"Salary",description:"Description",apply:"Demo application",empty:"No jobs match your search.",loginSoon:"Login will be available soon",employerSoon:"Employer registration will be available soon",demo:"This is a sample job; online applications are not enabled yet",count:"jobs shown",clearFilters:"Clear all filters",refreshJobs:"↻ Refresh jobs",categorySpecialty:"Categories and specialties",mainCategoryLabel:"Main category",allCategories:"All categories",subCategoryLabel:"Specialty",allSpecialties:"All specialties"}};
 function updateTexts(){T=words[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";document.querySelectorAll("[data-t]").forEach(e=>{if(T[e.dataset.t]!==undefined)e.innerHTML=T[e.dataset.t]});document.querySelectorAll("[data-ph]").forEach(e=>e.placeholder=T[e.dataset.ph]);document.getElementById("lang").textContent=lang==="ar"?"EN":"عربي";const lb=document.getElementById("loginBtn");if(lb)lb.textContent=T.login;const sb=document.getElementById("signupBtn");if(sb)sb.textContent=T.signup;const ob=document.getElementById("logoutBtn");if(ob)ob.textContent=T.logout;const pb=document.getElementById("profileBtn");if(pb)pb.textContent=T.profile;refreshTaxonomySelectLanguage();filterJobs()}
 function toggleLang(){lang=lang==="ar"?"en":"ar";updateTexts()}
 function typeName(t){return T[t==="Full-time"?"full":t==="Part-time"?"part":"remote"]}
