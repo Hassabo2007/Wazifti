@@ -3979,4 +3979,117 @@ document.addEventListener('keydown',e=>{
 }
 </style>
 
+
+
+<style>
+/* Mobile interface review: safe viewport sizing for every remaining dialog. */
+@media (max-width: 760px) {
+  .site-header { position:sticky; top:0; }
+  .hero-highlight { white-space:normal; overflow-wrap:anywhere; }
+  .company, .company > div { min-width:0; }
+  .job h3 { overflow-wrap:anywhere; }
+  .job .meta { row-gap:7px; }
+  .salary { white-space:normal; overflow-wrap:anywhere; }
+  .side { min-width:0; flex-wrap:wrap; }
+  .filters select { width:100%; min-height:44px; box-sizing:border-box; }
+  .list, .job { min-width:0; }
+}
+
+/* Profile and employer dashboards: scroll the overlay and the card independently
+   within the actual visible mobile viewport, including browser safe areas. */
+#profileModal, #employerDashboardModal {
+  align-items:flex-start !important;
+  justify-content:center !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  padding:calc(env(safe-area-inset-top, 0px) + 10px) 10px
+          calc(env(safe-area-inset-bottom, 0px) + 10px) !important;
+}
+#profileModal .modal-content,
+#employerDashboardModal .employer-dashboard-content {
+  width:min(100%, 900px) !important;
+  max-height:calc(100vh - 20px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  max-height:calc(100dvh - 20px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  margin:0 auto !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+}
+#profileModal .modal-content { max-width:600px !important; }
+#employerDashboardModal .employer-dashboard-content { max-width:900px !important; }
+#employerDashboardModal .employerJobStats,
+#employerDashboardModal #employerJobStats {
+  grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr));
+}
+@media(max-width:600px) {
+  #profileModal, #employerDashboardModal {
+    padding:calc(env(safe-area-inset-top, 0px) + 8px) 8px
+            calc(env(safe-area-inset-bottom, 0px) + 8px) !important;
+  }
+  #profileModal .modal-content,
+  #employerDashboardModal .employer-dashboard-content {
+    max-height:calc(100vh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    max-height:calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    padding:14px !important;
+  }
+  #employerDashboardModal .head { gap:10px; }
+  #employerDashboardModal .head > div:last-child {
+    display:flex; flex-wrap:wrap; gap:8px; width:100%;
+  }
+  #employerDashboardModal .head > div:last-child button { flex:1 1 130px; }
+  #employerDashboardModal #employerJobFormBox { padding:12px !important; }
+  #employerDashboardModal #employerJobForm .job-form-grid {
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  }
+  #employerDashboardModal #employerJobForm .job-salary-grid {
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  }
+}
+
+/* Registration, sign-in and sign-up dialogs: avoid clipping behind mobile
+   browser chrome and keep long forms reachable with one continuous scroll. */
+#employerRegistrationModal, #signupModal, #loginModal {
+  align-items:flex-start !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  padding:calc(env(safe-area-inset-top, 0px) + 12px) 10px
+          calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+}
+#employerRegistrationModal .employer-modal,
+#signupModal .modal-content, #loginModal .modal-content {
+  width:min(100%, 520px) !important;
+  max-height:calc(100vh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  max-height:calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  margin:0 auto !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  box-sizing:border-box;
+}
+#signupModal .modal-content, #loginModal .modal-content { max-width:420px !important; }
+@media(max-width:600px) {
+  #employerRegistrationModal, #signupModal, #loginModal {
+    padding:calc(env(safe-area-inset-top, 0px) + 8px) 8px
+            calc(env(safe-area-inset-bottom, 0px) + 8px) !important;
+  }
+  #employerRegistrationModal .employer-modal,
+  #signupModal .modal-content, #loginModal .modal-content {
+    max-height:calc(100vh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    max-height:calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    padding:16px !important;
+  }
+}
+
+/* Avoid horizontal clipping on compact Android screens and long job details. */
+@media(max-width:380px) {
+  .hero { padding-inline:12px; }
+  .hero h1 { font-size:clamp(25px, 7.4vw, 30px); }
+  .hero-eyebrow { max-width:100%; white-space:normal; line-height:1.6; }
+  .art-caption { max-width:100%; }
+  .art-caption strong, .art-caption p { overflow-wrap:anywhere; }
+  .job { padding:12px !important; }
+  .job .company { gap:10px; }
+  .job .icon { width:44px; height:44px; flex:0 0 44px; }
+  .side .btn { min-width:0; flex:1 1 120px; }
+}
+</style>
+
 </body></html>
