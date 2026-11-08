@@ -70,7 +70,7 @@ returns void
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   if p_new_status not in ('submitted', 'reviewing', 'shortlisted', 'rejected', 'accepted') then
     raise exception 'Invalid application status.';
@@ -91,7 +91,7 @@ begin
   set status = p_new_status
   where id = p_application_id;
 end;
-$;
+$$;
 
 revoke all on function public.update_individual_job_application_status(uuid, text) from public, anon;
 grant execute on function public.update_individual_job_application_status(uuid, text) to authenticated;
