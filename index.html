@@ -825,62 +825,52 @@ body.modal-open { overflow: hidden; }
 </style>
 
 <style>
-/* V1.3.3 mobile header fix: keep primary account actions visible and tappable. */
+/* V1.3.3 mobile header fix: let auth state control visibility. */
 @media (max-width: 760px) {
-  header { z-index: 100; }
-  .nav { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
-  .brand { flex:1 1 auto; min-width:120px; }
+  header { position: relative; top:auto; }
+  .nav { display:flex; flex-wrap:nowrap; align-items:center; gap:8px; padding:9px 10px; }
+  .brand { flex:0 0 auto; min-width:0; font-size:19px; }
   .actions {
-    display:flex !important;
-    width:100%;
-    flex:1 1 100%;
-    flex-wrap:wrap;
-    align-items:stretch;
-    justify-content:space-between;
-    gap:8px;
-    position:relative;
-    z-index:101;
-  }
-  #loginBtn, #signupBtn,
-  .actions > button[onclick="openEmployerRegistration()"] {
-    display:inline-flex !important;
-    flex:1 1 calc(33.333% - 8px);
+    display:flex;
+    width:auto;
+    flex:1 1 auto;
     min-width:0;
-    min-height:44px;
+    flex-wrap:nowrap;
     align-items:center;
-    justify-content:center;
-    white-space:nowrap;
-    padding:10px 8px;
-    visibility:visible !important;
-    opacity:1 !important;
-    pointer-events:auto !important;
-    position:relative;
-    z-index:102;
+    justify-content:flex-start;
+    gap:7px;
+    overflow-x:auto;
+    overscroll-behavior-x:contain;
+    scrollbar-width:thin;
+    padding:3px 1px 6px;
   }
-  #loginBtn { order:1; }
-  #signupBtn { order:2; }
-  .actions > button[onclick="openEmployerRegistration()"] { order:3; }
-  #pwaInstallBtn, #lang {
-    display:inline-flex !important;
-    flex:0 1 auto;
-    min-height:40px;
-    align-items:center;
-    justify-content:center;
-    position:relative;
-    z-index:102;
-    pointer-events:auto !important;
+  #loginBtn,#signupBtn,
+  .actions > button[onclick="openEmployerRegistration()"],
+  #pwaInstallBtn,#lang {
+    flex:0 0 auto;
+    min-height:38px;
+    white-space:nowrap;
+    padding:8px 10px;
   }
   #accountArea {
     display:flex;
-    flex:1 1 100%;
-    width:100%;
-    flex-wrap:wrap;
+    flex:0 0 auto;
+    width:auto;
+    max-width:100%;
+    flex-wrap:nowrap;
     justify-content:flex-start;
-    position:relative;
-    z-index:102;
+    align-items:center;
+    gap:7px;
+    overflow-x:auto;
+    overscroll-behavior-x:contain;
+    scrollbar-width:thin;
   }
-  .actions .outline:not(#lang):not(#logoutBtn):not(#myApplicationsBtn):not(#loginBtn) {
-    display:inline-flex !important;
+  #accountArea > * { flex:0 0 auto; }
+  #accountName { max-width:90px !important; }
+  #profileBtn,#notificationsBellBtn,#myApplicationsBtn,#employerDashboardBtn,#adminBtn,#logoutBtn {
+    min-height:38px;
+    white-space:nowrap;
+    padding:8px 10px;
   }
 }
 </style>
@@ -3341,7 +3331,7 @@ async function loadInAppNotifications(){
   list.innerHTML="";
   try{
     const {data:items,error}=await supabaseClient.from("in_app_notifications")
-      .select("id,application_id,job_title,message,new_status,created_at,read_at")
+      .select("id,application_id,job_title,message,new_status,notification_type,created_at,read_at")
       .eq("user_id",currentAuthUser.id)
       .order("created_at",{ascending:false})
       .limit(30);
@@ -3364,12 +3354,31 @@ async function loadInAppNotifications(){
         '</div>'+
         '<p style="margin:8px 0">'+escapeAdminHtml(item.message||"تم تحديث حالة طلبك.")+'</p>'+
         '<small class="muted">'+escapeAdminHtml(date)+'</small>'+
-        (!item.read_at?'<div style="margin-top:9px"><button class="btn outline small" type="button" onclick="markInAppNotificationRead(\''+item.id+'\')">تحديد كمقروء</button></div>':'')+
+        (item.notification_type==="message"
+          ? '<div style="margin-top:9px"><button class="btn primary small" type="button" onclick="openMessageNotification(\''+item.application_id+'\',\''+item.id+'\')">عرض الرسالة</button></div>'
+          : (!item.read_at?'<div style="margin-top:9px"><button class="btn outline small" type="button" onclick="markInAppNotificationRead(\''+item.id+'\')">تحديد كمقروء</button></div>':'')
+        )+
       '</article>';
     }).join("");
   }catch(error){
     console.error("In-app notifications load failed:",error);
     message.textContent="تعذر تحميل الإشعارات حالياً: "+(error.message||"حدث خطأ غير متوقع");
+  }
+}
+async function openMessageNotification(applicationId,notificationId){
+  if(!currentAuthUser||!applicationId)return;
+  try{
+    if(notificationId){
+      const {error}=await supabaseClient.from("in_app_notifications")
+        .update({read_at:new Date().toISOString()})
+        .eq("id",notificationId).eq("user_id",currentAuthUser.id);
+      if(error)throw error;
+    }
+    closeMyApplications();
+    window.setTimeout(()=>openJobConversation(applicationId),120);
+  }catch(error){
+    console.error("Could not open message notification:",error);
+    toast("تعذر فتح المحادثة. حاول فتحها من طلباتك.");
   }
 }
 async function markInAppNotificationRead(notificationId){
