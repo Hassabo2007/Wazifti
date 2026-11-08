@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+<title id="title">Wazifti Sudan mark</title><desc id="desc">A green opportunity path with a subtle Sudan-inspired tricolor accent.</desc>
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b8a55"/><stop offset="1" stop-color="#064e35"/></linearGradient></defs>
+<rect width="512" height="512" rx="116" fill="url(#g)"/>
+<circle cx="256" cy="256" r="194" fill="none" stroke="#ffffff" stroke-opacity=".14" stroke-width="5"/>
+<path d="M130 365c52-5 62-42 88-83 26-42 45-83 89-112 24-16 49-23 76-25" fill="none" stroke="#fff" stroke-width="30" stroke-linecap="round"/>
+<path d="M130 365c52-5 62-42 88-83 26-42 45-83 89-112" fill="none" stroke="#c9f1d8" stroke-width="7" stroke-linecap="round" stroke-dasharray="3 20"/>
+<path d="M344 111l64 31-60 38" fill="none" stroke="#fff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="132" cy="365" r="27" fill="#fff"/>
+<circle cx="132" cy="365" r="12" fill="#087a4b"/>
+<g transform="translate(74 94)"><rect width="94" height="17" rx="8.5" fill="#d92732"/><rect y="22" width="94" height="17" rx="8.5" fill="#fff"/><rect y="44" width="94" height="17" rx="8.5" fill="#171717"/><path d="M0 0v61l43-30.5z" fill="#087a4b"/></g>
+</svg>
