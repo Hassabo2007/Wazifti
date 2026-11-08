@@ -41,7 +41,7 @@ with check (
       sender_id = candidate_id and recipient_id = poster_id
       and exists (
         select 1 from public.applications a
-        where a.id = application_id and a.job_id = job_id and a.candidate_id = candidate_id
+        where a.id = job_messages.application_id and a.job_id = job_messages.job_id and a.candidate_id = job_messages.candidate_id
       )
     )
     or
@@ -61,6 +61,33 @@ with check (
     )
   )
 );
+
+
+create or replace function public.get_job_conversation_context(p_application_id uuid)
+returns table(job_id uuid, application_id uuid, candidate_id uuid, poster_id uuid, job_title text)
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  return query
+  select j.id, a.id, a.candidate_id,
+         case when j.poster_type = 'individual' then j.posted_by_user_id else c.owner_id end,
+         j.title
+  from public.applications a
+  join public.jobs j on j.id = a.job_id
+  left join public.companies c on c.id = j.company_id
+  where a.id = p_application_id
+    and (
+      a.candidate_id = auth.uid()
+      or (j.poster_type = 'individual' and j.posted_by_user_id = auth.uid())
+      or c.owner_id = auth.uid()
+    );
+end;
+$;
+
+revoke all on function public.get_job_conversation_context(uuid) from public, anon;
+grant execute on function public.get_job_conversation_context(uuid) to authenticated;
 
 create or replace function public.mark_job_messages_read(p_job_id uuid, p_application_id uuid)
 returns integer
