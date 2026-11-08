@@ -2709,7 +2709,9 @@ async function logoutUser() {
   }
 }
 
-restoreUserSession();
+// The INITIAL_SESSION event above restores any persisted Supabase session.
+// Do not call the removed restoreUserSession() helper here: it is undefined
+// and would stop this script before the signup/login form handlers are attached.
 
 const signupForm = document.getElementById("signupForm");
 if (signupForm) {
