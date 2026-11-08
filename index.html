@@ -3881,4 +3881,102 @@ document.addEventListener('keydown',e=>{
 });
 </script>
 
+
+<style>
+/* Modal layout correction: keep dialogs clear of the mobile browser/header safe areas. */
+#jobApplicationModal {
+  position:fixed !important;
+  inset:0 !important;
+  z-index:11050 !important;
+  display:none;
+  align-items:flex-start !important;
+  justify-content:center !important;
+  padding:calc(env(safe-area-inset-top, 0px) + 14px) 12px calc(env(safe-area-inset-bottom, 0px) + 14px) !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  box-sizing:border-box !important;
+}
+#jobApplicationModal .modal-content {
+  flex:0 0 auto;
+  width:min(100%, 540px) !important;
+  max-height:calc(100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  max-height:calc(100dvh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  margin:0 auto !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+}
+#jobApplicationModal h2 { margin:4px 0 10px; line-height:1.45; }
+#jobApplicationModal textarea { min-height:130px; line-height:1.7; }
+#jobApplicationModal .close-btn { position:sticky; top:0; }
+
+/* My applications: balanced dialog width, readable cards and controls. */
+#myApplicationsModal {
+  position:fixed !important;
+  inset:0 !important;
+  z-index:11040 !important;
+  align-items:flex-start !important;
+  justify-content:center !important;
+  padding:calc(env(safe-area-inset-top, 0px) + 14px) 12px calc(env(safe-area-inset-bottom, 0px) + 14px) !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  box-sizing:border-box;
+}
+#myApplicationsModal > .modal {
+  width:min(100%, 760px) !important;
+  max-width:760px !important;
+  max-height:calc(100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  max-height:calc(100dvh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  margin:0 auto !important;
+  padding:22px !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  box-sizing:border-box;
+}
+#myApplicationsModal .head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+#myApplicationsModal .head h2 { margin:0; line-height:1.4; }
+#myApplicationsModal #inAppNotificationsPanel { padding:14px; }
+#myApplicationsModal .my-application-card { padding:16px; overflow-wrap:anywhere; }
+#myApplicationsModal .my-application-card h3 { font-size:17px; line-height:1.5; overflow-wrap:anywhere; }
+#myApplicationsModal button { min-height:42px; }
+#myApplicationsModal .my-application-card .btn { white-space:normal; }
+
+/* Conversation and other modal cards use the same safe viewport boundaries. */
+#jobConversationModal {
+  position:fixed !important;
+  inset:0 !important;
+  z-index:11030 !important;
+  align-items:flex-start !important;
+  justify-content:center !important;
+  padding:calc(env(safe-area-inset-top, 0px) + 14px) 12px calc(env(safe-area-inset-bottom, 0px) + 14px) !important;
+  overflow-y:auto !important;
+  box-sizing:border-box;
+}
+#jobConversationModal > .modal {
+  width:min(100%, 760px) !important;
+  max-width:760px !important;
+  max-height:calc(100dvh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  margin:0 auto !important;
+  overflow-y:auto !important;
+  box-sizing:border-box;
+}
+@media(max-width:600px) {
+  #jobApplicationModal { padding:calc(env(safe-area-inset-top, 0px) + 10px) 9px calc(env(safe-area-inset-bottom, 0px) + 10px) !important; }
+  #jobApplicationModal .modal-content { padding:17px !important; border-radius:15px; }
+  #myApplicationsModal { padding:calc(env(safe-area-inset-top, 0px) + 10px) 9px calc(env(safe-area-inset-bottom, 0px) + 10px) !important; }
+  #myApplicationsModal > .modal { padding:15px !important; border-radius:15px; }
+  #myApplicationsModal .head { align-items:flex-start; }
+  #myApplicationsModal .head > button { flex:0 0 auto; }
+  #myApplicationsModal #inAppNotificationsPanel { padding:11px !important; }
+  #myApplicationsModal .my-application-card { padding:13px; }
+  #jobConversationModal { padding:calc(env(safe-area-inset-top, 0px) + 10px) 9px calc(env(safe-area-inset-bottom, 0px) + 10px) !important; }
+  #jobConversationModal > .modal { padding:15px !important; }
+}
+@media(max-width:380px) {
+  #myApplicationsModal > .modal { padding:12px !important; }
+  #myApplicationsModal .head { gap:8px; }
+  #myApplicationsModal .head h2 { font-size:19px; }
+  #myApplicationsModal .my-application-card h3 { font-size:16px; }
+}
+</style>
+
 </body></html>
