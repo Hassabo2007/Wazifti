@@ -52,7 +52,7 @@ with check (
         from public.applications a
         join public.jobs j on j.id = a.job_id
         left join public.companies c on c.id = j.company_id
-        where a.id = application_id and a.job_id = job_id and a.candidate_id = candidate_id
+        where a.id = job_messages.application_id and a.job_id = job_messages.job_id and a.candidate_id = job_messages.candidate_id
           and (
             (j.poster_type = 'individual' and j.posted_by_user_id = auth.uid())
             or c.owner_id = auth.uid()
@@ -68,7 +68,7 @@ returns table(job_id uuid, application_id uuid, candidate_id uuid, poster_id uui
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $ctx$
 begin
   return query
   select j.id, a.id, a.candidate_id,
@@ -84,7 +84,7 @@ begin
       or c.owner_id = auth.uid()
     );
 end;
-$;
+$ctx$;
 
 revoke all on function public.get_job_conversation_context(uuid) from public, anon;
 grant execute on function public.get_job_conversation_context(uuid) to authenticated;
