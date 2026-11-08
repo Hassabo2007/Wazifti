@@ -32,6 +32,55 @@ using (
 -- a narrowly scoped RPC after the existing company policies are audited.
 -- Do not grant broad UPDATE access to application rows.
 
+
+-- Keep filled individual-job history: owners may delete only pending/rejected ads.
+drop policy if exists "Individuals delete own non-published jobs" on public.jobs;
+create policy "Individuals delete own pending or rejected jobs"
+on public.jobs
+for delete
+to authenticated
+using (
+  poster_type = 'individual'
+  and posted_by_user_id = (select auth.uid())
+  and status in ('pending', 'rejected')
+);
+
+-- Narrow RPC for individual posters to update application status without granting
+-- UPDATE access to every column in the applications table.
+create or replace function public.update_individual_job_application_status(
+  p_application_id uuid,
+  p_new_status text
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  if p_new_status not in ('submitted', 'reviewing', 'shortlisted', 'rejected', 'accepted') then
+    raise exception 'Invalid application status.';
+  end if;
+
+  if not exists (
+    select 1
+    from public.applications a
+    join public.jobs j on j.id = a.job_id
+    where a.id = p_application_id
+      and j.poster_type = 'individual'
+      and j.posted_by_user_id = (select auth.uid())
+  ) then
+    raise exception 'You are not authorized to update this application.';
+  end if;
+
+  update public.applications
+  set status = p_new_status
+  where id = p_application_id;
+end;
+$;
+
+revoke all on function public.update_individual_job_application_status(uuid, text) from public, anon;
+grant execute on function public.update_individual_job_application_status(uuid, text) to authenticated;
+
 -- The trigger serializes acceptance by locking the job row. This prevents two
 -- applicants from being accepted for the same vacancy concurrently.
 create or replace function private.close_job_when_applicant_accepted()
