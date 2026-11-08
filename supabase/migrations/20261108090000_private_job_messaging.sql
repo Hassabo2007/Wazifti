@@ -2,7 +2,6 @@
 -- This file is committed to the feature branch only; it is NOT applied to Supabase.
 
 alter table public.in_app_notifications
-  alter column application_id drop not null,
   add column if not exists notification_type text not null default 'application_status';
 
 create table if not exists public.job_messages (
