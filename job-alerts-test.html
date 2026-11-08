@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#087a4b">
+<title>اختبار تنبيهات الوظائف | وظيفتي</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--g:#087a4b;--d:#064e35;--mint:#e9f6ee;--ink:#17372a;--muted:#6e7f75;--line:#dfeae3;--bg:#f4f8f5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px Tahoma,Arial,sans-serif}
+header{background:#fff;border-bottom:1px solid var(--line);padding:16px 20px}
+header .inner,main{max-width:850px;margin:auto}
+.brand{font-weight:900;color:var(--g);font-size:23px}
+main{padding:22px 16px 50px}
+.card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:20px;margin:15px 0;box-shadow:0 8px 25px #174d300b}
+h1{font-size:25px;color:var(--d);margin:0 0 9px}
+h2{font-size:19px;color:var(--d);margin:0 0 15px}
+p{line-height:1.8;color:var(--muted)}
+label{display:block;font-weight:700;margin:12px 0 7px}
+input,select{width:100%;min-height:44px;padding:10px 12px;border:1px solid #ceded3;border-radius:10px;font:inherit;background:#fff;color:var(--ink)}
+input[type=checkbox]{width:19px;min-height:19px;accent-color:var(--g)}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1;min-width:180px}
+.check{display:flex;align-items:center;gap:9px;margin:12px 0}
+.check label{margin:0}
+.btn{border:0;border-radius:10px;padding:12px 16px;font:700 14px Tahoma;cursor:pointer;min-height:43px}
+.primary{background:var(--g);color:white}.light{background:var(--mint);color:var(--d)}.danger{background:#fff1f0;color:#a52b22}
+.btn:disabled{opacity:.6;cursor:wait}
+.note{background:#fff9e8;border:1px solid #f1dfad;padding:12px;border-radius:11px;color:#765c16;line-height:1.8;font-size:13px}
+.status{padding:11px 13px;border-radius:10px;background:#f1f6f2;color:var(--d);margin:12px 0;line-height:1.7}
+.status.error{background:#fff1f0;color:#a52b22}
+.alert{border:1px solid var(--line);border-radius:12px;padding:13px;margin:10px 0;background:#fff}
+.alert.unread{border-right:4px solid var(--g);background:#f8fcf9}
+.alert small{display:block;color:var(--muted);margin-top:7px}
+.hidden{display:none!important}
+.badge{display:inline-block;background:var(--mint);color:var(--g);padding:5px 9px;border-radius:8px;font-size:12px;font-weight:700}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+@media(max-width:560px){.card{padding:16px}h1{font-size:21px}.row>*{min-width:100%}}
+</style>
+</head>
+<body>
+<header><div class="inner"><div class="brand">وظيفتي | الأمل يبدأ بفرصة</div></div></header>
+<main>
+<section class="card">
+  <span class="badge">بيئة اختبار منفصلة</span>
+  <h1>تنبيهات الوظائف</h1>
+  <p>هذه صفحة تجريبية مرتبطة بمشروع اختبار مستقل. لا تستخدم حسابات الإنتاج، ولا تؤثر هذه الإعدادات على موقع وظيفتي الأساسي.</p>
+  <div class="note">استخدم بريداً تجريبياً يمكنك الوصول إليه. إذا طلب التسجيل تأكيد البريد، افتح رسالة التأكيد ثم ارجع إلى هذه الصفحة وسجّل الدخول.</div>
+</section>
+
+<section class="card" id="authCard">
+  <h2>الدخول إلى حساب الاختبار</h2>
+  <label for="email">البريد الإلكتروني</label>
+  <input id="email" type="email" autocomplete="email" placeholder="test@example.com">
+  <label for="password">كلمة المرور</label>
+  <input id="password" type="password" autocomplete="current-password" minlength="6" placeholder="6 أحرف على الأقل">
+  <div class="row" style="margin-top:15px">
+    <button class="btn primary" id="signInBtn" type="button">تسجيل الدخول</button>
+    <button class="btn light" id="signUpBtn" type="button">إنشاء حساب اختبار</button>
+  </div>
+  <div id="authStatus" class="status" role="status" aria-live="polite">أنشئ حساب اختبار أو سجّل الدخول للمتابعة.</div>
+</section>
+
+<section class="card hidden" id="appCard">
+  <div class="row" style="justify-content:space-between">
+    <div><h2 style="margin-bottom:5px">إعدادات التنبيهات</h2><div class="muted" id="userEmail"></div></div>
+    <button class="btn light" id="signOutBtn" type="button">خروج</button>
+  </div>
+  <div class="check"><input id="enabled" type="checkbox"><label for="enabled">تفعيل تنبيهات الوظائف</label></div>
+  <label for="mode">متى تريد استلام التنبيهات؟</label>
+  <select id="mode">
+    <option value="instant">فور نشر الوظيفة</option>
+    <option value="daily">ملخص يومي</option>
+    <option value="both">كلاهما: فوري وملخص يومي</option>
+  </select>
+  <label for="locations">الولايات (اتركها فارغة لاستلام الوظائف من كل الولايات)</label>
+  <select id="locations" multiple size="6" aria-label="اختر الولايات">
+    <option>الخرطوم</option><option>الجزيرة</option><option>النيل الأزرق</option><option>سنار</option>
+    <option>شمال كردفان</option><option>جنوب كردفان</option><option>غرب كردفان</option><option>البحر الأحمر</option>
+    <option>كسلا</option><option>القضارف</option><option>النيل الأبيض</option><option>نهر النيل</option>
+    <option>الشمالية</option><option>شرق دارفور</option><option>غرب دارفور</option><option>وسط دارفور</option><option>جنوب دارفور</option>
+  </select>
+  <p style="font-size:12px;margin:6px 0">على الهاتف، اضغط مطولاً أو استخدم تحديد متعدد لاختيار أكثر من ولاية.</p>
+  <label>أنواع العمل (اتركها دون تحديد لاستلام كل الأنواع)</label>
+  <div class="row">
+    <div class="check"><input type="checkbox" name="employment" value="full_time"><label>دوام كامل</label></div>
+    <div class="check"><input type="checkbox" name="employment" value="part_time"><label>دوام جزئي</label></div>
+    <div class="check"><input type="checkbox" name="employment" value="remote"><label>عن بُعد</label></div>
+    <div class="check"><input type="checkbox" name="employment" value="contract"><label>تعاقد</label></div>
+    <div class="check"><input type="checkbox" name="employment" value="temporary"><label>مؤقت</label></div>
+    <div class="check"><input type="checkbox" name="employment" value="internship"><label>تدريب</label></div>
+  </div>
+  <div class="row">
+    <div><label for="dailyTime">وقت الملخص اليومي</label><input id="dailyTime" type="time" value="08:00"></div>
+  </div>
+  <div class="row" style="margin-top:15px">
+    <button class="btn primary" id="saveBtn" type="button">حفظ الإعدادات</button>
+    <button class="btn light" id="refreshBtn" type="button">تحديث التنبيهات</button>
+  </div>
+  <div id="prefsStatus" class="status" role="status" aria-live="polite">التنبيهات غير مفعّلة حتى تختار تفعيلها.</div>
+</section>
+
+<section class="card hidden" id="notificationsCard">
+  <div class="row" style="justify-content:space-between">
+    <h2>تنبيهات الوظائف الواردة</h2>
+    <span id="unreadCount" class="badge">0 غير مقروء</span>
+  </div>
+  <div id="notificationsList"><p>لا توجد تنبيهات حتى الآن.</p></div>
+</section>
+</main>
+<footer>Wazifti — صفحة اختبار فقط، وليست جزءاً من موقع الإنتاج.</footer>
+<script>
+const TEST_SUPABASE_URL="https://igkemvtpfumbixajfrjr.supabase.co";
+const TEST_SUPABASE_KEY="sb_publishable_o-ohdr57eZc65JcLE6mHGQ_Qe_GkBxh";
+const client=window.supabase.createClient(TEST_SUPABASE_URL,TEST_SUPABASE_KEY);
+let activeUser=null;
+const $=id=>document.getElementById(id);
+function setStatus(id,message,isError=false){const el=$(id);el.textContent=message;el.classList.toggle("error",isError)}
+function selectedValues(select){return Array.from(select.selectedOptions).map(o=>o.value||o.textContent)}
+function setSelected(select,values){Array.from(select.options).forEach(o=>o.selected=values.includes(o.value||o.textContent))}
+function checkedEmployment(){return Array.from(document.querySelectorAll('input[name="employment"]:checked')).map(x=>x.value)}
+function setEmployment(values){document.querySelectorAll('input[name="employment"]').forEach(x=>x.checked=values.includes(x.value))}
+function setBusy(button,busy){button.disabled=busy}
+function showSignedIn(user){
+ activeUser=user;$("authCard").classList.add("hidden");$("appCard").classList.remove("hidden");$("notificationsCard").classList.remove("hidden");
+ $("userEmail").textContent=user.email||"حساب اختبار";loadPreferences();loadAlerts();
+}
+async function signUp(){
+ const email=$("email").value.trim(),password=$("password").value;
+ if(!email||password.length<6){setStatus("authStatus","أدخل بريداً صحيحاً وكلمة مرور من 6 أحرف على الأقل.",true);return}
+ const b=$("signUpBtn");setBusy(b,true);
+ try{const {data,error}=await client.auth.signUp({email,password});if(error)throw error;
+ if(data.session)showSignedIn(data.user);else setStatus("authStatus","تم إنشاء الحساب. افحص بريدك لتأكيد التسجيل، ثم سجّل الدخول هنا.");
+ }catch(e){setStatus("authStatus",e.message||"تعذر إنشاء الحساب.",true)}finally{setBusy(b,false)}
+}
+async function signIn(){
+ const email=$("email").value.trim(),password=$("password").value;
+ if(!email||!password){setStatus("authStatus","أدخل البريد الإلكتروني وكلمة المرور.",true);return}
+ const b=$("signInBtn");setBusy(b,true);
+ try{const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;showSignedIn(data.user);setStatus("prefsStatus","تم تسجيل الدخول إلى بيئة الاختبار.")}
+ catch(e){setStatus("authStatus",e.message||"تعذر تسجيل الدخول.",true)}finally{setBusy(b,false)}
+}
+async function signOut(){await client.auth.signOut();activeUser=null;$("authCard").classList.remove("hidden");$("appCard").classList.add("hidden");$("notificationsCard").classList.add("hidden")}
+async function loadPreferences(){
+ if(!activeUser)return;
+ try{
+  const {data:p,error}=await client.from("job_alert_preferences").select("id,is_enabled,delivery_mode,daily_send_time").eq("user_id",activeUser.id).maybeSingle();
+  if(error)throw error;
+  if(!p){$("enabled").checked=false;$("mode").value="both";setSelected($("locations"),[]);setEmployment([]);$("dailyTime").value="08:00";setStatus("prefsStatus","لم تحفظ إعدادات بعد. التنبيهات متوقفة افتراضياً.");return}
+  $("enabled").checked=p.is_enabled;$("mode").value=p.delivery_mode;$("dailyTime").value=(p.daily_send_time||"08:00").slice(0,5);
+  const [loc,types]=await Promise.all([
+   client.from("job_alert_preference_locations").select("state").eq("preference_id",p.id),
+   client.from("job_alert_preference_employment_types").select("employment_type").eq("preference_id",p.id)
+  ]);
+  if(loc.error)throw loc.error;if(types.error)throw types.error;
+  setSelected($("locations"),(loc.data||[]).map(x=>x.state));setEmployment((types.data||[]).map(x=>x.employment_type));
+  setStatus("prefsStatus",p.is_enabled?"التنبيهات مفعّلة حسب الإعدادات المحفوظة.":"التنبيهات متوقفة حالياً.");
+ }catch(e){setStatus("prefsStatus","تعذر تحميل الإعدادات: "+(e.message||"خطأ غير معروف"),true)}
+}
+async function savePreferences(){
+ if(!activeUser)return;
+ const b=$("saveBtn");setBusy(b,true);
+ try{
+  const {error}=await client.rpc("save_job_alert_preferences",{
+   p_is_enabled:$("enabled").checked,p_delivery_mode:$("mode").value,
+   p_locations:selectedValues($("locations")),p_employment_types:checkedEmployment(),p_daily_send_time:$("dailyTime").value||"08:00"
+  });
+  if(error)throw error;
+  setStatus("prefsStatus",$("enabled").checked?"تم حفظ إعدادات التنبيهات وتفعيلها.":"تم حفظ الإعدادات، لكن التنبيهات ما زالت متوقفة.");
+ }catch(e){setStatus("prefsStatus","تعذر حفظ الإعدادات: "+(e.message||"خطأ غير معروف"),true)}
+ finally{setBusy(b,false)}
+}
+async function loadAlerts(){
+ if(!activeUser)return;
+ const list=$("notificationsList");list.replaceChildren();
+ try{
+  const {data,error}=await client.from("job_alert_notifications")
+   .select("id,job_title_snapshot,job_location_snapshot,created_at,available_at,read_at")
+   .eq("user_id",activeUser.id).lte("available_at",new Date().toISOString())
+   .order("created_at",{ascending:false}).limit(50);
+  if(error)throw error;
+  const items=data||[];$("unreadCount").textContent=items.filter(x=>!x.read_at).length+" غير مقروء";
+  if(!items.length){list.textContent="لا توجد تنبيهات متاحة حتى الآن.";return}
+  for(const item of items){
+   const article=document.createElement("article");article.className="alert"+(item.read_at?"":" unread");
+   const title=document.createElement("strong");title.textContent=item.job_title_snapshot;
+   const location=document.createElement("div");location.textContent=item.job_location_snapshot||"الموقع غير محدد";
+   const date=document.createElement("small");date.textContent=new Date(item.created_at).toLocaleString("ar-SD");
+   article.append(title,location,date);
+   if(!item.read_at){const button=document.createElement("button");button.className="btn light";button.type="button";button.textContent="تحديد كمقروء";
+    button.addEventListener("click",()=>markRead(item.id));article.append(button)}
+   list.append(article);
+  }
+ }catch(e){list.textContent="تعذر تحميل التنبيهات: "+(e.message||"خطأ غير معروف")}
+}
+async function markRead(id){
+ try{const {error}=await client.from("job_alert_notifications").update({read_at:new Date().toISOString()}).eq("id",id).eq("user_id",activeUser.id);if(error)throw error;await loadAlerts()}
+ catch(e){setStatus("prefsStatus","تعذر تحديث حالة التنبيه: "+(e.message||"خطأ"),true)}
+}
+$("signUpBtn").addEventListener("click",signUp);$("signInBtn").addEventListener("click",signIn);$("signOutBtn").addEventListener("click",signOut);
+$("saveBtn").addEventListener("click",savePreferences);$("refreshBtn").addEventListener("click",()=>{loadPreferences();loadAlerts()});
+client.auth.getSession().then(({data})=>{if(data.session)showSignedIn(data.session.user)});
+client.auth.onAuthStateChange((_event,session)=>{if(session&&!activeUser)showSignedIn(session.user);else if(!session&&activeUser){activeUser=null;$("authCard").classList.remove("hidden");$("appCard").classList.add("hidden");$("notificationsCard").classList.add("hidden")}});
+</script>
+</body>
+</html>
