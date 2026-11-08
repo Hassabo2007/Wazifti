@@ -2437,7 +2437,7 @@ async function toggleEmployerApplications(jobId) {
       }
       return '<article style="padding:12px;margin:8px 0;background:#fff;border:1px solid #e5eee8;border-radius:9px">'+
         '<strong>'+escapeAdminHtml(applicantName)+'</strong>'+
-        '<div style="margin-top:8px"><button class="btn outline small" type="button" onclick="openJobConversation(\\''+escapeAdminHtml(app.id)+'\\')">مراسلة المتقدم</button></div>'+
+        '<div style="margin-top:8px"><button class="btn outline small" type="button" onclick="openJobConversation(&quot;'+escapeAdminHtml(app.id)+'&quot;)">مراسلة المتقدم</button></div>'+
         '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px"><span class="muted">الحالة:</span><strong data-application-status="'+escapeAdminHtml(app.id)+'">'+escapeAdminHtml(employerApplicationStatusLabels[app.status]||app.status||"غير محددة")+'</strong></div>'+
         '<label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:13px;font-weight:700">تحديث حالة الطلب'+
         '<select data-application-status-select="'+escapeAdminHtml(app.id)+'" data-previous-status="'+escapeAdminHtml(app.status||"submitted")+'" onchange="updateEmployerApplicationStatus(\''+escapeAdminHtml(app.id)+'\',this.value,this)" style="padding:8px;border:1px solid #d7e4dc;border-radius:8px;background:#fff;font:14px Tahoma,Arial">'+
@@ -3355,7 +3355,7 @@ async function loadMyApplications(){
         '<h3 style="margin:0 0 7px;color:var(--d)">'+escapeAdminHtml(job?.title||"وظيفة")+'</h3>'+
         '<div class="muted">'+escapeAdminHtml(company?.company_name||"جهة العمل")+(job?.location?" • "+escapeAdminHtml(job.location):"")+'</div>'+
         '<p style="margin:12px 0"><span class="my-application-status">'+escapeAdminHtml(status)+'</span></p>'+
-        (job?.id?'<div style="margin:10px 0"><button class="btn outline small" type="button" onclick="openJobConversation(\\''+escapeAdminHtml(app.id)+'\\')">مراسلة صاحب الإعلان</button></div>':'')+
+        (job?.id?'<div style="margin:10px 0"><button class="btn outline small" type="button" onclick="openJobConversation(&quot;'+escapeAdminHtml(app.id)+'&quot;)">مراسلة صاحب الإعلان</button></div>':'')+
         '<small class="muted">تاريخ التقديم: '+escapeAdminHtml(date)+'</small>'+
         (app.cover_letter?'<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--g);font-weight:700">عرض خطاب التقديم</summary><p>'+escapeAdminHtml(app.cover_letter)+'</p></details>':"")+
         '</article>';
