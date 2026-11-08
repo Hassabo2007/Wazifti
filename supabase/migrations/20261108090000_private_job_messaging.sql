@@ -26,6 +26,9 @@ create index if not exists job_messages_recipient_unread_idx
 
 alter table public.job_messages enable row level security;
 
+revoke all on public.job_messages from anon, authenticated;
+grant select, insert on public.job_messages to authenticated;
+
 drop policy if exists "Conversation participants read messages" on public.job_messages;
 create policy "Conversation participants read messages"
 on public.job_messages for select to authenticated
