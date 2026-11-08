@@ -28,29 +28,9 @@ using (
   )
 );
 
-drop policy if exists "Individual job owners update application statuses" on public.applications;
-create policy "Individual job owners update application statuses"
-on public.applications
-for update
-to authenticated
-using (
-  exists (
-    select 1
-    from public.jobs j
-    where j.id = applications.job_id
-      and j.poster_type = 'individual'
-      and j.posted_by_user_id = (select auth.uid())
-  )
-)
-with check (
-  exists (
-    select 1
-    from public.jobs j
-    where j.id = applications.job_id
-      and j.poster_type = 'individual'
-      and j.posted_by_user_id = (select auth.uid())
-  )
-);
+-- Application status changes for individual-job owners will be exposed through
+-- a narrowly scoped RPC after the existing company policies are audited.
+-- Do not grant broad UPDATE access to application rows.
 
 -- The trigger serializes acceptance by locking the job row. This prevents two
 -- applicants from being accepted for the same vacancy concurrently.
@@ -134,25 +114,6 @@ $$;
 
 revoke all on function private.archive_filled_jobs() from public, anon, authenticated;
 
--- Supabase Cron runs this once daily. The extension is installed only if absent.
-create extension if not exists pg_cron;
-
-do $$
-declare
-  v_existing_job_id bigint;
-begin
-  select jobid into v_existing_job_id
-  from cron.job
-  where jobname = 'wazifti_archive_filled_jobs';
-
-  if v_existing_job_id is not null then
-    perform cron.unschedule(v_existing_job_id);
-  end if;
-
-  perform cron.schedule(
-    'wazifti_archive_filled_jobs',
-    '0 2 * * *',
-    'select private.archive_filled_jobs();'
-  );
-end;
-$$;
+-- Scheduling is intentionally not configured in this migration.
+-- Run this function from a separately reviewed Supabase Scheduled Edge Function
+-- after confirming the project's scheduler configuration. No extension is installed here.
