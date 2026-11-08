@@ -1046,6 +1046,26 @@ body.modal-open { overflow: hidden; }
 }
 @media(min-width:761px) and (max-width:980px){.hero-inner{gap:25px}.brand-art{min-height:320px}.art-map{width:160px;height:160px}.art-map img{width:145px;height:145px}}
 </style>
+
+<style>
+/* Mobile UX and accessibility refinement: touch targets, compact forms, and drawer focus. */
+.menu-toggle,.drawer-close { min-width:44px; min-height:44px; }
+.drawer-nav a { min-height:44px; display:flex; align-items:center; }
+.drawer-actions .btn { min-height:46px; }
+#profileModal input,#profileModal select,#profileModal textarea,
+#employerJobForm input,#employerJobForm select,#employerJobForm textarea,
+#jobApplicationModal input,#jobApplicationModal select,#jobApplicationModal textarea { font-size:16px; }
+#profileModal button,#employerDashboardModal button,#jobApplicationModal button { min-height:44px; }
+@media(max-width:430px){
+  #employerJobForm .job-form-grid,
+  #employerJobForm .job-salary-grid { grid-template-columns:minmax(0,1fr); }
+  #employerJobForm .job-salary-grid>div:last-child { grid-column:auto; }
+  #employerJobForm .job-salary-grid input { max-width:none; }
+  #profileModal .modal-content,#employerDashboardModal .employer-dashboard-content { padding:14px; }
+  .site-drawer { width:min(360px,92vw); }
+}
+@media(prefers-reduced-motion:reduce){.menu-toggle,.drawer-nav a { transition:none; }}
+</style>
 </head>
 <body>
 <header class="site-header"><div class="nav">
@@ -1053,8 +1073,8 @@ body.modal-open { overflow: hidden; }
 <button class="menu-toggle" id="menuToggle" type="button" aria-label="فتح القائمة" aria-controls="siteDrawer" aria-expanded="false" onclick="toggleSiteMenu()">☰</button>
 </div></header>
 <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeSiteMenu()" aria-hidden="true"></div>
-<aside class="site-drawer" id="siteDrawer" aria-label="القائمة الرئيسية" aria-hidden="true">
-<div class="drawer-head"><div class="drawer-brand"><img src="/icons/icon-192.svg" alt=""><span data-t="brand">وظيفتي</span></div><button class="drawer-close" type="button" aria-label="إغلاق القائمة" onclick="closeSiteMenu()">×</button></div>
+<aside class="site-drawer" id="siteDrawer" role="dialog" aria-modal="true" aria-labelledby="drawerBrandTitle" tabindex="-1" aria-label="القائمة الرئيسية" aria-hidden="true">
+<div class="drawer-head"><div class="drawer-brand" id="drawerBrandTitle"><img src="/icons/icon-192.svg" alt=""><span data-t="brand">وظيفتي</span></div><button class="drawer-close" type="button" aria-label="إغلاق القائمة" onclick="closeSiteMenu()">×</button></div>
 <nav class="drawer-nav"><a href="#jobs" data-t="navJobs" onclick="closeSiteMenu()">الوظائف</a><a href="#how" data-t="navHow" onclick="closeSiteMenu()">كيف تعمل المنصة؟</a><a href="#about" data-t="navAbout" onclick="closeSiteMenu()">عن وظيفتي</a></nav>
 <div class="drawer-actions">
 <div class="auth-actions"><button class="btn outline" id="loginBtn" onclick="closeSiteMenu();openLogin()">دخول</button><button class="btn primary" id="signupBtn" onclick="closeSiteMenu();openSignup()">إنشاء حساب</button></div>
@@ -3823,10 +3843,42 @@ function closeJobConversation(){
 }
 setInterval(()=>{if(currentAuthUser)refreshHeaderNotificationCount();},20000);
 
+let siteMenuReturnFocus=null;
 function toggleSiteMenu(){const d=document.getElementById('siteDrawer');if(d&&d.classList.contains('open'))closeSiteMenu();else openSiteMenu();}
-function openSiteMenu(){const d=document.getElementById('siteDrawer'),b=document.getElementById('drawerBackdrop'),t=document.getElementById('menuToggle');if(!d||!b)return;d.classList.add('open');b.classList.add('open');d.setAttribute('aria-hidden','false');b.setAttribute('aria-hidden','false');if(t)t.setAttribute('aria-expanded','true');document.body.classList.add('drawer-open');}
-function closeSiteMenu(){const d=document.getElementById('siteDrawer'),b=document.getElementById('drawerBackdrop'),t=document.getElementById('menuToggle');if(!d||!b)return;d.classList.remove('open');b.classList.remove('open');d.setAttribute('aria-hidden','true');b.setAttribute('aria-hidden','true');if(t)t.setAttribute('aria-expanded','false');document.body.classList.remove('drawer-open');}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSiteMenu();});
+function openSiteMenu(){
+  const d=document.getElementById('siteDrawer'),b=document.getElementById('drawerBackdrop'),t=document.getElementById('menuToggle');
+  if(!d||!b||d.classList.contains('open'))return;
+  siteMenuReturnFocus=document.activeElement;
+  d.classList.add('open');b.classList.add('open');
+  d.setAttribute('aria-hidden','false');b.setAttribute('aria-hidden','false');
+  if(t)t.setAttribute('aria-expanded','true');
+  document.body.classList.add('drawer-open');
+  const closeButton=d.querySelector('.drawer-close');
+  if(closeButton)closeButton.focus({preventScroll:true});
+}
+function closeSiteMenu(){
+  const d=document.getElementById('siteDrawer'),b=document.getElementById('drawerBackdrop'),t=document.getElementById('menuToggle');
+  if(!d||!b||!d.classList.contains('open'))return;
+  d.classList.remove('open');b.classList.remove('open');
+  d.setAttribute('aria-hidden','true');b.setAttribute('aria-hidden','true');
+  if(t)t.setAttribute('aria-expanded','false');
+  document.body.classList.remove('drawer-open');
+  const returnTarget=siteMenuReturnFocus&&siteMenuReturnFocus.isConnected?siteMenuReturnFocus:t;
+  if(returnTarget)returnTarget.focus({preventScroll:true});
+  siteMenuReturnFocus=null;
+}
+document.addEventListener('keydown',e=>{
+  const d=document.getElementById('siteDrawer');
+  if(!d||!d.classList.contains('open'))return;
+  if(e.key==='Escape'){e.preventDefault();closeSiteMenu();return;}
+  if(e.key==='Tab'){
+    const focusable=[...d.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(el=>el.getClientRects().length);
+    if(!focusable.length){e.preventDefault();d.focus();return;}
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  }
+});
 </script>
 
 </body></html>
