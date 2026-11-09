@@ -3768,14 +3768,19 @@ if (employerRegistrationForm) {
     }
   });
 }
-// Start public listings only after all shared state and helper functions are initialized.
+// Start public listings immediately; taxonomy loading must not block the first jobs request.
 updateTexts();
+const initialPublicJobsLoad = loadLiveJobs();
+startLiveJobsUpdates();
 (async()=>{
-  try { await loadWaziftiTaxonomy(); await loadJobCategoryFilters(); }
-  catch(error) { console.error("Taxonomy load failed:",error); }
-  await loadLiveJobs();
-  startLiveJobsUpdates();
+  try {
+    await loadWaziftiTaxonomy();
+    await loadJobCategoryFilters();
+  } catch(error) {
+    console.error("Taxonomy load failed:",error);
+  }
 })();
+
 </script>
 
  
