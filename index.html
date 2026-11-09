@@ -617,6 +617,50 @@ footer { line-height: 2.2; }
 footer small { display: inline-block; margin-top: 8px; color: #b7d8c4; }
 @media (max-width: 760px) { .hero { padding-top: 34px; } .hero-inner { gap: 22px; } .stats { gap: 12px; margin-top: 20px; } .job { gap: 12px; } .how-grid { grid-template-columns: 1fr; gap: 12px; } .how-card { padding: 20px 17px; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+
+/* V1.1 visual identity refresh: Sudanese opportunity theme */
+:root{--g:#087a4b;--d:#064e35;--mint:#e8f5ec;--ink:#17372a;--gold:#c89b3c;--bg:#f7faf8}
+.brand-mark{width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(6,78,53,.15))}
+.brand-copy strong{letter-spacing:-.5px}
+.hero{position:relative;overflow:hidden;background:radial-gradient(circle at 12% 18%,rgba(200,155,60,.12),transparent 25%),linear-gradient(120deg,#e5f4e9 0%,#f8fcf9 58%,#eef7f0 100%);border-bottom:1px solid #e1eee5}
+.hero:before{content:"";position:absolute;width:330px;height:330px;border:1px solid rgba(8,122,75,.09);border-radius:50%;inset-inline-start:-150px;top:-185px;box-shadow:0 0 0 28px rgba(8,122,75,.025),0 0 0 58px rgba(8,122,75,.02);pointer-events:none}
+.hero-inner{position:relative;z-index:1;gap:clamp(24px,5vw,70px)}
+.hero h1{font-size:clamp(30px,4vw,46px);line-height:1.42;letter-spacing:-.7px}
+.hero h1 span{color:var(--g)!important}
+.hero p{max-width:650px}
+.search{border-radius:17px;padding:8px;box-shadow:0 14px 35px rgba(6,78,53,.09);border-color:#d5e8db}
+.search input{border-radius:10px}
+.search .btn{border-radius:12px;min-height:48px}
+.stats{align-items:center;flex-wrap:wrap}
+.trust-note{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid #dcebe1;border-radius:99px;background:rgba(255,255,255,.72);color:#426653}
+.trust-note [aria-hidden=true]{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#e2f2e7;color:var(--g);font-weight:900}
+.art{position:relative;overflow:hidden;min-height:270px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #d9e9df;border-radius:28px;background:linear-gradient(155deg,#fff 15%,#f0f8f2 100%);box-shadow:0 22px 55px rgba(6,78,53,.09)}
+.art:before,.art:after{content:"";position:absolute;border:1px solid rgba(8,122,75,.12);border-radius:50%;width:245px;height:245px;pointer-events:none}
+.art:after{width:300px;height:300px;border-color:rgba(200,155,60,.18)}
+.articon{position:relative;z-index:1;width:124px;height:124px;display:grid;place-items:center;border-radius:32px;background:#087a4b;box-shadow:0 15px 35px rgba(8,122,75,.2)}
+.articon img{width:100%;height:100%;object-fit:contain;padding:0;border-radius:32px}
+.art h3,.art p{position:relative;z-index:1}
+.art h3{margin:20px 0 5px;color:var(--d);font-size:20px}
+.art p{margin:0;text-align:center;padding:0 16px}
+.wrap{margin-top:38px}
+.head h2{letter-spacing:-.3px}
+.filters,.job,.empty{box-shadow:0 5px 18px rgba(17,65,42,.035)}
+@media(max-width:760px){
+ .hero{padding:38px 16px 34px}
+ .hero-inner{gap:20px}
+ .hero h1{font-size:30px;line-height:1.55}
+ .hero p{font-size:14px;line-height:1.9}
+ .search{gap:7px}
+ .search input{flex-basis:100%;min-height:44px;background:#f8fbf9}
+ .search .btn{width:100%}
+ .stats{margin-top:17px;gap:10px}
+ .art{display:flex;min-height:205px;padding:22px}
+ .articon{width:82px;height:82px;border-radius:23px}
+ .articon img{border-radius:23px}
+ .art h3{font-size:17px;margin:12px 0 4px}
+ .wrap{margin-top:28px}
+}
+
 </style><style>
 /* V1.3.2: unified mobile-friendly profile and employer dashboard modals */
 body.modal-open { overflow: hidden; }
@@ -1011,7 +1055,7 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 <p data-t="sub">ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.</p>
 <div class="search"><input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة"><input id="city" data-ph="searchCity" placeholder="المدينة"><button class="btn primary" onclick="filterJobs()" data-t="search">ابحث عن وظيفة</button></div>
 <div class="stats"><span class="live-stat"><b id="liveJobCount">0</b><span data-t="statJobs">وظيفة منشورة</span></span><span class="trust-note"><span aria-hidden="true">✓</span> <span data-t="reviewNote">وظائف تُراجع قبل النشر</span></span></div></div>
-<div class="art"><div class="articon">💼</div><h3 data-t="artTitle">وظيفتك القادمة أقرب مما تتوقع</h3><p class="muted" data-t="artSub">فرص في مختلف القطاعات والمجالات في السودان.</p></div></div></section>
+<div class="art"><div class="articon"><img src="/assets/wazifti-sudan-mark.svg" alt="شعار وظيفتي"></div><h3 data-t="artTitle">وظيفتك القادمة أقرب مما تتوقع</h3><p class="muted" data-t="artSub">فرص في مختلف القطاعات والمجالات في السودان.</p></div></div></section>
 <main class="wrap" id="jobs"><div class="head"><h2 data-t="latest">أحدث فرص العمل</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="muted" id="count"></span><button class="btn outline" id="refreshLiveJobsBtn" type="button" onclick="loadLiveJobs()" data-t="refreshJobs">↻ تحديث الوظائف</button></div></div>
 <div class="layout"><aside class="filters"><button class="btn outline" onclick="clearFilters()" style="width:100%;margin-bottom:12px" data-t="clearFilters">
   مسح جميع الفلاتر
