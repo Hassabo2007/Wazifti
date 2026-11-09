@@ -1023,6 +1023,39 @@ function closeMobileDrawer(){
 document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileDrawer();});
 </script>
 
+<style>
+/* V1.10 UX: keep job search easy to find while browsing */
+.job-search-dock{
+  position:sticky;top:0;z-index:850;
+  padding:10px 16px;
+  background:rgba(247,250,248,.96);
+  border-bottom:1px solid #dcebe1;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.job-search-inner{
+  max-width:1050px;margin:0 auto;
+  display:grid;grid-template-columns:minmax(0,1.5fr) minmax(150px,.8fr) auto;
+  gap:9px;align-items:center;
+  background:#fff;border:1px solid #d5e8db;border-radius:15px;
+  padding:7px;box-shadow:0 7px 22px rgba(6,78,53,.07);
+}
+.job-search-inner input{
+  width:100%;min-width:0;box-sizing:border-box;
+  border:1px solid #e0ebe4;border-radius:10px;
+  padding:12px 13px;min-height:44px;font:14px Tahoma,Arial;
+  background:#f9fcfa;outline:none;
+}
+.job-search-inner input:focus{border-color:#087a4b;box-shadow:0 0 0 3px rgba(8,122,75,.1)}
+.job-search-inner .btn{min-height:44px;white-space:nowrap}
+@media(max-width:600px){
+  .job-search-dock{padding:7px 10px}
+  .job-search-inner{grid-template-columns:minmax(0,1fr) minmax(90px,.65fr);gap:6px;padding:6px;border-radius:12px}
+  .job-search-inner input{padding:10px 8px;font-size:12px;min-height:42px}
+  .job-search-inner .btn{grid-column:1/-1;width:100%;min-height:40px;padding:9px 12px}
+}
+@media(prefers-reduced-motion:reduce){.job-search-dock{scroll-behavior:auto}}
+</style>
 </head>
 <body>
 <header><div class="nav"><a class="brand" href="/" aria-label="وظيفتي - الصفحة الرئيسية" style="text-decoration:none;color:inherit">
@@ -1052,9 +1085,16 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
   </aside>
 </div></div>
 </header>
+<div class="job-search-dock" role="search" aria-label="البحث عن الوظائف">
+  <div class="job-search-inner">
+    <input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة" aria-label="المسمى الوظيفي أو المهارة">
+    <input id="city" data-ph="searchCity" placeholder="المدينة" aria-label="المدينة">
+    <button class="btn primary" type="button" onclick="filterJobs()" data-t="search">ابحث عن وظيفة</button>
+  </div>
+</div>
 <section class="hero"><div class="hero-inner"><div><h1 data-t="headline">خطوتك الأولى نحو<br><span style="color:var(--g)">فرصة عمل أفضل</span></h1>
 <p data-t="sub">ابحث عن الوظائف المناسبة لك في السودان، وتواصل مع أصحاب العمل بسهولة من مكان واحد.</p>
-<div class="search"><input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة"><input id="city" data-ph="searchCity" placeholder="المدينة"><button class="btn primary" onclick="filterJobs()" data-t="search">ابحث عن وظيفة</button></div>
+
 <div class="stats"><span class="live-stat"><b id="liveJobCount">0</b><span data-t="statJobs">وظيفة منشورة</span></span><span class="trust-note"><span aria-hidden="true">✓</span> <span data-t="reviewNote">وظائف تُراجع قبل النشر</span></span></div></div>
 <div class="art"><div class="articon"><img src="/assets/wazifti-sudan-mark.svg" alt="شعار وظيفتي"></div><h3 data-t="artTitle">وظيفتك القادمة أقرب مما تتوقع</h3><p class="muted" data-t="artSub">فرص في مختلف القطاعات والمجالات في السودان.</p></div></div></section>
 <main class="wrap" id="jobs"><div class="head"><h2 data-t="latest">أحدث فرص العمل</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="muted" id="count"></span><button class="btn outline" id="refreshLiveJobsBtn" type="button" onclick="loadLiveJobs()" data-t="refreshJobs">↻ تحديث الوظائف</button></div></div>
