@@ -12,6 +12,14 @@
     #waziftiJobAlertsModal input,#waziftiJobAlertsModal select{max-width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccdcd2;border-radius:9px;font:inherit}
     #waziftiJobAlertsModal .wa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
     #waziftiJobAlertsModal .wa-check{display:flex;gap:7px;align-items:center;background:#f4f8f5;border-radius:9px;padding:8px;font-size:13px}
+    #waziftiJobAlertsModal .wa-options-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;margin:14px 0 8px;padding:13px 14px;background:#edf6f0;border:1px solid #d5e8db;border-radius:11px;color:#145b39;font-weight:700;text-align:right}
+    #waziftiJobAlertsModal .wa-options-panel{padding:4px 0 8px}
+    #waziftiJobAlertsModal details.wa-group{border:1px solid #e0ebe4;border-radius:11px;margin:8px 0;background:#fff;overflow:hidden}
+    #waziftiJobAlertsModal details.wa-group summary{cursor:pointer;list-style:none;padding:13px 14px;background:#f6faf7;color:#214d35;font-weight:700}
+    #waziftiJobAlertsModal details.wa-group summary::-webkit-details-marker{display:none}
+    #waziftiJobAlertsModal details.wa-group summary:after{content:"＋";float:left;color:#087a4b}
+    #waziftiJobAlertsModal details.wa-group[open] summary:after{content:"−"}
+    #waziftiJobAlertsModal .wa-group-body{padding:10px 12px}
     #waziftiJobAlertsModal button{font:700 14px Tahoma;cursor:pointer}
     #waziftiJobAlertsModal .wa-primary{background:#087a4b;color:#fff;border:0;border-radius:10px;padding:11px 16px}
     #waziftiJobAlertsModal .wa-secondary{background:#edf4ef;color:#24543c;border:1px solid #d5e4da;border-radius:10px;padding:10px 14px}
@@ -27,10 +35,17 @@
     <p class="wa-note">اختر مجالاتك ومواقع العمل لتصلك الفرص الجديدة. يمكنك إيقاف التنبيهات في أي وقت.</p>
     <div id="waStatus" class="wa-note" role="status" aria-live="polite">جارٍ تحميل الإعدادات...</div>
     <label class="wa-check"><input id="waEnabled" type="checkbox"> تفعيل تنبيهات الوظائف</label>
-    <label>التخصصات الرئيسية</label><div id="waCategories" class="wa-grid"></div>
-    <label>التخصصات الفرعية</label><div id="waSpecialties" class="wa-grid"></div>
-    <label for="waLocations">الولايات أو المدن (افصل بينها بفاصلة)</label><input id="waLocations" style="width:100%" placeholder="الخرطوم، أم درمان، الجزيرة">
-    <label>نوع العمل</label><div id="waEmployment" class="wa-grid"></div>
+    <button class="wa-options-toggle" id="waOptionsToggle" type="button" aria-expanded="false" aria-controls="waOptionsPanel"><span>خيارات التنبيه والتخصصات والمواقع</span><span id="waOptionsIcon" aria-hidden="true">＋</span></button>
+    <div id="waOptionsPanel" class="wa-options-panel" hidden>
+      <details class="wa-group"><summary>التصنيفات والتخصصات</summary><div class="wa-group-body">
+        <label>التخصصات الرئيسية</label><div id="waCategories" class="wa-grid"></div>
+        <label>التخصصات الفرعية</label><div id="waSpecialties" class="wa-grid"></div>
+      </div></details>
+      <details class="wa-group"><summary>موقع العمل</summary><div class="wa-group-body">
+        <label for="waLocations">الولايات أو المدن (افصل بينها بفاصلة)</label><input id="waLocations" style="width:100%" placeholder="الخرطوم، أم درمان، الجزيرة">
+      </div></details>
+      <details class="wa-group"><summary>نوع العمل</summary><div class="wa-group-body"><div id="waEmployment" class="wa-grid"></div></div></details>
+    </div>
     <label class="wa-check"><input id="waPush" type="checkbox"> أرسل إشعاراً فورياً على الهاتف أيضاً</label>
     <p class="wa-note">إشعارات الهاتف تحتاج السماح بها من المتصفح. ستظل إشعارات حالة طلبات التقديم منفصلة كما هي.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="wa-primary" id="waSave" type="button">حفظ التفضيلات</button><button class="wa-secondary" id="waReload" type="button">تحديث التنبيهات</button></div>
@@ -41,6 +56,13 @@
   modal.querySelector("#waClose").addEventListener("click",close);
   modal.querySelector("#waReload").addEventListener("click",loadInbox);
   modal.querySelector("#waSave").addEventListener("click",save);
+  modal.querySelector("#waOptionsToggle").addEventListener("click",()=>{
+    const panel=modal.querySelector("#waOptionsPanel");
+    const opening=panel.hidden;
+    panel.hidden=!opening;
+    modal.querySelector("#waOptionsToggle").setAttribute("aria-expanded",String(opening));
+    modal.querySelector("#waOptionsIcon").textContent=opening?"−":"＋";
+  });
   function close(){modal.style.display="none";document.body.classList.remove("modal-open");}
   function status(t){modal.querySelector("#waStatus").textContent=t;}
   function checkedValues(root){return [...root.querySelectorAll("input:checked")].map(x=>x.value);}
