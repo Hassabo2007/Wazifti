@@ -61,12 +61,10 @@ function restHeaders(key: string) {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
-  if (!authorized(req)) return json({ error: "Unauthorized" }, 401);
-
   const url = Deno.env.get("SUPABASE_URL");
   const key = serverSecrets()[0] || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!url || !key) return json({ error: "Worker configuration is incomplete" }, 500);
-  const base = url.replace(/\\/$/, "");
+  const base = url.replace(/\/$/, "");
   if (!(await authorized(req, base, key))) return json({ error: "Unauthorized" }, 401);
 
   let limit = 10;
@@ -76,7 +74,6 @@ Deno.serve(async (req: Request) => {
   } catch { return json({ error: "Invalid JSON body" }, 400); }
 
   const headers = restHeaders(key);
-  const base = url.replace(/\/$/, "");
   try {
     const processResponse = await fetch(`${base}/rest/v1/rpc/process_job_alert_outbox`, {
       method: "POST", headers, body: JSON.stringify({ p_limit: limit }),
