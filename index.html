@@ -1068,6 +1068,56 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 .job-taxonomy-fields select:focus{outline:2px solid #b8dec7;border-color:#087a4b}
 .job-taxonomy-fields .taxonomy-help{display:block;margin-top:6px;color:#66786c;font-size:12px;line-height:1.7}
 </style>
+
+<style id="v1-14-candidate-dashboard">
+/* V1.14: candidate workspace layout — keeps all existing profile and resume actions intact. */
+#profileModal .modal-content{
+  width:min(100%,1000px);
+  max-width:1000px;
+  max-height:min(94vh,960px);
+  padding:clamp(16px,2.4vw,28px);
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  grid-template-areas:"title title" "intro intro" "form form" "experience resume";
+  gap:14px;
+  overflow-y:auto;
+  background:linear-gradient(180deg,#f8fcf9 0,#fff 150px);
+}
+#profileModal .close-btn{position:sticky;top:0;grid-column:2;grid-row:1;justify-self:end;float:none;margin-bottom:-48px}
+#profileModal #profileTitle{grid-area:title;margin:4px 0 0;padding:8px 0 12px;border-bottom:1px solid #e4eee7;color:#064e35;font-size:clamp(21px,3vw,28px);font-weight:900}
+#profileModal #profileIntro{grid-area:intro;margin:0;color:#6a7b70;line-height:1.8}
+#profileModal #profileForm{grid-area:form;padding:16px;border:1px solid #dcebe1;border-radius:15px;background:#fff;box-shadow:0 5px 18px rgba(16,61,42,.045)}
+#profileModal #candidateExperienceSection{grid-area:experience;margin:0!important;min-width:0;background:#fff;box-shadow:0 5px 18px rgba(16,61,42,.045)}
+#profileModal #candidateResumeSection{grid-area:resume;margin:0!important;min-width:0;box-shadow:0 5px 18px rgba(16,61,42,.045)}
+#profileModal #candidateExperienceSection h3,
+#profileModal #candidateResumeSection h3{color:#064e35;font-size:17px}
+#profileModal #candidateExperiencesList,
+#profileModal #candidateResumesList{overflow-wrap:anywhere}
+#profileModal #candidateExperienceForm{padding-top:10px;border-top:1px solid #e8f0eb}
+#profileModal #candidateResumeFile{min-height:48px}
+#profileModal #profileMessage,
+#profileModal #experienceMessage,
+#profileModal #resumeMessage{line-height:1.8}
+@media(max-width:700px){
+  #profileModal{padding:8px}
+  #profileModal .modal-content{
+    width:100%;max-height:96vh;padding:14px;
+    grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"title" "intro" "form" "experience" "resume";
+    gap:11px;border-radius:15px;
+  }
+  #profileModal .close-btn{grid-column:1;grid-row:1}
+  #profileModal #profileTitle{font-size:21px;padding-inline-end:42px}
+  #profileModal #profileForm,
+  #profileModal #candidateExperienceSection,
+  #profileModal #candidateResumeSection{padding:13px}
+}
+@media(min-width:701px){
+  #profileModal #candidateExperienceSection,
+  #profileModal #candidateResumeSection{align-self:start}
+}
+</style>
+
 </head>
 <body>
 <header><div class="nav"><a class="brand" href="#jobs" onclick="event.preventDefault();loadLiveJobs({manual:true})" aria-label="وظيفتي - تحديث الوظائف" title="اضغط لتحديث الوظائف" style="text-decoration:none;color:inherit">
