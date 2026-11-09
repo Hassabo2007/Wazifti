@@ -1859,7 +1859,7 @@ function applyCandidateProfileLanguage() {
     const label=modal?.querySelector('label[for="'+id+'"]');
     if(label) label.textContent=value;
   });
-  const currentLabel=modal?.querySelector('label[for="experienceCurrent"]');
+  const currentLabel=modal?.querySelector("#experienceCurrent")?.closest("label");
   if(currentLabel) currentLabel.lastChild.textContent=" "+copy.current;
   const postingLabel=modal?.querySelector('label[for="profileIndividualPostingEnabled"] span');
   if(postingLabel) postingLabel.textContent=copy.individualPosting;
@@ -1974,7 +1974,7 @@ async function loadCandidateProfileData() {
   const categoryLabel = document.getElementById("profileCategoryLabel");
   const experienceHeading = document.getElementById("experienceHeading");
   const experienceFormHeading = document.getElementById("experienceFormHeading");
-  const currentLabel = document.querySelector('label[for="experienceCurrent"]');
+  const currentLabel = document.getElementById("experienceCurrent")?.closest("label");
   if (categoryLabel) categoryLabel.textContent = lang === "ar" ? "التصنيف الرئيسي" : "Main category";
   if (experienceHeading) experienceHeading.textContent = lang === "ar" ? "الخبرات العملية" : "Work experience";
   if (experienceFormHeading) experienceFormHeading.textContent = lang === "ar" ? "إضافة خبرة جديدة" : "Add new experience";
