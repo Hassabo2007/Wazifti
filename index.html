@@ -1068,6 +1068,56 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 .job-taxonomy-fields select:focus{outline:2px solid #b8dec7;border-color:#087a4b}
 .job-taxonomy-fields .taxonomy-help{display:block;margin-top:6px;color:#66786c;font-size:12px;line-height:1.7}
 </style>
+
+<style id="v1-14-candidate-dashboard">
+/* V1.14: candidate workspace layout — keeps all existing profile and resume actions intact. */
+#profileModal .modal-content{
+  width:min(100%,1000px);
+  max-width:1000px;
+  max-height:min(94vh,960px);
+  padding:clamp(16px,2.4vw,28px);
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  grid-template-areas:"title title" "intro intro" "form form" "experience resume";
+  gap:14px;
+  overflow-y:auto;
+  background:linear-gradient(180deg,#f8fcf9 0,#fff 150px);
+}
+#profileModal .close-btn{position:absolute;top:18px;inset-inline-end:18px;z-index:3;float:none;margin:0}
+#profileModal #profileTitle{grid-area:title;margin:4px 0 0;padding:8px 48px 12px 0;border-bottom:1px solid #e4eee7;color:#064e35;font-size:clamp(21px,3vw,28px);font-weight:900}
+#profileModal #profileIntro{grid-area:intro;margin:0;color:#6a7b70;line-height:1.8}
+#profileModal #profileForm{grid-area:form;padding:16px;border:1px solid #dcebe1;border-radius:15px;background:#fff;box-shadow:0 5px 18px rgba(16,61,42,.045)}
+#profileModal #candidateExperienceSection{grid-area:experience;margin:0!important;min-width:0;background:#fff;box-shadow:0 5px 18px rgba(16,61,42,.045)}
+#profileModal #candidateResumeSection{grid-area:resume;margin:0!important;min-width:0;box-shadow:0 5px 18px rgba(16,61,42,.045)}
+#profileModal #candidateExperienceSection h3,
+#profileModal #candidateResumeSection h3{color:#064e35;font-size:17px}
+#profileModal #candidateExperiencesList,
+#profileModal #candidateResumesList{overflow-wrap:anywhere}
+#profileModal #candidateExperienceForm{padding-top:10px;border-top:1px solid #e8f0eb}
+#profileModal #candidateResumeFile{min-height:48px}
+#profileModal #profileMessage,
+#profileModal #experienceMessage,
+#profileModal #resumeMessage{line-height:1.8}
+@media(max-width:700px){
+  #profileModal{padding:8px}
+  #profileModal .modal-content{
+    width:100%;max-height:96vh;padding:14px;
+    grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"title" "intro" "form" "experience" "resume";
+    gap:11px;border-radius:15px;
+  }
+  #profileModal .close-btn{top:14px;inset-inline-end:14px}
+  #profileModal #profileTitle{font-size:21px;padding-inline-end:42px}
+  #profileModal #profileForm,
+  #profileModal #candidateExperienceSection,
+  #profileModal #candidateResumeSection{padding:13px}
+}
+@media(min-width:701px){
+  #profileModal #candidateExperienceSection,
+  #profileModal #candidateResumeSection{align-self:start}
+}
+</style>
+
 </head>
 <body>
 <header><div class="nav"><a class="brand" href="#jobs" onclick="event.preventDefault();loadLiveJobs({manual:true})" aria-label="وظيفتي - تحديث الوظائف" title="اضغط لتحديث الوظائف" style="text-decoration:none;color:inherit">
@@ -1282,6 +1332,11 @@ function updateTexts(){
   const setText=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
   setText("lang",lang==="ar"?"EN":"عربي");setText("loginBtn",T.login);setText("signupBtn",T.signup);
   applyAuthModalLanguage();
+  if (typeof applyCandidateProfileLanguage === "function" && document.getElementById("profileModal")?.style.display === "flex") {
+    applyCandidateProfileLanguage();
+    loadCandidateExperiences();
+    loadCandidateResumes();
+  }
   setText("logoutBtn",T.logout);setText("profileBtn",T.profile);
   setText("myApplicationsBtn",lang==="ar"?"طلباتي":"My applications");
   setText("employerDashboardBtn",lang==="ar"?"لوحة صاحب العمل":"Employer dashboard");
@@ -1745,14 +1800,104 @@ const profileLabels = {
     failed:"Could not save profile: ", required:"Please enter your full name.",
     states:["Khartoum","Al Jazirah","Red Sea","Kassala","Al Qadarif","Sennar","White Nile","Blue Nile","River Nile","Northern","North Kordofan","South Kordofan","West Kordofan","North Darfur","South Darfur","West Darfur","Central Darfur","East Darfur"]
   }
+
 };
 
+function applyCandidateProfileLanguage() {
+  const isAr = lang === "ar";
+  const profileCopy = profileLabels[lang] || profileLabels.ar;
+  const copy = isAr ? {
+    close:"إغلاق", category:"التصنيف الرئيسي", categoryPlaceholder:"اختر التصنيف الرئيسي",
+    specialtyPlaceholder:"اختر التخصص الفرعي", individualPosting:"تفعيل نشر الوظائف للأفراد",
+    individualPostingHelp:"يتيح لك هذا الخيار نشر فرص العمل من حسابك الشخصي بعد استكمال إعدادات المنصة، وتخضع جميع الإعلانات لمراجعة الإدارة قبل النشر.",
+    experience:"الخبرات العملية", addExperience:"إضافة خبرة جديدة", employer:"جهة العمل",
+    jobTitle:"المسمى الوظيفي", start:"تاريخ البداية", end:"تاريخ النهاية",
+    current:"أعمل هنا حالياً", description:"وصف المهام (اختياري)", add:"إضافة الخبرة",
+    resume:"السيرة الذاتية", resumeHint:"ارفع سيرتك الذاتية بصيغة PDF (حتى 5 ميجابايت). يمكنك الاحتفاظ بأكثر من سيرة وتحديد واحدة كافتراضية.",
+    upload:"رفع السيرة الذاتية", fileLabel:"اختر ملف السيرة الذاتية بصيغة PDF"
+  } : {
+    close:"Close", category:"Main category", categoryPlaceholder:"Select a main category",
+    specialtyPlaceholder:"Select a specialty", individualPosting:"Enable job posting for individuals",
+    individualPostingHelp:"This option allows you to publish job opportunities from your personal account once the platform setup is complete. All listings are reviewed by the administration before publication.",
+    experience:"Work experience", addExperience:"Add new experience", employer:"Employer",
+    jobTitle:"Job title", start:"Start date", end:"End date",
+    current:"I currently work here", description:"Job responsibilities (optional)", add:"Add experience",
+    resume:"My resumes", resumeHint:"Upload a PDF resume (up to 5 MB). You can keep multiple resumes and choose one as your default.",
+    upload:"Upload resume", fileLabel:"Choose a PDF resume file"
+  };
+  const modal = document.getElementById("profileModal");
+  if (modal) {
+    modal.setAttribute("dir", isAr ? "rtl" : "ltr");
+    const close = modal.querySelector(".close-btn");
+    if (close) close.setAttribute("aria-label", copy.close);
+  }
+  const setText = (id, value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
+  setText("profileTitle",profileCopy.title);
+  setText("profileIntro",profileCopy.intro);
+  setText("profileNameLabel",profileCopy.name);
+  setText("profileEmailLabel",profileCopy.email);
+  setText("profilePhoneLabel",profileCopy.phone);
+  setText("profileStateLabel",profileCopy.state);
+  setText("profileCityLabel",profileCopy.city);
+  setText("profileCategoryLabel",copy.category);
+  setText("profileSpecialtyLabel",isAr?"التخصص الفرعي":"Specialty");
+  setText("profileQualificationLabel",profileCopy.qualification);
+  setText("profileBioLabel",profileCopy.bio);
+  setText("saveProfileBtn",profileCopy.save);
+  setText("experienceHeading",copy.experience);
+  setText("experienceFormHeading",copy.addExperience);
+  setText("resumeHeading",copy.resume);
+  setText("resumeHint",copy.resumeHint);
+  setText("uploadCandidateResumeBtn",copy.upload);
+  setText("addExperienceBtn",copy.add);
+  const labels = {
+    experienceCompany:copy.employer, experienceTitle:copy.jobTitle,
+    experienceStart:copy.start, experienceEnd:copy.end,
+    experienceDescription:copy.description
+  };
+  Object.entries(labels).forEach(([id,value])=>{
+    const label=modal?.querySelector('label[for="'+id+'"]');
+    if(label) label.textContent=value;
+  });
+  const currentLabel=modal?.querySelector("#experienceCurrent")?.closest("label");
+  if(currentLabel) currentLabel.lastChild.textContent=" "+copy.current;
+  const postingLabel=modal?.querySelector('label[for="profileIndividualPostingEnabled"] span');
+  if(postingLabel) postingLabel.textContent=copy.individualPosting;
+  const postingHelp=modal?.querySelector('#profileIndividualPostingEnabled')?.closest('section')?.querySelector('p');
+  if(postingHelp) postingHelp.textContent=copy.individualPostingHelp;
+  const stateSelect=document.getElementById("profileState");
+  if(stateSelect && stateSelect.options.length) {
+    const selected=stateSelect.value;
+    const statesAr=profileLabels.ar.states;
+    const statesEn=profileLabels.en.states;
+    Array.from(stateSelect.options).forEach((option,index)=>{
+      if(index===0) { option.textContent=profileCopy.choose; return; }
+      const stateIndex=statesAr.indexOf(option.value);
+      if(stateIndex>=0) option.textContent=isAr?statesAr[stateIndex]:statesEn[stateIndex];
+      else if(index-1<statesEn.length) option.textContent=isAr?statesAr[index-1]:statesEn[index-1];
+    });
+    if(selected) stateSelect.value=selected;
+  }
+  const category=document.getElementById("profileCategory");
+  if(category?.options.length) category.options[0].textContent=copy.categoryPlaceholder;
+  const specialty=document.getElementById("profileSpecialty");
+  if(specialty?.options.length) specialty.options[0].textContent=copy.specialtyPlaceholder;
+  if(waziftiTaxonomy.categories.length && category) {
+    const selectedCategory=category.value;
+    const selectedSpecialty=specialty?.value||"";
+    addSelectOptions(category,waziftiTaxonomy.categories,copy.categoryPlaceholder,selectedCategory);
+    populateProfileSpecialties(selectedCategory,selectedSpecialty);
+  }
+  const file=document.getElementById("candidateResumeFile");
+  if(file) { file.setAttribute("aria-label",copy.fileLabel); file.setAttribute("title",copy.fileLabel); }
+}
 function openProfile() {
   if (!currentAuthUser) {
     toast(lang === "ar" ? "يرجى تسجيل الدخول أولاً" : "Please log in first");
     return;
   }
   const m = profileLabels[lang];
+  applyCandidateProfileLanguage();
   document.getElementById("profileTitle").textContent = m.title;
   document.getElementById("profileIntro").textContent = m.intro;
   document.getElementById("profileNameLabel").textContent = m.name;
@@ -1829,7 +1974,7 @@ async function loadCandidateProfileData() {
   const categoryLabel = document.getElementById("profileCategoryLabel");
   const experienceHeading = document.getElementById("experienceHeading");
   const experienceFormHeading = document.getElementById("experienceFormHeading");
-  const currentLabel = document.querySelector('label[for="experienceCurrent"]');
+  const currentLabel = document.getElementById("experienceCurrent")?.closest("label");
   if (categoryLabel) categoryLabel.textContent = lang === "ar" ? "التصنيف الرئيسي" : "Main category";
   if (experienceHeading) experienceHeading.textContent = lang === "ar" ? "الخبرات العملية" : "Work experience";
   if (experienceFormHeading) experienceFormHeading.textContent = lang === "ar" ? "إضافة خبرة جديدة" : "Add new experience";
