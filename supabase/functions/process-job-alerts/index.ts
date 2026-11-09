@@ -21,12 +21,38 @@ function serverSecrets(): string[] {
     return values.filter((v): v is string => typeof v === "string" && v.length > 0);
   } catch { return []; }
 }
-function authorized(req: Request): boolean {
+async function authorized(req: Request, base: string, serviceKey: string): Promise<boolean> {
   const apiKey = req.headers.get("apikey") || "";
   const auth = req.headers.get("authorization") || "";
   const bearer = auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
   const candidates = [...serverSecrets(), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""].filter(Boolean);
-  return candidates.some(secret => equalConstantTime(apiKey, secret) && equalConstantTime(bearer, secret));
+  if (candidates.some(secret => equalConstantTime(apiKey, secret) && equalConstantTime(bearer, secret))) return true;
+
+  // Browser invocation is allowed only for a currently authenticated Wazifti admin.
+  // The publishable key is not a credential; the user's JWT and admin_users membership are both verified.
+  let publishableKeys: string[] = [];
+  try {
+    publishableKeys = Object.values(JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}"))
+      .filter((v): v is string => typeof v === "string" && v.length > 0);
+  } catch { publishableKeys = []; }
+  const legacyAnon = Deno.env.get("SUPABASE_ANON_KEY") || "";
+  if (legacyAnon) publishableKeys.push(legacyAnon);
+  if (!bearer || !publishableKeys.some(key => equalConstantTime(apiKey, key))) return false;
+
+  const userResponse = await fetch(`${base}/auth/v1/user`, {
+    headers: { apikey: apiKey, Authorization: `Bearer ${bearer}` },
+  });
+  if (!userResponse.ok) return false;
+  const user = await userResponse.json();
+  if (!user?.id) return false;
+
+  const adminResponse = await fetch(
+    `${base}/rest/v1/admin_users?user_id=eq.${encodeURIComponent(user.id)}&select=user_id`,
+    { headers: restHeaders(serviceKey) },
+  );
+  if (!adminResponse.ok) return false;
+  const admins = await adminResponse.json();
+  return Array.isArray(admins) && admins.some((row: { user_id?: string }) => row.user_id === user.id);
 }
 function restHeaders(key: string) {
   return { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" };
@@ -40,6 +66,8 @@ Deno.serve(async (req: Request) => {
   const url = Deno.env.get("SUPABASE_URL");
   const key = serverSecrets()[0] || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!url || !key) return json({ error: "Worker configuration is incomplete" }, 500);
+  const base = url.replace(/\\/$/, "");
+  if (!(await authorized(req, base, key))) return json({ error: "Unauthorized" }, 401);
 
   let limit = 10;
   try {
