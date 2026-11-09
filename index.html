@@ -1172,8 +1172,8 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 const data=[];
 let lang=(()=>{try{return localStorage.getItem("wazifti-language")==="en"?"en":"ar"}catch(e){return "ar"}})();let T={};
 // Public browser configuration. The publishable key is safe to expose only with correct Supabase RLS policies.
-const SUPABASE_URL = "https://zaucmxoxgpmipizzhbqs.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_g-HmAZw_pmn6wQy41JjUug_VqrVrJsq";
+const SUPABASE_URL = "https://igkemvtpfumbixajfrjr.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_o-ohdr57eZc65JcLE6mHGQ_Qe_GkBxh";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 function mapLiveJob(row){
   const company = Array.isArray(row.companies) ? row.companies[0] : row.companies;
@@ -3725,7 +3725,7 @@ function closeMyApplications(){
   const otherOpen=[profile,employer,application].some(x=>x&&x.style.display==="flex");
   if(!otherOpen) document.body.classList.remove("modal-open");
 }
-const WAZIFTI_VAPID_PUBLIC_KEY = "BGh1IJDO52tJUVrMGfRmhQXtOc7HMjdRCQLC5hPG6O3uyUkBqUrgwushtyem5BTNVxW4U_ghc9DBxmtR8w4vCc0";
+const WAZIFTI_VAPID_PUBLIC_KEY = "BJCBs4uyQoV9pcHtfZTNezbiqzZmQbGxlxS2hPw9VoNIiROa35MNymSIPP4b3nwfvkcQ1dUHAGH1tkSZGlwPxu8";
 
 function pushFeatureAvailable(){
   return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
