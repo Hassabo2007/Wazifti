@@ -133,7 +133,7 @@
     const categoryRoot=modal.querySelector("#waSelectedCategories"),specialtyRoot=modal.querySelector("#waSelectedSpecialties");
     categoryRoot.innerHTML=alertCategories.map(id=>{const item=alertCategoryData.find(x=>x.id===id);return '<span class="wa-chip">'+esc(item?(isEn()?(item.name_en||item.name_ar):(item.name_ar||item.name_en)):id)+' <button type="button" data-remove-category="'+id+'" aria-label="'+tr("إزالة التصنيف","Remove category")+'">×</button></span>';}).join("");
     specialtyRoot.innerHTML=alertSpecialties.map(id=>{const item=alertSpecialtyData.find(x=>x.id===id);return '<span class="wa-chip">'+esc(item?(isEn()?(item.name_en||item.name_ar):(item.name_ar||item.name_en)):id)+' <button type="button" data-remove-specialty="'+id+'" aria-label="'+tr("إزالة التخصص","Remove specialty")+'">×</button></span>';}).join("");
-    categoryRoot.querySelectorAll("[data-remove-category]").forEach(button=>button.addEventListener("click",()=>{const id=button.dataset.removeCategory;alertCategories=alertCategories.filter(x=>x!==id);alertSpecialties=alertSpecialties.filter(sid=>{const specialty=alertSpecialtyData.find(x=>x.id===sid);return !specialty||!alertCategories.length||alertCategories.includes(specialty.category_id);});renderAlertSelections();updateAlertSpecialtyOptions();}));
+    categoryRoot.querySelectorAll("[data-remove-category]").forEach(button=>button.addEventListener("click",()=>{const id=button.dataset.removeCategory;alertCategories=alertCategories.filter(x=>x!==id);alertSpecialties=alertSpecialties.filter(sid=>{const specialty=alertSpecialtyData.find(x=>x.id===sid);return !specialty||!alertCategories.length||alertCategories.includes(specialty.category_id);});renderAlertSelections();updateAlertSpecialtyOptions();const categorySelect=modal.querySelector("#waCategorySelect");modal.querySelector("#waAddCategory").disabled=!categorySelect.value||alertCategories.includes(categorySelect.value);}));
     specialtyRoot.querySelectorAll("[data-remove-specialty]").forEach(button=>button.addEventListener("click",()=>{alertSpecialties=alertSpecialties.filter(x=>x!==button.dataset.removeSpecialty);renderAlertSelections();}));
   }
   function updateAlertSpecialtyOptions(){
@@ -176,7 +176,7 @@
     modal.querySelector("#waPush").checked=!!p?.push_enabled;
     modal.querySelector("#waPush").disabled=modal.querySelector("#waDeliveryMode").value==="daily";
     if(modal.querySelector("#waPush").disabled)modal.querySelector("#waPush").checked=false;
-    if(!p)return;
+    if(!p){alertCategories=[];alertSpecialties=[];renderAlertSelections();updateAlertSpecialtyOptions();return;}
     const [cats,specs,locs,types]=await Promise.all([
       supabaseClient.from("job_alert_preference_categories").select("category_id").eq("preference_id",p.id),
       supabaseClient.from("job_alert_preference_specialties").select("specialty_id").eq("preference_id",p.id),
