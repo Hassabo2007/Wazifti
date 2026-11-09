@@ -1083,8 +1083,8 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
   overflow-y:auto;
   background:linear-gradient(180deg,#f8fcf9 0,#fff 150px);
 }
-#profileModal .close-btn{position:sticky;top:0;grid-column:2;grid-row:1;justify-self:end;float:none;margin-bottom:-48px}
-#profileModal #profileTitle{grid-area:title;margin:4px 0 0;padding:8px 0 12px;border-bottom:1px solid #e4eee7;color:#064e35;font-size:clamp(21px,3vw,28px);font-weight:900}
+#profileModal .close-btn{position:absolute;top:18px;inset-inline-end:18px;z-index:3;float:none;margin:0}
+#profileModal #profileTitle{grid-area:title;margin:4px 0 0;padding:8px 48px 12px 0;border-bottom:1px solid #e4eee7;color:#064e35;font-size:clamp(21px,3vw,28px);font-weight:900}
 #profileModal #profileIntro{grid-area:intro;margin:0;color:#6a7b70;line-height:1.8}
 #profileModal #profileForm{grid-area:form;padding:16px;border:1px solid #dcebe1;border-radius:15px;background:#fff;box-shadow:0 5px 18px rgba(16,61,42,.045)}
 #profileModal #candidateExperienceSection{grid-area:experience;margin:0!important;min-width:0;background:#fff;box-shadow:0 5px 18px rgba(16,61,42,.045)}
@@ -1106,7 +1106,7 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
     grid-template-areas:"title" "intro" "form" "experience" "resume";
     gap:11px;border-radius:15px;
   }
-  #profileModal .close-btn{grid-column:1;grid-row:1}
+  #profileModal .close-btn{top:14px;inset-inline-end:14px}
   #profileModal #profileTitle{font-size:21px;padding-inline-end:42px}
   #profileModal #profileForm,
   #profileModal #candidateExperienceSection,
