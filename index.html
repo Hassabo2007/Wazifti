@@ -1250,6 +1250,7 @@ ar:{adminDashboardTitle:"لوحة إدارة وظيفتي",refreshLists:"تحد�
 en:{adminDashboardTitle:"Wazifti Admin Dashboard",refreshLists:"Refresh lists",adminIntro:"Review company registrations and job listings before publication.",companyApprovalRequests:"Company approval requests",jobsAwaitingApproval:"Jobs awaiting approval",adminJobReviewIntro:"Review each job before publishing or rejecting it. Jobs remain hidden from the public until approved.",employerDashboardTitle:"Employer dashboard",employerDashboardIntro:"Manage your organization details and track your request and job listings.",refreshData:"Refresh data",closeDashboard:"Close ✕",dashboardHome:"Overview",myJobs:"My jobs",applicantsMessages:"Applicants & messages",companyDetails:"Company details",individualJobs:"My individual listings",individualJobsIntro:"Post opportunities under your name and track their review status.",postJobPlus:"+ Post a job",employerJobsTitle:"Company job listings",employerJobsIntro:"Add jobs and track their review status and applications.",brand:"Wazifti",tagline:"Sudan’s job opportunity platform",navJobs:"Jobs",navHow:"How it works",navAbout:"About Wazifti",login:"Log in",signup:"Create account",logout:"Log out",profile:"My profile",postJob:"Post a job",headline:'Your first step toward<br><span style="color:var(--g)">a better opportunity</span>',sub:"Find suitable jobs across Sudan and connect with employers in one place.",searchJob:"Job title or skill",searchCity:"City",search:"Find jobs",statJobs:"published jobs",reviewNote:"Jobs reviewed before publishing",statEmployers:"employers",statCities:"cities",artTitle:"Your next opportunity is closer than you think",artSub:"Opportunities across sectors and industries in Sudan.",latest:"Latest opportunities",filters:"Filter results",jobType:"Job type",full:"Full-time",part:"Part-time",remote:"Remote",sector:"Sector",health:"Healthcare",admin:"Administration",tech:"Technology",engineering:"Engineering",howTitle:"How does Wazifti work?",howIntro:"Three simple steps to move closer to your next opportunity.",howStep1Title:"Find an opportunity",howStep1Text:"Use search and categories to find jobs that match your skills.",howStep2Title:"Review the details",howStep2Text:"Read the job description, requirements, and employer information carefully.",howStep3Title:"Contact the employer",howStep3Text:"Follow the application instructions included in the job listing.",footerLine:"A Sudanese job-search platform",disclaimer:"Jobs are reviewed before appearing publicly.",brandLine:"Hope starts with an opportunity.",close:"Close ✕",details:"Job details",company:"Employer",location:"Location",type:"Job type",salary:"Salary",description:"Description",apply:"Demo application",empty:"No jobs match your search.",loginSoon:"Login will be available soon",employerSoon:"Employer registration will be available soon",demo:"This is a sample job; online applications are not enabled yet",count:"jobs shown",clearFilters:"Clear all filters",refreshJobs:"↻ Refresh jobs",categorySpecialty:"Categories and specialties",mainCategoryLabel:"Main category",allCategories:"All categories",subCategoryLabel:"Specialty",allSpecialties:"All specialties"}};
 function updateTexts(){
   T=words[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+  if(typeof employerApplicationStatusLabels!=="undefined") Object.assign(employerApplicationStatusLabels,{submitted:dashboardText("تم استلام الطلب","Application received"),reviewing:dashboardText("قيد المراجعة","Under review"),shortlisted:dashboardText("ضمن القائمة المختصرة","Shortlisted"),rejected:dashboardText("لم يتم الاختيار","Not selected"),accepted:dashboardText("تم القبول","Accepted")});
   document.querySelectorAll("[data-t]").forEach(e=>{if(T[e.dataset.t]!==undefined)e.innerHTML=T[e.dataset.t]});
   document.querySelectorAll("[data-ph]").forEach(e=>e.placeholder=T[e.dataset.ph]);
   const setText=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
@@ -2905,8 +2906,8 @@ async function toggleEmployerApplications(jobId) {
 
     const cards=await Promise.all(apps.map(async app=>{
       const resume=Array.isArray(app.candidate_resumes)?app.candidate_resumes[0]:app.candidate_resumes;
-      const applicantName=profileNames.get(app.candidate_id)||"باحث عن عمل";
-      let resumeActions='<p class="muted">لم تُرفق سيرة ذاتية بهذا الطلب.</p>';
+      const applicantName=profileNames.get(app.candidate_id)||dashboardText("باحث عن عمل","Job seeker");
+      let resumeActions='<p class="muted">' + dashboardText("لم تُرفق سيرة ذاتية بهذا الطلب.","No CV was attached to this application.") + '</p>';
       if(resume?.file_path) {
         const {data:signed,error:signedError}=await supabaseClient.storage.from(CANDIDATE_CV_BUCKET).createSignedUrl(resume.file_path,600);
         if(signedError) {
@@ -2949,19 +2950,19 @@ async function toggleEmployerApplications(jobId) {
 
 
 async function openIndividualJobForm(jobId=null) {
- if(!currentAuthUser){toast("يرجى تسجيل الدخول أولاً.");openLogin();return;}
+ if(!currentAuthUser){toast(dashboardText("يرجى تسجيل الدخول أولاً.","Please log in first."));openLogin();return;}
  try{
   const {data:profile,error}=await supabaseClient.from("profiles").select("can_post_individual_jobs").eq("id",currentAuthUser.id).maybeSingle();
   if(error)throw error;
-  if(profile?.can_post_individual_jobs!==true){toast("فعّل خيار «نشر الوظائف للأفراد» من ملفك الشخصي أولاً.");return;}
+  if(profile?.can_post_individual_jobs!==true){toast(dashboardText("فعّل خيار «نشر الوظائف للأفراد» من ملفك الشخصي أولاً.","First enable “Allow individual job postings” in your profile."));return;}
   employerJobPostingMode="individual";await loadWaziftiTaxonomy();
   const form=document.getElementById("employerJobForm");form.reset();employerEditingJobId=jobId;populateEmployerJobCategories();
   applyEmployerJobFormLanguage();
-  document.getElementById("saveEmployerJobBtn").textContent=jobId?"حفظ التعديلات":"إرسال للمراجعة";
+  document.getElementById("saveEmployerJobBtn").textContent=jobId?dashboardText("حفظ التعديلات","Save changes"):dashboardText("إرسال للمراجعة","Submit for review");
   document.getElementById("employerJobFormMessage").textContent="";
   if(jobId){
    const {data:job,error:je}=await supabaseClient.from("jobs").select("id,title,description,location,state,employment_type,category_id,specialty_id,salary_min,salary_max,currency,status").eq("id",jobId).eq("poster_type","individual").eq("posted_by_user_id",currentAuthUser.id).single();
-   if(je)throw je;if(job.status!=="pending")throw Error("يمكن تعديل الإعلانات التي ما زالت قيد المراجعة فقط.");
+   if(je)throw je;if(job.status!=="pending")throw Error(dashboardText("يمكن تعديل الإعلانات التي ما زالت قيد المراجعة فقط.","Only listings still under review can be edited."));
    document.getElementById("employerJobTitle").value=job.title||"";document.getElementById("employerJobDescription").value=job.description||"";
    document.getElementById("employerJobLocation").value=job.location||"";document.getElementById("employerJobState").value=job.state||"";
    document.getElementById("employerJobType").value=job.employment_type||"full_time";document.getElementById("employerJobSalaryMin").value=job.salary_min??"";
@@ -2970,7 +2971,7 @@ async function openIndividualJobForm(jobId=null) {
   }
   applyEmployerJobFormLanguage();
   document.getElementById("employerJobFormBox").style.display="block";document.getElementById("employerJobFormBox").scrollIntoView({behavior:"smooth",block:"start"});
- }catch(e){toast("تعذر فتح نموذج الوظيفة: "+(e.message||""));}
+ }catch(e){toast(dashboardText("تعذر فتح نموذج الوظيفة: ","Could not open job form: ")+(e.message||""));}
 }
 async function loadIndividualJobs(){
  const panel=document.getElementById("individualJobsPanel"),list=document.getElementById("individualJobsList");if(!currentAuthUser||!panel||!list)return;
@@ -2984,7 +2985,7 @@ async function loadIndividualJobs(){
     if (["published", "closed"].includes(j.status)) actions.push('<button class="btn outline small" type="button" data-individual-action="applications" data-job-id="' + escapeAdminHtml(j.id) + '">' + dashboardText("طلبات التقديم","Applications") + '</button><div id="employerApplications-' + escapeAdminHtml(j.id) + '" style="display:none;width:100%"></div>');
     if (["pending", "rejected"].includes(j.status)) actions.push('<button class="btn outline small" type="button" data-individual-action="delete" data-job-id="' + escapeAdminHtml(j.id) + '">' + dashboardText("حذف","Delete") + '</button>');
     return '<article style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px;margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>' + escapeAdminHtml(j.title) + '</strong><span class="tag">' + escapeAdminHtml(employerJobStatusLabel(j.status)) + '</span></div><div class="muted" style="margin:8px 0">' + escapeAdminHtml(j.location || dashboardText("الموقع غير محدد","Location not specified")) + '</div><div style="display:flex;gap:8px;flex-wrap:wrap">' + actions.join("") + '</div></article>';
-  }).join("") : '<p class="muted" style="padding:12px;background:#fff;border-radius:10px">You have not posted any jobs yet.</p>';
+  }).join("") : '<p class="muted" style="padding:12px;background:#fff;border-radius:10px">' + dashboardText("لم تنشر أي وظائف بعد.","You have not posted any jobs yet.") + '</p>';
   list.querySelectorAll("[data-individual-action]").forEach(button => {
     button.addEventListener("click", () => {
       const id = button.dataset.jobId;
@@ -2993,12 +2994,12 @@ async function loadIndividualJobs(){
       else if (button.dataset.individualAction === "delete") deleteIndividualJob(id);
     });
   });
- }catch(e){list.innerHTML='<p class="muted">تعذر تحميل إعلاناتك: '+escapeAdminHtml(e.message||"")+'</p>';}
+ }catch(e){list.innerHTML='<p class="muted">' + dashboardText("تعذر تحميل إعلاناتك: ","Could not load your listings: ") + escapeAdminHtml(e.message||"") + '</p>';}
 }
 async function deleteIndividualJob(id){
- if(!currentAuthUser||!confirm("هل تريد حذف هذا الإعلان؟"))return;
- try{const {error}=await supabaseClient.from("jobs").delete().eq("id",id).eq("poster_type","individual").eq("posted_by_user_id",currentAuthUser.id).in("status",["pending","rejected","closed"]);if(error)throw error;toast("تم حذف الإعلان.");await loadIndividualJobs();}
- catch(e){toast("تعذر حذف الإعلان: "+(e.message||""));}
+ if(!currentAuthUser||!confirm(dashboardText("هل تريد حذف هذا الإعلان؟","Do you want to delete this listing?")))return;
+ try{const {error}=await supabaseClient.from("jobs").delete().eq("id",id).eq("poster_type","individual").eq("posted_by_user_id",currentAuthUser.id).in("status",["pending","rejected","closed"]);if(error)throw error;toast(dashboardText("تم حذف الإعلان.","Listing deleted."));await loadIndividualJobs();}
+ catch(e){toast(dashboardText("تعذر حذف الإعلان: ","Could not delete listing: ")+(e.message||""));}
 }
 
 async function loadEmployerDashboard() {
