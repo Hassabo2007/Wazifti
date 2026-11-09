@@ -1254,6 +1254,7 @@ function updateTexts(){
   document.querySelectorAll("[data-ph]").forEach(e=>e.placeholder=T[e.dataset.ph]);
   const setText=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
   setText("lang",lang==="ar"?"EN":"عربي");setText("loginBtn",T.login);setText("signupBtn",T.signup);
+  applyAuthModalLanguage();
   setText("logoutBtn",T.logout);setText("profileBtn",T.profile);
   setText("myApplicationsBtn",lang==="ar"?"طلباتي":"My applications");
   setText("employerDashboardBtn",lang==="ar"?"لوحة صاحب العمل":"Employer dashboard");
@@ -1566,6 +1567,11 @@ function filterJobs(){
   display: block;
   text-align: right;
 }
+#signupModal[dir="ltr"] label,
+#loginModal[dir="ltr"] label { text-align: left; }
+#signupModal[dir="ltr"] .close-btn,
+#loginModal[dir="ltr"] .close-btn { left: auto; right: 12px; }
+
 
 #signupModal .close-btn,
 #loginModal .close-btn {
@@ -1581,6 +1587,7 @@ function filterJobs(){
 
 <script>
 function openSignup() {
+  applyAuthModalLanguage();
   const modal = document.getElementById("signupModal");
   if (modal) modal.style.display = "flex";
 }
@@ -1598,6 +1605,7 @@ function clearLoginCredentials() {
 }
 
 function openLogin() {
+  applyAuthModalLanguage();
   const modal = document.getElementById("loginModal");
   if (modal) modal.style.display = "flex";
 }
@@ -1607,6 +1615,76 @@ function closeLogin() {
   if (modal) modal.style.display = "none";
   clearLoginCredentials();
 }
+function applyAuthModalLanguage() {
+  const isEn = lang === "en";
+  const copy = isEn ? {
+    signupTitle:"Create a new account", signupIntro:"Join Wazifti",
+    fullName:"Full name", fullNamePlaceholder:"Enter your full name",
+    email:"Email address", password:"Password", passwordPlaceholder:"At least 6 characters",
+    confirmPassword:"Confirm password", confirmPlaceholder:"Enter your password again",
+    signupAction:"Create account", loginTitle:"Log in",
+    loginIntro:"Welcome back to Wazifti", loginPasswordPlaceholder:"Enter your password",
+    loginAction:"Log in", close:"Close"
+  } : {
+    signupTitle:"إنشاء حساب جديد", signupIntro:"انضم إلى منصة وظيفتي",
+    fullName:"الاسم الكامل", fullNamePlaceholder:"أدخل اسمك الكامل",
+    email:"البريد الإلكتروني", password:"كلمة المرور", passwordPlaceholder:"6 أحرف على الأقل",
+    confirmPassword:"تأكيد كلمة المرور", confirmPlaceholder:"أعد كتابة كلمة المرور",
+    signupAction:"إنشاء الحساب", loginTitle:"تسجيل الدخول",
+    loginIntro:"مرحباً بعودتك إلى وظيفتي", loginPasswordPlaceholder:"أدخل كلمة المرور",
+    loginAction:"دخول", close:"إغلاق"
+  };
+  const signup = document.getElementById("signupModal");
+  const login = document.getElementById("loginModal");
+  [signup,login].forEach(modal => {
+    if (modal) {
+      modal.setAttribute("dir", isEn ? "ltr" : "rtl");
+      modal.querySelectorAll(".close-btn").forEach(button => {
+        button.setAttribute("aria-label", copy.close);
+      });
+    }
+  });
+  if (signup) {
+    const form = signup.querySelector("#signupForm");
+    const heading = signup.querySelector("h2");
+    const intro = signup.querySelector(".modal-content > p");
+    if (heading) heading.textContent = copy.signupTitle;
+    if (intro) intro.textContent = copy.signupIntro;
+    const labels = form ? form.querySelectorAll("label") : [];
+    [copy.fullName,copy.email,copy.password,copy.confirmPassword].forEach((value,i) => {
+      if (labels[i]) labels[i].textContent = value;
+    });
+    const fields = [
+      ["signupName",copy.fullNamePlaceholder],
+      ["signupEmail","example@email.com"],
+      ["signupPassword",copy.passwordPlaceholder],
+      ["confirmPassword",copy.confirmPlaceholder]
+    ];
+    fields.forEach(([id,placeholder]) => {
+      const field = document.getElementById(id);
+      if (field) field.placeholder = placeholder;
+    });
+    const submit = form && form.querySelector('button[type="submit"]');
+    if (submit) submit.textContent = copy.signupAction;
+  }
+  if (login) {
+    const form = login.querySelector("#loginForm");
+    const heading = login.querySelector("h2");
+    const intro = login.querySelector(".modal-content > p");
+    if (heading) heading.textContent = copy.loginTitle;
+    if (intro) intro.textContent = copy.loginIntro;
+    const labels = form ? form.querySelectorAll("label") : [];
+    if (labels[0]) labels[0].textContent = copy.email;
+    if (labels[1]) labels[1].textContent = copy.password;
+    const email = document.getElementById("loginEmail");
+    const password = document.getElementById("loginPassword");
+    if (email) email.placeholder = "example@email.com";
+    if (password) password.placeholder = copy.loginPasswordPlaceholder;
+    const submit = form && form.querySelector('button[type="submit"]');
+    if (submit) submit.textContent = copy.loginAction;
+  }
+}
+
 
 
 // Wazifti V1.3.1: user profile stored in Supabase Auth user metadata.
