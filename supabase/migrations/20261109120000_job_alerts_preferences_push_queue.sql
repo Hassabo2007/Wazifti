@@ -136,24 +136,10 @@ begin
               or exists(select 1 from public.job_alert_preference_locations pl where pl.preference_id=p.id and pl.state=coalesce(v_job.state,v_job.location)))
             and (not exists(select 1 from public.job_alert_preference_employment_types pet where pet.preference_id=p.id)
               or exists(select 1 from public.job_alert_preference_employment_types pet where pet.preference_id=p.id and pet.employment_type=v_job.employment_type))
-            and (
-              (exists(select 1 from public.job_alert_preference_categories pc where pc.preference_id=p.id)
-                and exists(
-                  select 1 from public.job_alert_preference_categories pc
-                  where pc.preference_id=p.id and pc.category_id=v_job.category_id
-                    and (not exists(
-                      select 1 from public.job_alert_preference_specialties ps
-                      join public.job_specialties js on js.id=ps.specialty_id
-                      where ps.preference_id=p.id and js.category_id=pc.category_id
-                    ) or exists(
-                      select 1 from public.job_alert_preference_specialties ps
-                      where ps.preference_id=p.id and ps.specialty_id=v_job.specialty_id
-                    ))
-                ))
-              or (not exists(select 1 from public.job_alert_preference_categories pc where pc.preference_id=p.id)
-                and (not exists(select 1 from public.job_alert_preference_specialties ps where ps.preference_id=p.id)
-                  or exists(select 1 from public.job_alert_preference_specialties ps where ps.preference_id=p.id and ps.specialty_id=v_job.specialty_id)))
-            )
+            and (not exists(select 1 from public.job_alert_preference_categories pc where pc.preference_id=p.id)
+              or exists(select 1 from public.job_alert_preference_categories pc where pc.preference_id=p.id and pc.category_id=v_job.category_id))
+            and (not exists(select 1 from public.job_alert_preference_specialties ps where ps.preference_id=p.id)
+              or exists(select 1 from public.job_alert_preference_specialties ps where ps.preference_id=p.id and ps.specialty_id=v_job.specialty_id))
         loop
           v_notification_id:=null;
           insert into public.job_alert_notifications(user_id,job_id,job_title_snapshot,job_location_snapshot,available_at)
