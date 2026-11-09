@@ -2352,7 +2352,6 @@ async function previewAdminPdf(event, signedUrl, companyId) {
     panel.querySelector("[data-pdf-fit]").addEventListener("click", async () => { zoom = 1; await renderPages(); pagesContainer.scrollLeft = 0; });
     panel.querySelector("[data-pdf-close]").addEventListener("click", () => closeAdminPdfPreview(companyId));
     await renderPages();
-    panel.querySelector("[data-pdf-zoom-in]").focus({preventScroll:true});
   } catch (error) {
     console.error("PDF.js preview failed:", error);
     panel.innerHTML = '<p class="muted">' + dashboardText("تعذرت معاينة الملف. يرجى المحاولة مرة أخرى أو تنزيله.","Could not preview the file. Please try again or download it.") + '</p>' +
