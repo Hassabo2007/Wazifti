@@ -1094,7 +1094,10 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 #profileModal #candidateExperiencesList,
 #profileModal #candidateResumesList{overflow-wrap:anywhere}
 #profileModal #candidateExperienceForm{padding-top:10px;border-top:1px solid #e8f0eb}
-#profileModal #candidateResumeFile{min-height:0!important}\n#profileModal .resume-file-input{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}\n#profileModal .resume-file-picker-label{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border:1px solid #b9d7c5;border-radius:9px;background:#fff;color:#064e35;font-weight:600;cursor:pointer}\n#profileModal #candidateResumeFile:focus-visible + .resume-file-picker-label{outline:3px solid #7bbf9a;outline-offset:2px}
+#profileModal #candidateResumeFile{min-height:0!important}
+#profileModal .resume-file-input{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+#profileModal .resume-file-picker-label{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border:1px solid #b9d7c5;border-radius:9px;background:#fff;color:#064e35;font-weight:600;cursor:pointer}
+#profileModal #candidateResumeFile:focus-visible + .resume-file-picker-label{outline:3px solid #7bbf9a;outline-offset:2px}
 #profileModal #profileMessage,
 #profileModal #experienceMessage,
 #profileModal #resumeMessage{line-height:1.8}
@@ -1848,7 +1851,8 @@ function applyCandidateProfileLanguage() {
   setText("experienceFormHeading",copy.addExperience);
   setText("resumeHeading",copy.resume);
   setText("resumeHint",copy.resumeHint);
-  setText("uploadCandidateResumeBtn",copy.upload);\n  setText("resumeFilePickerLabel",copy.chooseFile);
+  setText("uploadCandidateResumeBtn",copy.upload);
+  setText("resumeFilePickerLabel",copy.chooseFile);
   setText("addExperienceBtn",copy.add);
   const labels = {
     experienceCompany:copy.employer, experienceTitle:copy.jobTitle,
