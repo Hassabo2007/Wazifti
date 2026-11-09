@@ -113,10 +113,12 @@
     if(error)throw error;
     const {data:specs,error:se}=await supabaseClient.from("job_specialties").select("id,category_id,name_ar,name_en").order("name_ar");
     if(se)throw se;
-    const croot=modal.querySelector("#waCategories"),sroot=modal.querySelector("#waSpecialties");\n    const previouslySelectedCategories=checkedValues(croot),previouslySelectedSpecialties=checkedValues(sroot),previouslySelectedEmployment=checkedValues(modal.querySelector("#waEmployment"));
+    const croot=modal.querySelector("#waCategories"),sroot=modal.querySelector("#waSpecialties");
+    const previouslySelectedCategories=checkedValues(croot),previouslySelectedSpecialties=checkedValues(sroot),previouslySelectedEmployment=checkedValues(modal.querySelector("#waEmployment"));
     croot.innerHTML=(cats||[]).map(c=>checkbox(c.id,(isEn()?(c.name_en||c.name_ar):(c.name_ar||c.name_en)))).join("")||'<p class="wa-note">'+tr('لا توجد تصنيفات متاحة حالياً.','No categories are currently available.')+'</p>';
     sroot.innerHTML=(specs||[]).map(s=>checkbox(s.id,(isEn()?(s.name_en||s.name_ar):(s.name_ar||s.name_en)))).join("")||'<p class="wa-note">'+tr('لا توجد تخصصات فرعية متاحة حالياً.','No specialties are currently available.')+'</p>';
-    const eroot=modal.querySelector("#waEmployment");eroot.innerHTML=EMPLOYMENT.map(item=>checkbox(item[0],employmentLabel(item))).join("");\n    [ [croot,previouslySelectedCategories],[sroot,previouslySelectedSpecialties],[eroot,previouslySelectedEmployment] ].forEach(([root,values])=>root.querySelectorAll("input").forEach(input=>input.checked=values.includes(input.value)));
+    const eroot=modal.querySelector("#waEmployment");eroot.innerHTML=EMPLOYMENT.map(item=>checkbox(item[0],employmentLabel(item))).join("");
+    [ [croot,previouslySelectedCategories],[sroot,previouslySelectedSpecialties],[eroot,previouslySelectedEmployment] ].forEach(([root,values])=>root.querySelectorAll("input").forEach(input=>input.checked=values.includes(input.value)));
     croot.querySelectorAll("input").forEach(x=>x.addEventListener("change",()=>{const ids=checkedValues(croot);sroot.querySelectorAll("label").forEach(l=>{const input=l.querySelector("input");const item=(specs||[]).find(s=>s.id===input?.value);l.style.opacity=(!ids.length||ids.includes(item?.category_id))?"1":".45";if(ids.length&&!ids.includes(item?.category_id))input.checked=false;});}));
   }
   async function loadPreferences(){
