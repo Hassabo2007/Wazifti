@@ -1346,7 +1346,7 @@ function updateTexts(){
   if (document.getElementById("myApplicationsModal")?.style.display === "flex" && currentAuthUser) {
     loadInAppNotifications(); loadMyApplications();
   }
-  if (document.getElementById("jobConversationModal")?.style.display === "flex" && activeJobConversation) loadJobConversationMessages();
+  if (document.getElementById("jobConversationModal")?.style.display === "flex") applyJobConversationLanguage();
   if (document.getElementById("pushNotificationsToggle")) refreshPushNotificationUI();
   setText("logoutBtn",T.logout);setText("profileBtn",T.profile);
   setText("myApplicationsBtn",lang==="ar"?"طلباتي":"My applications");
@@ -3919,8 +3919,7 @@ function applyJobConversationLanguage(){
  const input=document.getElementById("jobConversationInput");if(input)input.placeholder=ar?"اكتب رسالتك هنا...":"Write your message here...";
  const privacy=modal.querySelector("small.muted");if(privacy)privacy.textContent=ar?"المحادثة خاصة بينك وبين طرف الإعلان، ولا تظهر أرقام الهواتف.":"This conversation is private between you and the job poster. Phone numbers are not displayed.";
  set("jobConversationSend",ar?"إرسال الرسالة":"Send message");
- if(activeJobConversation)set("jobConversationTitle",(ar?"محادثة: ":"Conversation: ")+(activeJobConversation.job_title||(ar?"الوظيفة":"the job"));
- else set("jobConversationTitle",ar?"محادثة الوظيفة":"Job conversation");
+ set("jobConversationTitle",ar?"محادثة الوظيفة":"Job conversation");
 }
 
 function applicationStatusLabel(status){
@@ -4228,6 +4227,7 @@ async function openJobConversation(applicationId){
   const {data:rows,error}=await supabaseClient.rpc("get_job_conversation_context",{p_application_id:applicationId});if(error)throw error;
   const ctx=Array.isArray(rows)?rows[0]:rows;if(!ctx)throw new Error(ar?"لا تملك صلاحية الوصول إلى هذه المحادثة.":"You do not have permission to access this conversation.");
   activeJobConversation={...ctx,candidate_name:ar?"مقدم الطلب":"Applicant"};
+  document.getElementById("jobConversationTitle").textContent=(ar?"محادثة: ":"Conversation: ")+(ctx.job_title||(ar?"الوظيفة":"the job"));
   try{const {data:profile,error:profileError}=await supabaseClient.from("profiles").select("full_name").eq("id",ctx.candidate_id).maybeSingle();if(profileError)throw profileError;if(profile?.full_name)activeJobConversation.candidate_name=profile.full_name;}
   catch(profileError){console.warn("Applicant display name unavailable:",profileError);}
   applyJobConversationLanguage();
