@@ -1,5 +1,5 @@
 -- Job-alert scheduling and daily in-app digest processing.
--- Additive only. Cron schedules and per-project Vault secrets are configured separately.
+-- Additive only. Provision the required per-project Vault secrets before applying; this migration creates the cron schedules.
 
 create extension if not exists pg_cron;
 create extension if not exists pg_net;
