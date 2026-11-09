@@ -1024,41 +1024,41 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 </script>
 
 <style>
-/* V1.10 UX: keep job search easy to find while browsing */
+/* V1.10 UX refinement: keep search in document flow so it never covers dialogs. */
 .job-search-dock{
-  position:sticky;top:0;z-index:850;
+  position:relative;top:auto;z-index:1;
   padding:10px 16px;
   background:rgba(247,250,248,.96);
   border-bottom:1px solid #dcebe1;
   backdrop-filter:blur(12px);
   -webkit-backdrop-filter:blur(12px);
 }
-.job-search-inner{
-  max-width:1050px;margin:0 auto;
-  display:grid;grid-template-columns:minmax(0,1.5fr) minmax(150px,.8fr) auto;
+ .job-search-inner{
+  max-width:1150px;margin:0 auto;
+  display:grid;grid-template-columns:minmax(180px,1.35fr) repeat(3,minmax(130px,.8fr)) auto;
   gap:9px;align-items:center;
   background:#fff;border:1px solid #d5e8db;border-radius:15px;
   padding:7px;box-shadow:0 7px 22px rgba(6,78,53,.07);
 }
-.job-search-inner input{
+ .job-search-inner input,.job-search-inner select{
   width:100%;min-width:0;box-sizing:border-box;
   border:1px solid #e0ebe4;border-radius:10px;
   padding:12px 13px;min-height:44px;font:14px Tahoma,Arial;
-  background:#f9fcfa;outline:none;
+  background:#f9fcfa;outline:none;color:#244b37;
 }
-.job-search-inner input:focus{border-color:#087a4b;box-shadow:0 0 0 3px rgba(8,122,75,.1)}
+.job-search-inner input:focus,.job-search-inner select:focus{border-color:#087a4b;box-shadow:0 0 0 3px rgba(8,122,75,.1)}
 .job-search-inner .btn{min-height:44px;white-space:nowrap}
-@media(max-width:600px){
-  .job-search-dock{padding:7px 10px}
-  .job-search-inner{grid-template-columns:minmax(0,1fr) minmax(90px,.65fr);gap:6px;padding:6px;border-radius:12px}
-  .job-search-inner input{padding:10px 8px;font-size:12px;min-height:42px}
-  .job-search-inner .btn{grid-column:1/-1;width:100%;min-height:40px;padding:9px 12px}
+@media(max-width:760px){
+  .job-search-dock{padding:8px 12px}
+  .job-search-inner{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:7px;border-radius:12px}
+  .job-search-inner input,.job-search-inner select{padding:10px 8px;font-size:12px;min-height:42px}
+  .job-search-inner .btn{grid-column:1/-1;width:100%;min-height:42px;padding:9px 12px}
 }
 @media(prefers-reduced-motion:reduce){.job-search-dock{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-<header><div class="nav"><a class="brand" href="/" aria-label="وظيفتي - الصفحة الرئيسية" style="text-decoration:none;color:inherit">
+<header><div class="nav"><a class="brand" href="#jobs" onclick="event.preventDefault();loadLiveJobs({manual:true})" aria-label="وظيفتي - تحديث الوظائف" title="اضغط لتحديث الوظائف" style="text-decoration:none;color:inherit">
 <img class="brand-mark" src="/assets/wazifti-sudan-mark.svg" alt="" width="46" height="46">
 <span class="brand-copy"><strong data-t="brand">وظيفتي</strong><small data-t="tagline">منصة فرص العمل السودانية</small></span></a>
 <button class="drawer-toggle" id="drawerToggle" type="button" aria-label="فتح القائمة" aria-controls="mobileDrawer" aria-expanded="false" onclick="toggleMobileDrawer()">☰</button>
@@ -1088,7 +1088,9 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 <div class="job-search-dock" role="search" aria-label="البحث عن الوظائف">
   <div class="job-search-inner">
     <input id="q" data-ph="searchJob" placeholder="المسمى الوظيفي أو المهارة" aria-label="المسمى الوظيفي أو المهارة">
-    <input id="city" data-ph="searchCity" placeholder="المدينة" aria-label="المدينة">
+    <select id="searchCitySelect" aria-label="اختر المدينة" onchange="filterJobs()"><option value="">كل المدن</option></select>
+    <select id="searchCategorySelect" aria-label="اختر التصنيف الرئيسي" onchange="onSearchCategoryChange()"><option value="">كل المجالات</option></select>
+    <select id="searchSpecialtySelect" aria-label="اختر التخصص" onchange="filterJobs()" disabled><option value="">كل التخصصات</option></select>
     <button class="btn primary" type="button" onclick="filterJobs()" data-t="search">ابحث عن وظيفة</button>
   </div>
 </div>
@@ -1097,7 +1099,7 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 
 <div class="stats"><span class="live-stat"><b id="liveJobCount">0</b><span data-t="statJobs">وظيفة منشورة</span></span><span class="trust-note"><span aria-hidden="true">✓</span> <span data-t="reviewNote">وظائف تُراجع قبل النشر</span></span></div></div>
 <div class="art"><div class="articon"><img src="/assets/wazifti-sudan-mark.svg" alt="شعار وظيفتي"></div><h3 data-t="artTitle">وظيفتك القادمة أقرب مما تتوقع</h3><p class="muted" data-t="artSub">فرص في مختلف القطاعات والمجالات في السودان.</p></div></div></section>
-<main class="wrap" id="jobs"><div class="head"><h2 data-t="latest">أحدث فرص العمل</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="muted" id="count"></span><button class="btn outline" id="refreshLiveJobsBtn" type="button" onclick="loadLiveJobs()" data-t="refreshJobs">↻ تحديث الوظائف</button></div></div>
+<main class="wrap" id="jobs"><div class="head"><h2 data-t="latest">أحدث فرص العمل</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="muted" id="count"></span></div></div>
 <div class="layout"><aside class="filters"><button class="btn outline" onclick="clearFilters()" style="width:100%;margin-bottom:12px" data-t="clearFilters">
   مسح جميع الفلاتر
 </button> <h3 data-t="filters">تصفية النتائج</h3><div class="group"><strong data-t="jobType">نوع الوظيفة</strong><label><input type="checkbox" value="Full-time" onchange="filterJobs()"> <span data-t="full">دوام كامل</span></label><label><input type="checkbox" value="Part-time" onchange="filterJobs()"> <span data-t="part">دوام جزئي</span></label><label><input type="checkbox" value="Remote" onchange="filterJobs()"> <span data-t="remote">عن بُعد</span></label></div>
@@ -1185,11 +1187,9 @@ function mapLiveJob(row){
 let liveJobsLoading=false;
 let liveJobsChannel=null;
 async function loadLiveJobs(options={}){
-  const refreshButton=document.getElementById("refreshLiveJobsBtn");
   const disclaimer=document.querySelector('[data-t="disclaimer"]');
   if(liveJobsLoading) return;
   liveJobsLoading=true;
-  if(refreshButton){refreshButton.disabled=true;refreshButton.textContent=lang==="ar"?"جارٍ التحديث…":"Refreshing…";}
   let lastError=null;
   const delays=[0,1200,3000];
   try {
@@ -1206,9 +1206,11 @@ async function loadLiveJobs(options={}){
           else companyMap=Object.fromEntries((companies||[]).map(company=>[company.id,company]));
         }
         data.splice(0,data.length,...(rows||[]).map(row=>mapLiveJob({...row,companies:companyMap[row.company_id]||null})));
+        populateSearchCityOptions();
         const countElement=document.getElementById("liveJobCount");
         if(countElement) countElement.textContent=String(publishedCount ?? (rows||[]).length);
         filterJobs();
+        if(options.manual) toast(lang==="ar"?"تم تحديث الوظائف.":"Jobs refreshed.");
         if(disclaimer) disclaimer.textContent=lang==="ar"?"الوظائف المعروضة منشورة من قاعدة بيانات وظيفتي وتتحدث تلقائياً.":"Published jobs from Wazifti update automatically.";
         return;
       }catch(error){lastError=error;console.warn("Live jobs attempt failed:",attempt+1,error);}
@@ -1222,7 +1224,6 @@ async function loadLiveJobs(options={}){
     if(options.manual) toast(lang==="ar"?"تعذر تحديث الوظائف حالياً؛ ستتم إعادة المحاولة تلقائياً.":"Jobs could not be refreshed; automatic retries will continue.");
   } finally {
     liveJobsLoading=false;
-    if(refreshButton){refreshButton.disabled=false;refreshButton.textContent=lang==="ar"?"↻ تحديث الوظائف":"↻ Refresh jobs";}
   }
 }
 function startLiveJobsUpdates(){
@@ -1254,9 +1255,28 @@ function render(items){document.getElementById("list").innerHTML=items.length?it
 function showJob(i){let j=data[i];document.getElementById("modalContent").innerHTML=`<div style="font-size:34px">${j.icon}</div><h2>${lang==="ar"?j.title:j.en}</h2><p class="muted">${lang==="ar"?j.company:j.companyEn}</p>${j.companyDescription?`<div style="margin:12px 0;padding:12px;background:#f7fbf8;border:1px solid #e5eee8;border-radius:10px;line-height:1.8"><b>نبذة عن جهة العمل</b><p style="margin:6px 0 0;white-space:pre-wrap">${escapeAdminHtml(j.companyDescription)}</p></div>`:""}<p><b>${T.location}:</b> ${lang==="ar"?j.city:j.cityEn}</p><p><b>${T.type}:</b> ${typeName(j.type)}</p><p><b>${T.salary}:</b> ${lang==="ar"?j.salary:j.salaryEn}</p><hr style="border:0;border-top:1px solid #e5eee8"><h3>${T.description}</h3><p style="line-height:1.9">${lang==="ar"?j.desc:j.descEn}</p><button class="btn primary" onclick="openJobApplication('${j.id}')">${lang==="ar"?"تقديم الآن":"Apply now"}</button>`;document.getElementById("modalbg").style.display="flex"}
 function closeModal(){document.getElementById("modalbg").style.display="none";const applicationModal=document.getElementById("jobApplicationModal");if(!applicationModal||applicationModal.style.display!=="flex")document.body.classList.remove("modal-open")}
 function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
-  function filterJobs(){
+  function populateSearchCityOptions(){
+  const select=document.getElementById("searchCitySelect");
+  if(!select)return;
+  const previous=select.value;
+  const cities=[...new Set(data.flatMap(job=>[job.city,job.cityEn]).filter(Boolean).map(city=>String(city).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,lang==="ar"?"ar":"en"));
+  select.innerHTML='<option value="">'+(lang==="ar"?"كل المدن":"All cities")+'</option>'+cities.map(city=>'<option value="'+String(city).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")+'">'+String(city).replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</option>').join("");
+  if(cities.includes(previous))select.value=previous;
+}
+async function onSearchCategoryChange(){
+  const categoryId=document.getElementById("searchCategorySelect").value;
+  const specialty=document.getElementById("searchSpecialtySelect");
+  await loadWaziftiTaxonomy();
+  const rows=waziftiTaxonomy.specialties.filter(item=>item.category_id===categoryId);
+  addSelectOptions(specialty,rows,lang==="ar"?"كل التخصصات":"All specialties","");
+  specialty.disabled=!categoryId||!rows.length;
+  filterJobs();
+}
+function filterJobs(){
   const q = document.getElementById("q").value.toLowerCase().trim();
-  const c = document.getElementById("city").value.toLowerCase().trim();
+  const c = (document.getElementById("searchCitySelect")?.value||"").toLowerCase().trim();
+  const searchCategory=document.getElementById("searchCategorySelect")?.value||"";
+  const searchSpecialty=document.getElementById("searchSpecialtySelect")?.value||"";
 
   const checked = [...document.querySelectorAll(".filters input:checked")];
 
@@ -1264,8 +1284,8 @@ function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.st
     .map(x => x.value)
     .filter(x => ["Full-time", "Part-time", "Remote"].includes(x));
 
-  const selectedCategory = document.getElementById("jobCategoryFilter")?.value || "";
-  const selectedSpecialty = document.getElementById("jobSpecialtyFilter")?.value || "";
+  const selectedCategory = searchCategory || document.getElementById("jobCategoryFilter")?.value || "";
+  const selectedSpecialty = searchSpecialty || document.getElementById("jobSpecialtyFilter")?.value || "";
 
   const results = data.filter(j => {
     const jobText = [
@@ -1287,7 +1307,9 @@ function toast(s){let e=document.getElementById("toastbox");e.textContent=s;e.st
   render(results);
 } function clearFilters(){
   document.getElementById("q").value = "";
-  document.getElementById("city").value = "";
+  const citySelect=document.getElementById("searchCitySelect");if(citySelect)citySelect.value="";
+  const searchCategory=document.getElementById("searchCategorySelect");if(searchCategory)searchCategory.value="";
+  const searchSpecialty=document.getElementById("searchSpecialtySelect");if(searchSpecialty){searchSpecialty.innerHTML='<option value="">'+(lang==="ar"?"كل التخصصات":"All specialties")+'</option>';searchSpecialty.disabled=true;}
   const categoryFilter=document.getElementById("jobCategoryFilter");
   const specialtyFilter=document.getElementById("jobSpecialtyFilter");
   if(categoryFilter) categoryFilter.value="";
@@ -1998,6 +2020,8 @@ async function loadJobCategoryFilters() {
     await loadWaziftiTaxonomy();
     const select=document.getElementById("jobCategoryFilter");
     if(select) addSelectOptions(select,waziftiTaxonomy.categories,lang==="ar"?"كل التصنيفات":"All categories","");
+    const searchSelect=document.getElementById("searchCategorySelect");
+    if(searchSelect) addSelectOptions(searchSelect,waziftiTaxonomy.categories,lang==="ar"?"كل المجالات":"All fields","");
     filterJobs();
   } catch(error) { console.error("Job category filters unavailable:",error); }
 }
