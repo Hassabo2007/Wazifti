@@ -115,6 +115,7 @@
   function close(){modal.style.display="none";document.body.classList.remove("modal-open");}
   function status(t){modal.querySelector("#waStatus").textContent=t;}
   function checkedValues(root){return [...root.querySelectorAll("input:checked")].map(x=>x.value);}
+  let updateAlertSpecialtyAvailability=()=>{};
   function checkbox(value,label){return '<label class="wa-check"><input type="checkbox" value="'+value+'"> '+label+'</label>';}
   async function open(){
     if(!window.currentAuthUser && typeof currentAuthUser==="undefined"){alert("يرجى تسجيل الدخول أولاً.");return;}
@@ -134,7 +135,19 @@
     sroot.innerHTML=(specs||[]).map(s=>checkbox(s.id,(isEn()?(s.name_en||s.name_ar):(s.name_ar||s.name_en)))).join("")||'<p class="wa-note">'+tr('لا توجد تخصصات فرعية متاحة حالياً.','No specialties are currently available.')+'</p>';
     const eroot=modal.querySelector("#waEmployment");eroot.innerHTML=EMPLOYMENT.map(item=>checkbox(item[0],employmentLabel(item))).join("");
     [ [croot,previouslySelectedCategories],[sroot,previouslySelectedSpecialties],[eroot,previouslySelectedEmployment] ].forEach(([root,values])=>root.querySelectorAll("input").forEach(input=>input.checked=values.includes(input.value)));
-    croot.querySelectorAll("input").forEach(x=>x.addEventListener("change",()=>{const ids=checkedValues(croot);sroot.querySelectorAll("label").forEach(l=>{const input=l.querySelector("input");const item=(specs||[]).find(s=>s.id===input?.value);l.style.opacity=(!ids.length||ids.includes(item?.category_id))?"1":".45";if(ids.length&&!ids.includes(item?.category_id))input.checked=false;});}));
+    updateAlertSpecialtyAvailability=()=>{
+      const selectedCategoryIds=checkedValues(croot);
+      sroot.querySelectorAll("label").forEach(label=>{
+        const input=label.querySelector("input");
+        const specialty=(specs||[]).find(item=>item.id===input?.value);
+        const allowed=!selectedCategoryIds.length||selectedCategoryIds.includes(specialty?.category_id);
+        if(input)input.disabled=!allowed;
+        label.style.opacity=allowed?"1":".45";
+        if(!allowed&&input)input.checked=false;
+      });
+    };
+    croot.querySelectorAll("input").forEach(input=>input.addEventListener("change",updateAlertSpecialtyAvailability));
+    updateAlertSpecialtyAvailability();
   }
   async function loadPreferences(){
     const {data:p,error}=await supabaseClient.from("job_alert_preferences").select("id,is_enabled,push_enabled,delivery_mode,daily_send_time").eq("user_id",currentAuthUser.id).maybeSingle();
@@ -155,6 +168,7 @@
     if(cats.error||specs.error||locs.error||types.error)throw new Error(tr("تعذر تحميل بعض الفلاتر.","Could not load some filters."));
     const set=(selector,values,key)=>{const v=new Set((values||[]).map(x=>x[key]));modal.querySelectorAll(selector+" input").forEach(x=>x.checked=v.has(x.value));};
     set("#waCategories",cats.data,"category_id");set("#waSpecialties",specs.data,"specialty_id");
+    updateAlertSpecialtyAvailability();
     modal.querySelector("#waLocations").value=(locs.data||[]).map(x=>x.state).join(isEn()?", ":", ");
     const troot=modal.querySelector("#waEmployment");troot.innerHTML=EMPLOYMENT.map(item=>checkbox(item[0],employmentLabel(item))).join("");
     set("#waEmployment",types.data,"employment_type");
