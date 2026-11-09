@@ -1094,7 +1094,7 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 #profileModal #candidateExperiencesList,
 #profileModal #candidateResumesList{overflow-wrap:anywhere}
 #profileModal #candidateExperienceForm{padding-top:10px;border-top:1px solid #e8f0eb}
-#profileModal #candidateResumeFile{min-height:48px}
+#profileModal #candidateResumeFile{min-height:0!important}\n#profileModal .resume-file-input{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}\n#profileModal .resume-file-picker-label{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border:1px solid #b9d7c5;border-radius:9px;background:#fff;color:#064e35;font-weight:600;cursor:pointer}\n#profileModal #candidateResumeFile:focus-visible + .resume-file-picker-label{outline:3px solid #7bbf9a;outline-offset:2px}
 #profileModal #profileMessage,
 #profileModal #experienceMessage,
 #profileModal #resumeMessage{line-height:1.8}
@@ -1609,7 +1609,7 @@ function filterJobs(){
       <section id="candidateResumeSection" style="margin:18px 0;padding:14px;border:1px solid #dcebe1;border-radius:12px;background:#f8fbf9">
         <h3 id="resumeHeading" style="margin:0 0 8px">السيرة الذاتية</h3>
         <p id="resumeHint" class="muted" style="line-height:1.8;margin:0 0 12px">ارفع سيرتك الذاتية بصيغة PDF (حتى 5 ميجابايت). يمكنك الاحتفاظ بأكثر من سيرة وتحديد واحدة كافتراضية.</p>
-        <input id="candidateResumeFile" type="file" accept="application/pdf,.pdf" style="display:block;width:100%;padding:10px;background:#fff;border:1px dashed #b9d7c5;border-radius:9px">
+        <input id="candidateResumeFile" class="resume-file-input" type="file" accept="application/pdf,.pdf" aria-describedby="resumeHint"><label id="resumeFilePickerLabel" class="resume-file-picker-label" for="candidateResumeFile">اختر ملفاً</label>
         <button id="uploadCandidateResumeBtn" type="button" class="btn primary" style="width:100%;margin-top:10px">رفع السيرة الذاتية</button>
         <p id="resumeMessage" role="status" aria-live="polite" style="line-height:1.8"></p>
         <div id="candidateResumesList" aria-live="polite" class="muted">جارٍ تحميل السير الذاتية...</div>
@@ -1814,7 +1814,7 @@ function applyCandidateProfileLanguage() {
     jobTitle:"المسمى الوظيفي", start:"تاريخ البداية", end:"تاريخ النهاية",
     current:"أعمل هنا حالياً", description:"وصف المهام (اختياري)", add:"إضافة الخبرة",
     resume:"السيرة الذاتية", resumeHint:"ارفع سيرتك الذاتية بصيغة PDF (حتى 5 ميجابايت). يمكنك الاحتفاظ بأكثر من سيرة وتحديد واحدة كافتراضية.",
-    upload:"رفع السيرة الذاتية", fileLabel:"اختر ملف السيرة الذاتية بصيغة PDF"
+    upload:"رفع السيرة الذاتية", chooseFile:"اختر ملفاً", fileLabel:"اختر ملف السيرة الذاتية بصيغة PDF"
   } : {
     close:"Close", category:"Main category", categoryPlaceholder:"Select a main category",
     specialtyPlaceholder:"Select a specialty", individualPosting:"Enable job posting for individuals",
@@ -1823,7 +1823,7 @@ function applyCandidateProfileLanguage() {
     jobTitle:"Job title", start:"Start date", end:"End date",
     current:"I currently work here", description:"Job responsibilities (optional)", add:"Add experience",
     resume:"My resumes", resumeHint:"Upload a PDF resume (up to 5 MB). You can keep multiple resumes and choose one as your default.",
-    upload:"Upload resume", fileLabel:"Choose a PDF resume file"
+    upload:"Upload resume", chooseFile:"Choose file", fileLabel:"Choose a PDF resume file"
   };
   const modal = document.getElementById("profileModal");
   if (modal) {
@@ -1848,7 +1848,7 @@ function applyCandidateProfileLanguage() {
   setText("experienceFormHeading",copy.addExperience);
   setText("resumeHeading",copy.resume);
   setText("resumeHint",copy.resumeHint);
-  setText("uploadCandidateResumeBtn",copy.upload);
+  setText("uploadCandidateResumeBtn",copy.upload);\n  setText("resumeFilePickerLabel",copy.chooseFile);
   setText("addExperienceBtn",copy.add);
   const labels = {
     experienceCompany:copy.employer, experienceTitle:copy.jobTitle,
