@@ -1,12 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-<title id="title">Wazifti Sudan mark</title><desc id="desc">A green opportunity path with a subtle Sudan-inspired tricolor accent.</desc>
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b8a55"/><stop offset="1" stop-color="#064e35"/></linearGradient></defs>
-<rect width="512" height="512" rx="116" fill="url(#g)"/>
-<circle cx="256" cy="256" r="194" fill="none" stroke="#ffffff" stroke-opacity=".14" stroke-width="5"/>
-<path d="M130 365c52-5 62-42 88-83 26-42 45-83 89-112 24-16 49-23 76-25" fill="none" stroke="#fff" stroke-width="30" stroke-linecap="round"/>
-<path d="M130 365c52-5 62-42 88-83 26-42 45-83 89-112" fill="none" stroke="#c9f1d8" stroke-width="7" stroke-linecap="round" stroke-dasharray="3 20"/>
-<path d="M344 111l64 31-60 38" fill="none" stroke="#fff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="132" cy="365" r="27" fill="#fff"/>
-<circle cx="132" cy="365" r="12" fill="#087a4b"/>
-<g transform="translate(74 94)"><rect width="94" height="17" rx="8.5" fill="#d92732"/><rect y="22" width="94" height="17" rx="8.5" fill="#fff"/><rect y="44" width="94" height="17" rx="8.5" fill="#171717"/><path d="M0 0v61l43-30.5z" fill="#087a4b"/></g>
+  <title id="title">وظيفتي — الأمل يبدأ بفرصة</title>
+  <desc id="desc">خريطة السودان تحتضن رمزاً للعمل وشخصاً يتجه نحو نجمة ذهبية، مع ألوان العلم السوداني.</desc>
+  <defs>
+    <linearGradient id="mapFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f4fbf6"/>
+      <stop offset="1" stop-color="#dcefe2"/>
+    </linearGradient>
+    <clipPath id="sudanClip">
+      <path d="M151 91 224 82 275 99 318 91 352 111 382 108 397 139 382 170 391 205 373 237 382 274 359 307 342 344 313 369 284 401 250 414 222 393 195 399 174 374 146 365 133 335 109 317 119 283 104 252 120 222 111 191 126 165 117 132Z"/>
+    </clipPath>
+  </defs>
+
+  <path d="M151 91 224 82 275 99 318 91 352 111 382 108 397 139 382 170 391 205 373 237 382 274 359 307 342 344 313 369 284 401 250 414 222 393 195 399 174 374 146 365 133 335 109 317 119 283 104 252 120 222 111 191 126 165 117 132Z"
+        fill="url(#mapFill)" stroke="#087a4b" stroke-width="15" stroke-linejoin="round"/>
+
+  <g clip-path="url(#sudanClip)">
+    <path d="M83 390 C166 345 220 327 286 263 C321 229 349 198 387 158 L410 181 C371 242 333 289 286 326 C225 375 158 407 89 431Z" fill="#087a4b"/>
+    <path d="M76 414 C161 367 220 346 292 282 C329 249 355 219 394 178 L406 199 C367 258 331 304 283 342 C220 390 154 422 82 447Z" fill="#ffffff"/>
+    <path d="M69 438 C154 391 217 367 299 300 C335 270 365 238 405 198 L414 220 C374 280 335 321 291 359 C224 411 151 440 73 468Z" fill="#d9272e"/>
+    <path d="M64 462 C149 415 216 389 306 320 C343 291 373 259 417 218 L430 241 C388 302 348 341 300 379 C229 431 151 461 67 490Z" fill="#171717"/>
+  </g>
+
+  <circle cx="205" cy="205" r="25" fill="#087a4b"/>
+  <path d="M190 238 C215 228 239 236 250 256 L278 216 C286 204 301 198 313 205 C326 213 325 228 315 240 L273 295 C262 309 244 314 228 306 L177 282 C162 275 160 257 170 246 C175 241 182 238 190 238Z" fill="#087a4b"/>
+  <path d="M175 270 222 286 209 320 163 304Z" fill="#087a4b"/>
+  <rect x="144" y="292" width="66" height="48" rx="9" transform="rotate(14 177 316)" fill="#087a4b" stroke="#ffffff" stroke-width="6"/>
+  <path d="M164 294v-8c0-7 5-12 12-12h18c7 0 12 5 12 12v8" fill="none" stroke="#087a4b" stroke-width="8" stroke-linecap="round"/>
+  <path d="M291 204 337 155" fill="none" stroke="#087a4b" stroke-width="13" stroke-linecap="round"/>
+  <path d="m347 116 9 27 27 9-27 9-9 27-9-27-27-9 27-9z" fill="#e2ad32" stroke="#ffffff" stroke-width="5" stroke-linejoin="round"/>
 </svg>
