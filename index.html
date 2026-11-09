@@ -1095,9 +1095,9 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 #profileModal #candidateResumesList{overflow-wrap:anywhere}
 #profileModal #candidateExperienceForm{padding-top:10px;border-top:1px solid #e8f0eb}
 #profileModal #candidateResumeFile{min-height:0!important}
-#profileModal .resume-file-input{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
-#profileModal .resume-file-picker-label{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border:1px solid #b9d7c5;border-radius:9px;background:#fff;color:#064e35;font-weight:600;cursor:pointer}
-#profileModal #candidateResumeFile:focus-visible + .resume-file-picker-label{outline:3px solid #7bbf9a;outline-offset:2px}
+#profileModal .resume-file-input,#employerRegistrationModal .resume-file-input{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.resume-file-picker-label{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border:1px solid #b9d7c5;border-radius:9px;background:#fff;color:#064e35;font-weight:600;cursor:pointer}
+#profileModal #candidateResumeFile:focus-visible + .resume-file-picker-label,#employerRegistrationModal #employerDocumentFile:focus-visible + .resume-file-picker-label{outline:3px solid #7bbf9a;outline-offset:2px}
 #profileModal #profileMessage,
 #profileModal #experienceMessage,
 #profileModal #resumeMessage{line-height:1.8}
@@ -1335,11 +1335,19 @@ function updateTexts(){
   const setText=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
   setText("lang",lang==="ar"?"EN":"عربي");setText("loginBtn",T.login);setText("signupBtn",T.signup);
   applyAuthModalLanguage();
-  if (typeof applyCandidateProfileLanguage === "function" && document.getElementById("profileModal")?.style.display === "flex") {
-    applyCandidateProfileLanguage();
-    loadCandidateExperiences();
-    loadCandidateResumes();
+  applyEmployerRegistrationLanguage();
+  applyCandidateProfileLanguage();
+  applyMyApplicationsLanguage();
+  applyJobApplicationLanguage();
+  applyJobConversationLanguage();
+  if (document.getElementById("profileModal")?.style.display === "flex") {
+    loadCandidateExperiences(); loadCandidateResumes();
   }
+  if (document.getElementById("myApplicationsModal")?.style.display === "flex" && currentAuthUser) {
+    loadInAppNotifications(); loadMyApplications();
+  }
+  if (document.getElementById("jobConversationModal")?.style.display === "flex" && activeJobConversation) loadJobConversationMessages();
+  if (document.getElementById("pushNotificationsToggle")) refreshPushNotificationUI();
   setText("logoutBtn",T.logout);setText("profileBtn",T.profile);
   setText("myApplicationsBtn",lang==="ar"?"طلباتي":"My applications");
   setText("employerDashboardBtn",lang==="ar"?"لوحة صاحب العمل":"Employer dashboard");
@@ -1534,7 +1542,9 @@ function filterJobs(){
       <label id="employerDescriptionLabel" for="employerDescription">نبذة عن الشركة (اختياري)</label>
       <textarea id="employerDescription" rows="4" maxlength="1200"></textarea>
       <label id="employerDocumentLabel" for="employerDocumentFile">مستند تسجيل الشركة (PDF، حتى 5 ميجابايت) *</label>
-      <input id="employerDocumentFile" type="file" accept="application/pdf,.pdf" required>
+      <input id="employerDocumentFile" class="resume-file-input" type="file" accept="application/pdf,.pdf" aria-describedby="employerDocumentHint" required>
+      <label id="employerDocumentPickerLabel" class="resume-file-picker-label" for="employerDocumentFile">اختر ملفاً</label>
+      <span id="employerDocumentFileName" class="muted" style="display:block;margin-top:6px"></span>
       <p id="employerDocumentHint" class="muted">يُقبل ملف PDF فقط، بحد أقصى 5 ميجابايت.</p>
       <p id="employerRegistrationMessage" role="status" aria-live="polite"></p>
       <button id="employerRegistrationSubmit" type="submit" class="btn primary" style="width:100%;margin-top:12px">إرسال الطلب والمستند</button>
@@ -1811,7 +1821,7 @@ function applyCandidateProfileLanguage() {
   const profileCopy = profileLabels[lang] || profileLabels.ar;
   const copy = isAr ? {
     close:"إغلاق", category:"التصنيف الرئيسي", categoryPlaceholder:"اختر التصنيف الرئيسي",
-    specialtyPlaceholder:"اختر التخصص الفرعي", individualPosting:"تفعيل نشر الوظائف للأفراد",
+    specialtyPlaceholder:"اختر التخصص الفرعي", specialtyLabel:"التخصص الفرعي", individualPosting:"تفعيل نشر الوظائف للأفراد",
     individualPostingHelp:"يتيح لك هذا الخيار نشر فرص العمل من حسابك الشخصي بعد استكمال إعدادات المنصة، وتخضع جميع الإعلانات لمراجعة الإدارة قبل النشر.",
     experience:"الخبرات العملية", addExperience:"إضافة خبرة جديدة", employer:"جهة العمل",
     jobTitle:"المسمى الوظيفي", start:"تاريخ البداية", end:"تاريخ النهاية",
@@ -1820,7 +1830,7 @@ function applyCandidateProfileLanguage() {
     upload:"رفع السيرة الذاتية", chooseFile:"اختر ملفاً", fileLabel:"اختر ملف السيرة الذاتية بصيغة PDF"
   } : {
     close:"Close", category:"Main category", categoryPlaceholder:"Select a main category",
-    specialtyPlaceholder:"Select a specialty", individualPosting:"Enable job posting for individuals",
+    specialtyPlaceholder:"Select a specialty", specialtyLabel:"Specialty", individualPosting:"Enable job posting for individuals",
     individualPostingHelp:"This option allows you to publish job opportunities from your personal account once the platform setup is complete. All listings are reviewed by the administration before publication.",
     experience:"Work experience", addExperience:"Add new experience", employer:"Employer",
     jobTitle:"Job title", start:"Start date", end:"End date",
@@ -1843,7 +1853,7 @@ function applyCandidateProfileLanguage() {
   setText("profileStateLabel",profileCopy.state);
   setText("profileCityLabel",profileCopy.city);
   setText("profileCategoryLabel",copy.category);
-  setText("profileSpecialtyLabel",isAr?"التخصص الفرعي":"Specialty");
+  setText("profileSpecialtyLabel",copy.specialtyLabel);
   setText("profileQualificationLabel",profileCopy.qualification);
   setText("profileBioLabel",profileCopy.bio);
   setText("saveProfileBtn",profileCopy.save);
@@ -1909,7 +1919,7 @@ function openProfile() {
   document.getElementById("profilePhoneLabel").textContent = m.phone;
   document.getElementById("profileStateLabel").textContent = m.state;
   document.getElementById("profileCityLabel").textContent = m.city;
-  document.getElementById("profileSpecialtyLabel").textContent = m.specialty;
+  document.getElementById("profileSpecialtyLabel").textContent = lang==="ar"?"التخصص الفرعي":"Specialty";
   document.getElementById("profileQualificationLabel").textContent = m.qualification;
   document.getElementById("profileBioLabel").textContent = m.bio;
   document.getElementById("saveProfileBtn").textContent = m.save;
@@ -1930,6 +1940,7 @@ function openProfile() {
   document.getElementById("profileMessage").textContent = "";
   document.getElementById("profileModal").style.display = "flex";
   document.body.classList.add("modal-open");
+  applyCandidateProfileLanguage();
   loadCandidateProfileData();
 }
 
@@ -3624,6 +3635,7 @@ async function openEmployerRegistration() {
     return;
   }
   const t = employerFormText[lang];
+  applyEmployerRegistrationLanguage();
   document.getElementById("employerFormTitle").textContent = t.title;
   document.getElementById("employerFormIntro").textContent = t.intro;
   document.getElementById("employerCompanyNameLabel").textContent = t.company;
@@ -3638,6 +3650,10 @@ function closeEmployerRegistration() {
 }
 
 const employerRegistrationForm = document.getElementById("employerRegistrationForm");
+document.getElementById("employerDocumentFile")?.addEventListener("change",event=>{
+  const name=document.getElementById("employerDocumentFileName");
+  if(name)name.textContent=event.target.files?.[0]?.name||"";
+});
 let employerPendingCompanyId = null;
 if (employerRegistrationForm) {
   employerRegistrationForm.addEventListener("submit", async function(event) {
@@ -3902,13 +3918,58 @@ async function submitJobApplication(event) {
 </script>
 
 <script>
-const myApplicationStatusLabels = {
-  submitted:"تم استلام الطلب",
-  reviewing:"قيد المراجعة",
-  shortlisted:"ضمن القائمة المختصرة",
-  rejected:"لم يتم الاختيار",
-  accepted:"تم القبول"
-};
+
+function applyEmployerRegistrationLanguage(){
+ const modal=document.getElementById("employerRegistrationModal");if(!modal)return;
+ const ar=lang==="ar",t=employerFormText[lang],set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+ modal.setAttribute("dir",ar?"rtl":"ltr");
+ set("employerFormTitle",t.title);set("employerFormIntro",t.intro);set("employerCompanyNameLabel",t.company);
+ set("employerWebsiteLabel",t.website);set("employerDescriptionLabel",t.description);
+ set("employerDocumentLabel",ar?"مستند تسجيل الشركة (PDF، حتى 5 ميجابايت) *":"Company registration document (PDF, up to 5 MB) *");
+ set("employerDocumentHint",ar?"يُقبل ملف PDF فقط، بحد أقصى 5 ميجابايت.":"PDF files only, up to 5 MB.");
+ set("employerDocumentPickerLabel",ar?"اختر ملفاً":"Choose file");set("employerRegistrationSubmit",t.submit);
+ const close=modal.querySelector(".close");if(close)close.textContent=ar?"إغلاق ✕":"Close ✕";
+}
+function applyMyApplicationsLanguage(){
+ const modal=document.getElementById("myApplicationsModal");if(!modal)return;
+ const ar=lang==="ar",set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+ modal.setAttribute("dir",ar?"rtl":"ltr");set("myApplicationsTitle",ar?"طلباتي":"My applications");
+ const close=modal.querySelector(".close");if(close)close.setAttribute("aria-label",ar?"إغلاق":"Close");
+ const refresh=modal.querySelector('button[onclick="loadMyApplications()"]');if(refresh)refresh.textContent=ar?"↻ تحديث":"↻ Refresh";
+ const intro=modal.querySelector(":scope > .modal > p");if(intro)intro.textContent=ar?"تابع الوظائف التي تقدمت إليها وحالة كل طلب.":"Track the jobs you have applied for and the status of each application.";
+ set("inAppNotificationsTitle",ar?"الإشعارات":"Notifications");
+ const buttons=modal.querySelectorAll("#inAppNotificationsPanel button");
+ if(buttons[0])buttons[0].textContent=ar?"تحديث":"Refresh";
+ if(buttons[1])buttons[1].textContent=ar?"قراءة الكل":"Mark all as read";
+}
+function applyJobApplicationLanguage(){
+ const modal=document.getElementById("jobApplicationModal");if(!modal)return;
+ const ar=lang==="ar",set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+ modal.setAttribute("dir",ar?"rtl":"ltr");
+ const close=modal.querySelector(".close-btn");if(close)close.setAttribute("aria-label",ar?"إغلاق":"Close");
+ set("jobApplicationTitle",ar?"التقديم على الوظيفة":"Apply for this job");
+ set("jobApplicationResumeLabel",ar?"السيرة الذاتية (اختيارية)":"Resume (optional)");
+ const label=modal.querySelector('label[for="jobApplicationCoverLetter"]');if(label)label.textContent=ar?"خطاب التقديم (اختياري)":"Cover letter (optional)";
+ const field=document.getElementById("jobApplicationCoverLetter");if(field)field.placeholder=ar?"اكتب رسالة مختصرة لصاحب العمل...":"Write a short message to the employer...";
+ set("jobApplicationSubmit",ar?"إرسال طلب التقديم":"Submit application");
+}
+function applyJobConversationLanguage(){
+ const modal=document.getElementById("jobConversationModal");if(!modal)return;
+ const ar=lang==="ar",set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+ modal.setAttribute("dir",ar?"rtl":"ltr");
+ const close=modal.querySelector(".close");if(close)close.setAttribute("aria-label",ar?"إغلاق":"Close");
+ const label=modal.querySelector('label[for="jobConversationInput"]');if(label)label.textContent=ar?"رسالتك":"Your message";
+ const input=document.getElementById("jobConversationInput");if(input)input.placeholder=ar?"اكتب رسالتك هنا...":"Write your message here...";
+ const privacy=modal.querySelector("small.muted");if(privacy)privacy.textContent=ar?"المحادثة خاصة بينك وبين طرف الإعلان، ولا تظهر أرقام الهواتف.":"This conversation is private between you and the job poster. Phone numbers are not displayed.";
+ set("jobConversationSend",ar?"إرسال الرسالة":"Send message");
+ if(activeJobConversation)set("jobConversationTitle",(ar?"محادثة: ":"Conversation: ")+(activeJobConversation.job_title||(ar?"الوظيفة":"the job"));
+ else set("jobConversationTitle",ar?"محادثة الوظيفة":"Job conversation");
+}
+
+function applicationStatusLabel(status){
+ const labels={submitted:lang==="ar"?"تم استلام الطلب":"Application received",reviewing:lang==="ar"?"قيد المراجعة":"Under review",shortlisted:lang==="ar"?"ضمن القائمة المختصرة":"Shortlisted",rejected:lang==="ar"?"لم يتم الاختيار":"Not selected",accepted:lang==="ar"?"تم القبول":"Accepted"};
+ return labels[status]||status||(lang==="ar"?"غير محددة":"Not specified");
+}
 function openMyApplications(){
   if(!currentAuthUser){toast("يرجى تسجيل الدخول أولاً.");openLogin();return;}
   const modal=document.getElementById("myApplicationsModal");
@@ -4038,49 +4099,26 @@ async function refreshHeaderNotificationCount(){
   }
 }
 async function loadInAppNotifications(){
-  const message=document.getElementById("inAppNotificationsMessage");
-  const list=document.getElementById("inAppNotificationsList");
-  const count=document.getElementById("inAppUnreadCount");
-  const markAll=document.getElementById("markAllNotificationsReadBtn");
-  if(!message||!list||!currentAuthUser) return;
-  message.textContent="جارٍ تحميل الإشعارات...";
-  list.innerHTML="";
-  try{
-    const {data:items,error}=await supabaseClient.from("in_app_notifications")
-      .select("id,application_id,job_title,message,new_status,notification_type,created_at,read_at")
-      .eq("user_id",currentAuthUser.id)
-      .order("created_at",{ascending:false})
-      .limit(30);
-    if(error) throw error;
-    const notifications=items||[];
-    const unread=notifications.filter(item=>!item.read_at).length;
-    if(count) count.textContent=unread+" جديد";
-    if(markAll) markAll.disabled=unread===0;
-    if(!notifications.length){
-      message.textContent="لا توجد إشعارات حتى الآن. ستظهر هنا التحديثات الجديدة على طلباتك.";
-      return;
-    }
-    message.textContent="آخر "+notifications.length+" إشعار"+(unread?" — لديك "+unread+" غير مقروء":"");
-    list.innerHTML=notifications.map(item=>{
-      const date=item.created_at?new Date(item.created_at).toLocaleString("ar-SD"):"—";
-      return '<article class="in-app-notification '+(item.read_at?'is-read':'is-unread')+'">'+
-        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">'+
-          '<strong style="color:var(--d)">'+escapeAdminHtml(item.job_title||"طلب تقديم")+'</strong>'+
-          '<span class="notification-dot" aria-label="'+(item.read_at?'مقروء':'جديد')+'"></span>'+
-        '</div>'+
-        '<p style="margin:8px 0">'+escapeAdminHtml(item.message||"تم تحديث حالة طلبك.")+'</p>'+
-        '<small class="muted">'+escapeAdminHtml(date)+'</small>'+
-        (item.notification_type==="message"
-          ? '<div style="margin-top:9px"><button class="btn primary small" type="button" onclick="openMessageNotification(\''+item.application_id+'\',\''+item.id+'\')">عرض الرسالة</button></div>'
-          : (!item.read_at?'<div style="margin-top:9px"><button class="btn outline small" type="button" onclick="markInAppNotificationRead(\''+item.id+'\')">تحديد كمقروء</button></div>':'')
-        )+
-      '</article>';
-    }).join("");
-  }catch(error){
-    console.error("In-app notifications load failed:",error);
-    message.textContent="تعذر تحميل الإشعارات حالياً: "+(error.message||"حدث خطأ غير متوقع");
-  }
+ const ar=lang==="ar",message=document.getElementById("inAppNotificationsMessage"),list=document.getElementById("inAppNotificationsList"),count=document.getElementById("inAppUnreadCount"),markAll=document.getElementById("markAllNotificationsReadBtn");
+ if(!message||!list||!currentAuthUser)return;
+ message.textContent=ar?"جارٍ تحميل الإشعارات...":"Loading notifications...";list.innerHTML="";
+ try{
+  const {data:items,error}=await supabaseClient.from("in_app_notifications").select("id,application_id,job_title,message,new_status,notification_type,created_at,read_at").eq("user_id",currentAuthUser.id).order("created_at",{ascending:false}).limit(30);
+  if(error)throw error;
+  const rows=items||[],unread=rows.filter(x=>!x.read_at).length;
+  if(count)count.textContent=unread+" "+(ar?"جديد":"new");if(markAll)markAll.disabled=unread===0;
+  if(!rows.length){message.textContent=ar?"لا توجد إشعارات حتى الآن. ستظهر هنا التحديثات الجديدة على طلباتك.":"No notifications yet. New updates about your applications will appear here.";return;}
+  message.textContent=ar?"آخر "+rows.length+" إشعار"+(unread?" — لديك "+unread+" غير مقروء":""):"Showing "+rows.length+" recent notification(s)"+(unread?" — "+unread+" unread":"");
+  list.innerHTML=rows.map(item=>{
+   const date=item.created_at?new Date(item.created_at).toLocaleString(ar?"ar-SD":"en-GB"):"—";
+   let body=item.message||(ar?"تم تحديث حالة طلبك.":"Your application has been updated.");
+   if(!ar){if(item.notification_type==="message")body="You have a new message about your application.";else if(item.new_status)body="Your application status is now: "+applicationStatusLabel(item.new_status)+".";else if(!item.message)body="Your application has been updated.";}
+   return '<article class="in-app-notification '+(item.read_at?'is-read':'is-unread')+'"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px"><strong style="color:var(--d)">'+escapeAdminHtml(item.job_title||(ar?"طلب تقديم":"Application"))+'</strong><span class="notification-dot" aria-label="'+(item.read_at?(ar?"مقروء":"Read"):(ar?"جديد":"New"))+'"></span></div><p style="margin:8px 0">'+escapeAdminHtml(body)+'</p><small class="muted">'+escapeAdminHtml(date)+'</small>'+
+   (item.notification_type==="message"?'<div style="margin-top:9px"><button class="btn primary small" type="button" onclick="openMessageNotification(\''+item.application_id+'\',\''+item.id+'\')">'+(ar?"عرض الرسالة":"View message")+'</button></div>':(!item.read_at?'<div style="margin-top:9px"><button class="btn outline small" type="button" onclick="markInAppNotificationRead(\''+item.id+'\')">'+(ar?"تحديد كمقروء":"Mark as read")+'</button></div>':""))+'</article>';
+  }).join("");
+ }catch(error){console.error("In-app notifications load failed:",error);message.textContent=(ar?"تعذر تحميل الإشعارات حالياً: ":"Could not load notifications: ")+(error.message||(ar?"حدث خطأ غير متوقع":"An unexpected error occurred"));}
 }
+
 async function openMessageNotification(applicationId,notificationId){
   if(!currentAuthUser||!applicationId)return;
   try{
@@ -4131,40 +4169,23 @@ async function markAllInAppNotificationsRead(){
 }
 
 async function loadMyApplications(){
-  const message=document.getElementById("myApplicationsMessage");
-  const list=document.getElementById("myApplicationsList");
-  if(!currentAuthUser){message.textContent="يرجى تسجيل الدخول لعرض طلباتك.";list.innerHTML="";return;}
-  message.textContent="جارٍ تحميل طلباتك...";
-  list.innerHTML="";
-  try{
-    const {data:apps,error}=await supabaseClient.from("applications")
-      .select("id,status,created_at,cover_letter,jobs(id,title,location,companies(company_name))")
-      .eq("candidate_id",currentAuthUser.id)
-      .order("created_at",{ascending:false});
-    if(error) throw error;
-    if(!apps||apps.length===0){
-      message.textContent="لم تتقدم إلى أي وظيفة حتى الآن. ابدأ باستكشاف الوظائف المتاحة!";
-      return;
-    }
-    message.textContent="لديك "+apps.length+" طلب تقديم.";
-    list.innerHTML=apps.map(app=>{
-      const job=Array.isArray(app.jobs)?app.jobs[0]:app.jobs;
-      const company=job?(Array.isArray(job.companies)?job.companies[0]:job.companies):null;
-      const status=myApplicationStatusLabels[app.status]||app.status||"غير محددة";
-      const date=app.created_at?new Date(app.created_at).toLocaleString("ar-SD"):"—";
-      return '<article class="my-application-card">'+
-        '<h3 style="margin:0 0 7px;color:var(--d)">'+escapeAdminHtml(job?.title||"وظيفة")+'</h3>'+
-        '<div class="muted">'+escapeAdminHtml(company?.company_name||"جهة العمل")+(job?.location?" • "+escapeAdminHtml(job.location):"")+'</div>'+
-        '<p style="margin:12px 0"><span class="my-application-status">'+escapeAdminHtml(status)+'</span></p>'+
-        (job?.id?'<div style="margin:10px 0"><button class="btn outline small" type="button" onclick="openJobConversation(&quot;'+escapeAdminHtml(app.id)+'&quot;)">مراسلة صاحب الإعلان</button></div>':'')+
-        '<small class="muted">تاريخ التقديم: '+escapeAdminHtml(date)+'</small>'+
-        (app.cover_letter?'<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--g);font-weight:700">عرض خطاب التقديم</summary><p>'+escapeAdminHtml(app.cover_letter)+'</p></details>':"")+
-        '</article>';
-    }).join("");
-  }catch(error){
-    console.error("Candidate applications load failed:",error);
-    message.textContent="تعذر تحميل طلباتك حالياً: "+(error.message||"حدث خطأ غير متوقع");
-  }
+ const ar=lang==="ar",message=document.getElementById("myApplicationsMessage"),list=document.getElementById("myApplicationsList");if(!message||!list)return;
+ if(!currentAuthUser){message.textContent=ar?"يرجى تسجيل الدخول لعرض طلباتك.":"Please log in to view your applications.";list.innerHTML="";return;}
+ message.textContent=ar?"جارٍ تحميل طلباتك...":"Loading your applications...";list.innerHTML="";
+ try{
+  const {data:apps,error}=await supabaseClient.from("applications").select("id,status,created_at,cover_letter,jobs(id,title,location,companies(company_name))").eq("candidate_id",currentAuthUser.id).order("created_at",{ascending:false});
+  if(error)throw error;
+  if(!apps?.length){message.textContent=ar?"لم تتقدم إلى أي وظيفة حتى الآن. ابدأ باستكشاف الوظائف المتاحة!":"You have not applied for any jobs yet. Start exploring available opportunities!";return;}
+  message.textContent=ar?"لديك "+apps.length+" طلب تقديم.":"You have "+apps.length+" application(s).";
+  list.innerHTML=apps.map(app=>{
+   const job=Array.isArray(app.jobs)?app.jobs[0]:app.jobs,company=job?(Array.isArray(job.companies)?job.companies[0]:job.companies):null;
+   const status=applicationStatusLabel(app.status),date=app.created_at?new Date(app.created_at).toLocaleString(ar?"ar-SD":"en-GB"):"—";
+   return '<article class="my-application-card"><h3 style="margin:0 0 7px;color:var(--d)">'+escapeAdminHtml(job?.title||(ar?"وظيفة":"Job"))+'</h3><div class="muted">'+escapeAdminHtml(company?.company_name||(ar?"جهة العمل":"Employer"))+(job?.location?" • "+escapeAdminHtml(job.location):"")+'</div><p style="margin:12px 0"><span class="my-application-status">'+escapeAdminHtml(status)+'</span></p>'+
+   (job?.id?'<div style="margin:10px 0"><button class="btn outline small" type="button" onclick="openJobConversation(&quot;'+escapeAdminHtml(app.id)+'&quot;)">'+(ar?"مراسلة صاحب الإعلان":"Message employer")+'</button></div>':"")+
+   '<small class="muted">'+(ar?"تاريخ التقديم: ":"Applied on: ")+escapeAdminHtml(date)+'</small>'+
+   (app.cover_letter?'<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--g);font-weight:700">'+(ar?"عرض خطاب التقديم":"View cover letter")+'</summary><p>'+escapeAdminHtml(app.cover_letter)+'</p></details>':"")+'</article>';
+  }).join("");
+ }catch(error){console.error("Candidate applications load failed:",error);message.textContent=(ar?"تعذر تحميل طلباتك حالياً: ":"Could not load your applications: ")+(error.message||(ar?"حدث خطأ غير متوقع":"An unexpected error occurred"));}
 }
 
 let waziftiInstallPrompt = null;
