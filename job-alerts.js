@@ -60,6 +60,7 @@
     const croot=modal.querySelector("#waCategories"),sroot=modal.querySelector("#waSpecialties");
     croot.innerHTML=(cats||[]).map(c=>checkbox(c.id,c.name_ar||c.name_en)).join("")||'<p class="wa-note">لا توجد تصنيفات متاحة حالياً.</p>';
     sroot.innerHTML=(specs||[]).map(s=>checkbox(s.id,s.name_ar||s.name_en)).join("")||'<p class="wa-note">لا توجد تخصصات فرعية متاحة حالياً.</p>';
+    const eroot=modal.querySelector("#waEmployment");eroot.innerHTML=EMPLOYMENT.map(([v,l])=>checkbox(v,l)).join("");
     croot.querySelectorAll("input").forEach(x=>x.addEventListener("change",()=>{const ids=checkedValues(croot);sroot.querySelectorAll("label").forEach(l=>{const input=l.querySelector("input");const item=(specs||[]).find(s=>s.id===input?.value);l.style.opacity=(!ids.length||ids.includes(item?.category_id))?"1":".45";if(ids.length&&!ids.includes(item?.category_id))input.checked=false;});}));
   }
   async function loadPreferences(){
