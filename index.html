@@ -3012,10 +3012,10 @@ async function loadEmployerDashboard() {
   const button=document.getElementById("employerDashboardBtn");
   if(!currentAuthUser) {
     if(button) button.style.display="none";
-    if(message) message.textContent="يرجى تسجيل الدخول أولاً.";
+    if(message) message.textContent=dashboardText("يرجى تسجيل الدخول أولاً.","Please log in first.");
     return;
   }
-  if(message) message.textContent="جارٍ تحميل بيانات جهة العمل...";
+  if(message) message.textContent=dashboardText("جارٍ تحميل بيانات جهة العمل...","Loading employer information...");
   if(card) card.innerHTML="";
   if(stats){stats.style.display="none";stats.innerHTML="";}
   if(jobsPanel) jobsPanel.style.display="none";
@@ -3032,8 +3032,8 @@ async function loadEmployerDashboard() {
       if(button) button.style.display="inline-flex";
       const {data:profile,error:pe}=await supabaseClient.from("profiles").select("can_post_individual_jobs").eq("id",currentAuthUser.id).maybeSingle();
       if(pe) throw pe;
-      if(profile?.can_post_individual_jobs===true){if(message)message.textContent="حسابك الشخصي جاهز لإدارة إعلانات الوظائف الفردية.";await loadIndividualJobs();}
-      else if(message)message.textContent="يمكنك تفعيل خيار «نشر الوظائف للأفراد» من ملفك الشخصي لإضافة فرص عمل باسمك.";
+      if(profile?.can_post_individual_jobs===true){if(message)message.textContent=dashboardText("حسابك الشخصي جاهز لإدارة إعلانات الوظائف الفردية.","Your personal account is ready to manage individual job listings.");await loadIndividualJobs();}
+      else if(message)message.textContent=dashboardText("يمكنك تفعيل خيار «نشر الوظائف للأفراد» من ملفك الشخصي لإضافة فرص عمل باسمك.","Enable “Allow individual job postings” in your profile to publish opportunities under your name.");
       return;
     }
     employerDashboardCompany=company;
@@ -3046,22 +3046,22 @@ async function loadEmployerDashboard() {
     if(card) card.innerHTML='<article style="background:#fff;border:1px solid #e5eee8;border-radius:14px;padding:18px;margin-top:12px">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">'+escapeAdminHtml(company.company_name)+'</h3>'+
       '<span class="tag" style="color:'+statusColor+'">'+escapeAdminHtml(statusLabel)+'</span></div>'+
-      '<p class="muted" style="line-height:1.8">'+escapeAdminHtml(company.description||"لا يوجد وصف مضاف لجهة العمل.")+'</p>'+
+      '<p class="muted" style="line-height:1.8">'+escapeAdminHtml(company.description||dashboardText("لا يوجد وصف مضاف لجهة العمل.","No employer description has been added."))+'</p>'+
       '<form id="employerCompanyDescriptionForm" onsubmit="saveEmployerCompanyDescription(event)" style="margin:14px 0;padding:14px;background:#f7fbf8;border:1px solid #e5eee8;border-radius:12px">'+
-      '<label for="employerCompanyDescription" style="display:block;font-weight:700;margin-bottom:8px">نبذة عن الشركة / وصف صاحب العمل</label>'+
-      '<textarea id="employerCompanyDescription" rows="4" maxlength="1500" placeholder="عرّف الباحثين عن العمل بشركتك ونشاطها ومجالات عملها..." style="width:100%;padding:12px;border:1px solid #d7e4dc;border-radius:9px;font:14px Tahoma,Arial;resize:vertical">'+escapeAdminHtml(company.description||"")+'</textarea>'+
-      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px"><button class="btn primary small" id="saveEmployerCompanyDescriptionBtn" type="submit">حفظ نبذة الشركة</button><small class="muted">حتى 1500 حرف</small></div>'+
+      '<label for="employerCompanyDescription" style="display:block;font-weight:700;margin-bottom:8px">' + dashboardText("نبذة عن الشركة / وصف صاحب العمل","Company overview / employer description") + '</label>'+
+      '<textarea id="employerCompanyDescription" rows="4" maxlength="1500" placeholder="' + dashboardText("عرّف الباحثين عن العمل بشركتك ونشاطها ومجالات عملها...","Introduce your company, its activities, and areas of work to job seekers.") + '" style="width:100%;padding:12px;border:1px solid #d7e4dc;border-radius:9px;font:14px Tahoma,Arial;resize:vertical">'+escapeAdminHtml(company.description||"")+'</textarea>'+
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px"><button class="btn primary small" id="saveEmployerCompanyDescriptionBtn" type="submit">' + dashboardText("حفظ نبذة الشركة","Save company overview") + '</button><small class="muted">' + dashboardText("حتى 1500 حرف","Up to 1,500 characters") + '</small></div>'+
       '<p id="employerCompanyDescriptionMessage" role="status" aria-live="polite" class="muted" style="margin:8px 0 0"></p></form>'+
       (company.website?'<p><a href="'+escapeAdminHtml(company.website)+'" target="_blank" rel="noopener noreferrer">الموقع الإلكتروني</a></p>':'')+
-      '<small class="muted">تاريخ التسجيل: '+escapeAdminHtml(new Date(company.created_at).toLocaleDateString("ar"))+'</small></article>';
+      '<small class="muted">' + dashboardText("تاريخ التسجيل: ","Registered: ") + escapeAdminHtml(new Date(company.created_at).toLocaleDateString(dashboardLocale()))+'</small></article>';
     if(company.status!=="verified") {
-      const guidance=company.status==="pending"?"طلب تسجيل جهة العمل قيد المراجعة. ستتمكن من نشر الوظائف بعد اعتماد الشركة."
-        :company.status==="rejected"?"تم رفض طلب الشركة. يرجى التواصل مع إدارة وظيفتي لمعرفة الخطوات التالية."
-        :"حساب جهة العمل موقوف حالياً. يرجى التواصل مع إدارة وظيفتي.";
+      const guidance=company.status==="pending"?dashboardText("طلب تسجيل جهة العمل قيد المراجعة. ستتمكن من نشر الوظائف بعد اعتماد الشركة.","Your employer registration is under review. You can post jobs once the company is approved.")
+        :company.status==="rejected"?dashboardText("تم رفض طلب الشركة. يرجى التواصل مع إدارة وظيفتي لمعرفة الخطوات التالية.","The company application was rejected. Please contact Wazifti support for next steps.")
+        :dashboardText("حساب جهة العمل موقوف حالياً. يرجى التواصل مع إدارة وظيفتي.","The employer account is currently suspended. Please contact Wazifti support.");
       if(message) message.textContent=guidance;
       return;
     }
-    if(message) message.textContent="الشركة معتمدة. يمكنك إدارة الوظائف ومتابعة طلبات التقديم.";
+    if(message) message.textContent=dashboardText("الشركة معتمدة. يمكنك إدارة الوظائف ومتابعة طلبات التقديم.","Your company is approved. You can manage jobs and track applications.");
     const {data:jobs,error:jobsError}=await supabaseClient.from("jobs")
       .select("id,title,status,location,created_at,category_id,specialty_id")
       .eq("company_id",company.id).order("created_at",{ascending:false});
@@ -3070,7 +3070,7 @@ async function loadEmployerDashboard() {
     const counts={total:rows.length,published:rows.filter(j=>j.status==="published").length,pending:rows.filter(j=>j.status==="pending").length,closed:rows.filter(j=>j.status==="closed").length};
     if(stats) {
       stats.style.display="grid";
-      stats.innerHTML=[["إجمالي الوظائف",counts.total],["منشورة",counts.published],["قيد المراجعة",counts.pending],["مغلقة",counts.closed]]
+      stats.innerHTML=[[dashboardText("إجمالي الوظائف","Total jobs"),counts.total],[dashboardText("منشورة","Published"),counts.published],[dashboardText("قيد المراجعة","Pending review"),counts.pending],[dashboardText("مغلقة","Closed"),counts.closed]]
         .map(([label,value])=>'<div style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px"><div class="muted" style="font-size:13px">'+label+'</div><strong style="font-size:24px;color:#064e35">'+value+'</strong></div>').join("");
     }
     if(jobsPanel) jobsPanel.style.display="block";
@@ -3079,22 +3079,22 @@ async function loadEmployerDashboard() {
       const canDelete=["pending","closed","rejected"].includes(job.status);
       return '<article style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px;margin:10px 0">'+
         '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>'+escapeAdminHtml(job.title)+'</strong><span class="tag">'+escapeAdminHtml(employerJobStatusLabel(job.status))+'</span></div>'+
-        '<div class="muted" style="margin:8px 0">'+escapeAdminHtml(job.location||"الموقع غير محدد")+'</div>'+
+        '<div class="muted" style="margin:8px 0">'+escapeAdminHtml(job.location||dashboardText("الموقع غير محدد","Location not specified"))+'</div>'+
         '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
-        (canEdit?'<button class="btn outline small" type="button" onclick="openEmployerJobForm(\''+job.id+'\')">تعديل</button>':'')+
-        (canDelete?'<button class="btn outline small" type="button" onclick="deleteEmployerJob(\''+job.id+'\')">حذف</button>':'')+
-        (job.status==="published"?'<button class="btn primary small" type="button" onclick="toggleEmployerApplications(\''+job.id+'\')">طلبات التقديم</button>':'')+
+        (canEdit?'<button class="btn outline small" type="button" onclick="openEmployerJobForm(\''+job.id+'\')">' + dashboardText("تعديل","Edit") + '</button>':'')+
+        (canDelete?'<button class="btn outline small" type="button" onclick="deleteEmployerJob(\''+job.id+'\')">' + dashboardText("حذف","Delete") + '</button>':'')+
+        (job.status==="published"?'<button class="btn primary small" type="button" onclick="toggleEmployerApplications(\''+job.id+'\')">' + dashboardText("طلبات التقديم","Applications") + '</button>':'')+
         '</div><div id="employerApplications-'+job.id+'" style="display:none;margin-top:12px"></div></article>';
-    }).join(""):'<p class="muted" style="padding:14px;background:#fff;border-radius:10px">لا توجد وظائف بعد. استخدم «نشر وظيفة» لإضافة أول فرصة.</p>';
+    }).join(""):'<p class="muted" style="padding:14px;background:#fff;border-radius:10px">' + dashboardText("لا توجد وظائف بعد. استخدم «نشر وظيفة» لإضافة أول فرصة.","No jobs yet. Use “Post a job” to add your first opportunity.") + '</p>';
   } catch(error) {
     console.error("Employer dashboard load failed:",error);
-    if(message) message.textContent="تعذر تحميل لوحة صاحب العمل: "+(error.message||"خطأ غير معروف");
+    if(message) message.textContent=dashboardText("تعذر تحميل لوحة صاحب العمل: ","Could not load employer dashboard: ")+(error.message||dashboardText("خطأ غير معروف","Unknown error"));
   }
 }
 async function saveEmployerCompanyDescription(event) {
   event.preventDefault();
   if (!currentAuthUser || !employerDashboardCompany?.id) {
-    toast("تعذر تحديد جهة العمل الحالية.");
+    toast(dashboardText("تعذر تحديد جهة العمل الحالية.","Could not identify the current employer."));
     return;
   }
   const textarea = document.getElementById("employerCompanyDescription");
@@ -3102,11 +3102,11 @@ async function saveEmployerCompanyDescription(event) {
   const button = document.getElementById("saveEmployerCompanyDescriptionBtn");
   const description = (textarea?.value || "").trim();
   if (description.length > 1500) {
-    if (message) message.textContent = "الحد الأقصى للوصف هو 1500 حرف.";
+    if (message) message.textContent = dashboardText("الحد الأقصى للوصف هو 1500 حرف.","The description limit is 1,500 characters.");
     return;
   }
   if (button) button.disabled = true;
-  if (message) message.textContent = "جارٍ حفظ نبذة الشركة...";
+  if (message) message.textContent = dashboardText("جارٍ حفظ نبذة الشركة...","Saving company overview...");
   try {
     const { error } = await supabaseClient.rpc("update_owned_company_description", {
       p_company_id: employerDashboardCompany.id,
@@ -3114,13 +3114,13 @@ async function saveEmployerCompanyDescription(event) {
     });
     if (error) throw error;
     employerDashboardCompany.description = description;
-    if (message) message.textContent = "تم حفظ نبذة الشركة بنجاح.";
-    toast("تم تحديث وصف جهة العمل.");
+    if (message) message.textContent = dashboardText("تم حفظ نبذة الشركة بنجاح.","Company overview saved successfully.");
+    toast(dashboardText("تم تحديث وصف جهة العمل.","Employer description updated."));
     await loadEmployerDashboard();
     await loadLiveJobs();
   } catch (error) {
     console.error("Company description update failed:", error);
-    if (message) message.textContent = "تعذر حفظ الوصف: " + (error.message || "خطأ غير معروف");
+    if (message) message.textContent = dashboardText("تعذر حفظ الوصف: ","Could not save description: ") + (error.message || dashboardText("خطأ غير معروف","Unknown error"));
     if (button) button.disabled = false;
   }
 }
@@ -3143,7 +3143,7 @@ function navigateEmployerDashboard(section){
     if(panel&&!panel.querySelector(".employer-applicants-hint")){
       const hint=document.createElement("p");
       hint.className="muted employer-applicants-hint";
-      hint.textContent="اختر «طلبات التقديم» بجوار الوظيفة لمراجعة المتقدمين وفتح المحادثات المرتبطة بكل طلب.";
+      hint.textContent=dashboardText("اختر «طلبات التقديم» بجوار الوظيفة لمراجعة المتقدمين وفتح المحادثات المرتبطة بكل طلب.","Select “Applications” next to a job to review applicants and open conversations linked to each application.");
       hint.style.cssText="padding:10px 12px;background:#f3f8f5;border-radius:10px;margin:8px 0 14px";
       panel.insertBefore(hint,panel.children[1]||null);
     }
@@ -3151,7 +3151,7 @@ function navigateEmployerDashboard(section){
 }
 
 function openEmployerDashboard() {
-  if (!currentAuthUser) { toast("يرجى تسجيل الدخول أولاً."); openLogin(); return; }
+  if (!currentAuthUser) { toast(dashboardText("يرجى تسجيل الدخول أولاً.","Please log in first.")); openLogin(); return; }
   const modal = document.getElementById("employerDashboardModal");
   const panel = document.getElementById("employerDashboard");
   if (panel) panel.style.display = "block";
