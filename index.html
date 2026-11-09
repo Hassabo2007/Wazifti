@@ -1805,6 +1805,7 @@ const profileLabels = {
 
 function applyCandidateProfileLanguage() {
   const isAr = lang === "ar";
+  const profileCopy = profileLabels[lang] || profileLabels.ar;
   const copy = isAr ? {
     close:"إغلاق", category:"التصنيف الرئيسي", categoryPlaceholder:"اختر التصنيف الرئيسي",
     specialtyPlaceholder:"اختر التخصص الفرعي", individualPosting:"تفعيل نشر الوظائف للأفراد",
@@ -1831,7 +1832,18 @@ function applyCandidateProfileLanguage() {
     if (close) close.setAttribute("aria-label", copy.close);
   }
   const setText = (id, value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
+  setText("profileTitle",profileCopy.title);
+  setText("profileIntro",profileCopy.intro);
+  setText("profileNameLabel",profileCopy.name);
+  setText("profileEmailLabel",profileCopy.email);
+  setText("profilePhoneLabel",profileCopy.phone);
+  setText("profileStateLabel",profileCopy.state);
+  setText("profileCityLabel",profileCopy.city);
   setText("profileCategoryLabel",copy.category);
+  setText("profileSpecialtyLabel",isAr?"التخصص الفرعي":"Specialty");
+  setText("profileQualificationLabel",profileCopy.qualification);
+  setText("profileBioLabel",profileCopy.bio);
+  setText("saveProfileBtn",profileCopy.save);
   setText("experienceHeading",copy.experience);
   setText("experienceFormHeading",copy.addExperience);
   setText("resumeHeading",copy.resume);
@@ -1853,14 +1865,32 @@ function applyCandidateProfileLanguage() {
   if(postingLabel) postingLabel.textContent=copy.individualPosting;
   const postingHelp=modal?.querySelector('#profileIndividualPostingEnabled')?.closest('section')?.querySelector('p');
   if(postingHelp) postingHelp.textContent=copy.individualPostingHelp;
+  const stateSelect=document.getElementById("profileState");
+  if(stateSelect && stateSelect.options.length) {
+    const selected=stateSelect.value;
+    const statesAr=profileLabels.ar.states;
+    const statesEn=profileLabels.en.states;
+    Array.from(stateSelect.options).forEach((option,index)=>{
+      if(index===0) { option.textContent=profileCopy.choose; return; }
+      const stateIndex=statesAr.indexOf(option.value);
+      if(stateIndex>=0) option.textContent=isAr?statesAr[stateIndex]:statesEn[stateIndex];
+      else if(index-1<statesEn.length) option.textContent=isAr?statesAr[index-1]:statesEn[index-1];
+    });
+    if(selected) stateSelect.value=selected;
+  }
   const category=document.getElementById("profileCategory");
   if(category?.options.length) category.options[0].textContent=copy.categoryPlaceholder;
   const specialty=document.getElementById("profileSpecialty");
   if(specialty?.options.length) specialty.options[0].textContent=copy.specialtyPlaceholder;
+  if(waziftiTaxonomy.categories.length && category) {
+    const selectedCategory=category.value;
+    const selectedSpecialty=specialty?.value||"";
+    addSelectOptions(category,waziftiTaxonomy.categories,copy.categoryPlaceholder,selectedCategory);
+    populateProfileSpecialties(selectedCategory,selectedSpecialty);
+  }
   const file=document.getElementById("candidateResumeFile");
   if(file) { file.setAttribute("aria-label",copy.fileLabel); file.setAttribute("title",copy.fileLabel); }
 }
-
 function openProfile() {
   if (!currentAuthUser) {
     toast(lang === "ar" ? "يرجى تسجيل الدخول أولاً" : "Please log in first");
