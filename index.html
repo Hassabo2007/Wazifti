@@ -1273,7 +1273,7 @@ function updateTexts(){
   if(city&&city.options.length)city.options[0].textContent=lang==="ar"?"كل المدن":"All cities";
   populateSearchCityOptions();
   refreshTaxonomySelectLanguage();applyEmployerJobFormLanguage();filterJobs();
-  if(currentAuthUser && document.getElementById("employerDashboardModal")?.style.display==="flex") loadEmployerDashboard();
+  if(currentAuthUser && document.getElementById("employerDashboardModal")?.style.display==="flex" && document.getElementById("employerJobFormBox")?.style.display!=="block") loadEmployerDashboard();
   if(isAdminUser && document.getElementById("adminDashboard")?.style.display!=="none") loadAdminDashboardData();
 }
 function toggleLang(){lang=lang==="ar"?"en":"ar";try{localStorage.setItem("wazifti-language",lang)}catch(e){}updateTexts()}
@@ -2745,20 +2745,20 @@ async function downloadEmployerApplicantResume(event, filePath, fileName) {
 }
 
 const employerApplicationStatusLabels = {
-  submitted:"تم استلام الطلب",
-  reviewing:"قيد المراجعة",
-  shortlisted:"ضمن القائمة المختصرة",
-  rejected:"لم يتم الاختيار",
-  accepted:"تم القبول"
+  submitted:dashboardText("تم استلام الطلب","Application received"),
+  reviewing:dashboardText("قيد المراجعة","Under review"),
+  shortlisted:dashboardText("ضمن القائمة المختصرة","Shortlisted"),
+  rejected:dashboardText("لم يتم الاختيار","Not selected"),
+  accepted:dashboardText("تم القبول","Accepted")
 };
 async function updateEmployerApplicationStatus(applicationId, newStatus, selectElement) {
   const allowedStatuses = Object.keys(employerApplicationStatusLabels);
   if (!allowedStatuses.includes(newStatus)) {
-    toast("حالة الطلب غير صالحة.");
+    toast(dashboardText("حالة الطلب غير صالحة.","Invalid application status."));
     return;
   }
   if (!currentAuthUser) {
-    toast("يرجى تسجيل الدخول أولاً.");
+    toast(dashboardText("يرجى تسجيل الدخول أولاً.","Please log in first."));
     return;
   }
   const previousStatus = selectElement?.dataset.previousStatus || "submitted";
@@ -2768,7 +2768,7 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
     const {data:application,error:ownershipError}=await supabaseClient
       .from("applications").select("id,job_id").eq("id",applicationId).maybeSingle();
     if(ownershipError) throw ownershipError;
-    if(!application) throw new Error("لا تملك صلاحية تعديل هذا الطلب.");
+    if(!application) throw new Error(dashboardText("لا تملك صلاحية تعديل هذا الطلب.","You are not authorized to update this application."));
     ownedApplication=application;
 
     if(newStatus==="accepted" && previousStatus!=="accepted"){
@@ -2778,8 +2778,7 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
       otherApplicantIds=(otherApplications||[])
         .filter(item=>item.id!==applicationId && !["accepted","rejected"].includes(item.status))
         .map(item=>item.id);
-      const confirmText="اعتماد هذا المتقدم سيغلق الوظيفة تلقائياً، ويحوّل "+otherApplicantIds.length+
-        " من طلبات المتقدمين الآخرين إلى «لم يتم الاختيار»، ويرسل لهم إشعارات. هل تريد المتابعة؟";
+      const confirmText=lang==="ar"?"اعتماد هذا المتقدم سيغلق الوظيفة تلقائياً، ويحوّل "+otherApplicantIds.length+" من طلبات المتقدمين الآخرين إلى «لم يتم الاختيار»، ويرسل لهم إشعارات. هل تريد المتابعة؟":"Accepting this applicant will automatically close the job, mark "+otherApplicantIds.length+" other applications as “Not selected”, and notify them. Continue?";
       if(!window.confirm(confirmText)){
         if(selectElement) selectElement.value=previousStatus;
         return;
@@ -2838,15 +2837,15 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
       if(jobStateError) throw jobStateError;
       const workflowComplete=jobState?.status==="closed" && rejectedIds.length===otherApplicantIds.length;
       if(workflowComplete){
-        toast("تم قبول المتقدم وإغلاق الوظيفة وإبلاغ بقية المتقدمين بنتيجة طلباتهم.");
+        toast(dashboardText("تم قبول المتقدم وإغلاق الوظيفة وإبلاغ بقية المتقدمين بنتيجة طلباتهم.","Applicant accepted, job closed, and other applicants notified of their results."));
         idsToNotify=[applicationId,...rejectedIds];
       }else{
-        toast("تم تحديث حالة القبول، لكن لم نتمكن من تأكيد إغلاق الوظيفة ورفض بقية الطلبات. لم نرسل لهم إشعارات دفع.");
+        toast(dashboardText("تم تحديث حالة القبول، لكن لم نتمكن من تأكيد إغلاق الوظيفة ورفض بقية الطلبات. لم نرسل لهم إشعارات دفع.","The acceptance status was updated, but we could not confirm that the job was closed and other applications rejected. No push notifications were sent to them."));
       }
       const target=document.getElementById("employerApplications-"+ownedApplication.job_id);
       if(target){target.style.display="none";employerViewingApplicationsFor=null;await toggleEmployerApplications(ownedApplication.job_id);}
     } else {
-      toast("تم تحديث حالة الطلب بنجاح.");
+      toast(dashboardText("تم تحديث حالة الطلب بنجاح.","Application status updated successfully."));
     }
 
     if(data.status !== previousStatus){
@@ -2875,10 +2874,10 @@ async function toggleEmployerApplications(jobId) {
   if(!currentAuthUser) return;
   const {data:jobOwner,error:ownerError}=await supabaseClient.from("jobs")
     .select("poster_type,posted_by_user_id,company_id").eq("id",jobId).maybeSingle();
-  if(ownerError || !jobOwner) { toast("تعذر التحقق من صلاحية الإعلان."); return; }
+  if(ownerError || !jobOwner) { toast(dashboardText("تعذر التحقق من صلاحية الإعلان.","Could not verify permission for this listing.")); return; }
   const isIndividualOwner=jobOwner.poster_type==="individual" && jobOwner.posted_by_user_id===currentAuthUser.id;
   const isCompanyOwner=!!employerDashboardCompany && jobOwner.company_id===employerDashboardCompany.id;
-  if(!isIndividualOwner && !isCompanyOwner) { toast("لا تملك صلاحية عرض طلبات هذا الإعلان."); return; }
+  if(!isIndividualOwner && !isCompanyOwner) { toast(dashboardText("لا تملك صلاحية عرض طلبات هذا الإعلان.","You are not authorized to view applications for this listing.")); return; }
   const target=document.getElementById("employerApplications-"+jobId);
   if(!target) return;
   if(employerViewingApplicationsFor===jobId && target.style.display==="block") {
@@ -2886,14 +2885,14 @@ async function toggleEmployerApplications(jobId) {
   }
   employerViewingApplicationsFor=jobId;
   target.style.display="block";
-  target.innerHTML='<p class="muted">جارٍ تحميل طلبات التقديم...</p>';
+  target.innerHTML='<p class="muted">' + dashboardText("جارٍ تحميل طلبات التقديم...","Loading applications...") + '</p>';
   try {
     const {data:apps,error}=await supabaseClient.from("applications")
       .select("id,candidate_id,cover_letter,status,created_at,resume_id,candidate_resumes(id,file_name,file_path)")
       .eq("job_id",jobId).order("created_at",{ascending:false});
     if(error) throw error;
     if(!apps?.length) {
-      target.innerHTML='<p class="muted">لا توجد طلبات تقديم لهذه الوظيفة بعد.</p>';
+      target.innerHTML='<p class="muted">' + dashboardText("لا توجد طلبات تقديم لهذه الوظيفة بعد.","There are no applications for this job yet.") + '</p>';
       return;
     }
 
@@ -2911,26 +2910,26 @@ async function toggleEmployerApplications(jobId) {
       if(resume?.file_path) {
         const {data:signed,error:signedError}=await supabaseClient.storage.from(CANDIDATE_CV_BUCKET).createSignedUrl(resume.file_path,600);
         if(signedError) {
-          resumeActions='<p class="muted">تعذر إنشاء رابط السيرة الذاتية: '+escapeAdminHtml(signedError.message||"")+'</p>';
+          resumeActions='<p class="muted">' + dashboardText("تعذر إنشاء رابط السيرة الذاتية: ","Could not create CV link: ") + escapeAdminHtml(signedError.message||"") + '</p>';
         } else {
           resumeActions='<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">'+
-            '<a class="btn outline small" href="'+escapeAdminHtml(signed.signedUrl)+'" data-applicant-preview="'+escapeAdminHtml(app.id)+'">معاينة السيرة الذاتية</a>'+
-            '<button class="btn primary small" type="button" data-applicant-download-path="'+escapeAdminHtml(resume.file_path)+'" data-applicant-download-name="'+escapeAdminHtml(resume.file_name||"resume.pdf")+'">تنزيل السيرة الذاتية</button></div>'+
+            '<a class="btn outline small" href="'+escapeAdminHtml(signed.signedUrl)+'" data-applicant-preview="'+escapeAdminHtml(app.id)+'">' + dashboardText("معاينة السيرة الذاتية","Preview CV") + '</a>'+
+            '<button class="btn primary small" type="button" data-applicant-download-path="'+escapeAdminHtml(resume.file_path)+'" data-applicant-download-name="'+escapeAdminHtml(resume.file_name||"resume.pdf")+'">' + dashboardText("تنزيل السيرة الذاتية","Download CV") + '</button></div>'+
             '<small class="muted">'+escapeAdminHtml(resume.file_name||"")+'</small>';
         }
       }
       return '<article style="padding:12px;margin:8px 0;background:#fff;border:1px solid #e5eee8;border-radius:9px">'+
         '<strong>'+escapeAdminHtml(applicantName)+'</strong>'+
-        '<div style="margin-top:8px"><button class="btn outline small" type="button" onclick="openJobConversation(&quot;'+escapeAdminHtml(app.id)+'&quot;)">مراسلة المتقدم</button></div>'+
-        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px"><span class="muted">الحالة:</span><strong data-application-status="'+escapeAdminHtml(app.id)+'">'+escapeAdminHtml(employerApplicationStatusLabels[app.status]||app.status||"غير محددة")+'</strong></div>'+
-        '<label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:13px;font-weight:700">تحديث حالة الطلب'+
+        '<div style="margin-top:8px"><button class="btn outline small" type="button" onclick="openJobConversation(&quot;'+escapeAdminHtml(app.id)+'&quot;)">' + dashboardText("مراسلة المتقدم","Message applicant") + '</button></div>'+
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px"><span class="muted">' + dashboardText("الحالة:","Status:") + '</span><strong data-application-status="'+escapeAdminHtml(app.id)+'">'+escapeAdminHtml(employerApplicationStatusLabels[app.status]||app.status||dashboardText("غير محددة","Not specified"))+'</strong></div>'+
+        '<label style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:13px;font-weight:700">' + dashboardText("تحديث حالة الطلب","Update application status") +
         '<select data-application-status-select="'+escapeAdminHtml(app.id)+'" data-previous-status="'+escapeAdminHtml(app.status||"submitted")+'" onchange="updateEmployerApplicationStatus(\''+escapeAdminHtml(app.id)+'\',this.value,this)" style="padding:8px;border:1px solid #d7e4dc;border-radius:8px;background:#fff;font:14px Tahoma,Arial">'+
         Object.entries(employerApplicationStatusLabels).map(([value,label])=>'<option value="'+value+'" '+(app.status===value?"selected":"")+'>'+label+'</option>').join("")+
         '</select></label>'+
         (app.cover_letter?'<p style="white-space:pre-wrap;line-height:1.8">'+escapeAdminHtml(app.cover_letter)+'</p>':'')+
         resumeActions+
         '<div id="adminPdfPreview-'+escapeAdminHtml(app.id)+'" style="display:none;margin-top:12px;padding:10px;border:1px solid #d8e2dc;border-radius:10px;background:#f8fbf9"></div>'+
-        '<small class="muted">'+escapeAdminHtml(new Date(app.created_at).toLocaleString("ar"))+'</small></article>';
+        '<small class="muted">'+escapeAdminHtml(new Date(app.created_at).toLocaleString(dashboardLocale()))+'</small></article>';
     }));
     target.innerHTML=cards.join("");
 
@@ -2944,7 +2943,7 @@ async function toggleEmployerApplications(jobId) {
     });
   } catch(error) {
     console.error("Employer applications load failed:",error);
-    target.innerHTML='<p class="muted">تعذر تحميل الطلبات: '+escapeAdminHtml(error.message||"")+'</p>';
+    target.innerHTML='<p class="muted">' + dashboardText("تعذر تحميل الطلبات: ","Could not load applications: ") + escapeAdminHtml(error.message||"") + '</p>';
   }
 }
 
@@ -2975,17 +2974,17 @@ async function openIndividualJobForm(jobId=null) {
 }
 async function loadIndividualJobs(){
  const panel=document.getElementById("individualJobsPanel"),list=document.getElementById("individualJobsList");if(!currentAuthUser||!panel||!list)return;
- panel.style.display="block";list.innerHTML='<p class="muted">جارٍ تحميل إعلاناتك...</p>';
+ panel.style.display="block";list.innerHTML='<p class="muted">' + dashboardText("جارٍ تحميل إعلاناتك...","Loading your listings...") + '</p>';
  try{
   const {data:jobs,error}=await supabaseClient.from("jobs").select("id,title,status,location,created_at").eq("poster_type","individual").eq("posted_by_user_id",currentAuthUser.id).order("created_at",{ascending:false});
   if(error)throw error;const rows=jobs||[];
   list.innerHTML = rows.length ? rows.map(j => {
     const actions = [];
-    if (j.status === "pending") actions.push('<button class="btn outline small" type="button" data-individual-action="edit" data-job-id="' + escapeAdminHtml(j.id) + '">تعديل</button>');
-    if (["published", "closed"].includes(j.status)) actions.push('<button class="btn outline small" type="button" data-individual-action="applications" data-job-id="' + escapeAdminHtml(j.id) + '">طلبات التقديم</button><div id="employerApplications-' + escapeAdminHtml(j.id) + '" style="display:none;width:100%"></div>');
-    if (["pending", "rejected"].includes(j.status)) actions.push('<button class="btn outline small" type="button" data-individual-action="delete" data-job-id="' + escapeAdminHtml(j.id) + '">حذف</button>');
-    return '<article style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px;margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>' + escapeAdminHtml(j.title) + '</strong><span class="tag">' + escapeAdminHtml(employerJobStatusLabel(j.status)) + '</span></div><div class="muted" style="margin:8px 0">' + escapeAdminHtml(j.location || "الموقع غير محدد") + '</div><div style="display:flex;gap:8px;flex-wrap:wrap">' + actions.join("") + '</div></article>';
-  }).join("") : '<p class="muted" style="padding:12px;background:#fff;border-radius:10px">لم تنشر أي وظائف بعد.</p>';
+    if (j.status === "pending") actions.push('<button class="btn outline small" type="button" data-individual-action="edit" data-job-id="' + escapeAdminHtml(j.id) + '">' + dashboardText("تعديل","Edit") + '</button>');
+    if (["published", "closed"].includes(j.status)) actions.push('<button class="btn outline small" type="button" data-individual-action="applications" data-job-id="' + escapeAdminHtml(j.id) + '">' + dashboardText("طلبات التقديم","Applications") + '</button><div id="employerApplications-' + escapeAdminHtml(j.id) + '" style="display:none;width:100%"></div>');
+    if (["pending", "rejected"].includes(j.status)) actions.push('<button class="btn outline small" type="button" data-individual-action="delete" data-job-id="' + escapeAdminHtml(j.id) + '">' + dashboardText("حذف","Delete") + '</button>');
+    return '<article style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px;margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>' + escapeAdminHtml(j.title) + '</strong><span class="tag">' + escapeAdminHtml(employerJobStatusLabel(j.status)) + '</span></div><div class="muted" style="margin:8px 0">' + escapeAdminHtml(j.location || dashboardText("الموقع غير محدد","Location not specified")) + '</div><div style="display:flex;gap:8px;flex-wrap:wrap">' + actions.join("") + '</div></article>';
+  }).join("") : '<p class="muted" style="padding:12px;background:#fff;border-radius:10px">You have not posted any jobs yet.</p>';
   list.querySelectorAll("[data-individual-action]").forEach(button => {
     button.addEventListener("click", () => {
       const id = button.dataset.jobId;
@@ -3052,7 +3051,7 @@ async function loadEmployerDashboard() {
       '<textarea id="employerCompanyDescription" rows="4" maxlength="1500" placeholder="' + dashboardText("عرّف الباحثين عن العمل بشركتك ونشاطها ومجالات عملها...","Introduce your company, its activities, and areas of work to job seekers.") + '" style="width:100%;padding:12px;border:1px solid #d7e4dc;border-radius:9px;font:14px Tahoma,Arial;resize:vertical">'+escapeAdminHtml(company.description||"")+'</textarea>'+
       '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px"><button class="btn primary small" id="saveEmployerCompanyDescriptionBtn" type="submit">' + dashboardText("حفظ نبذة الشركة","Save company overview") + '</button><small class="muted">' + dashboardText("حتى 1500 حرف","Up to 1,500 characters") + '</small></div>'+
       '<p id="employerCompanyDescriptionMessage" role="status" aria-live="polite" class="muted" style="margin:8px 0 0"></p></form>'+
-      (company.website?'<p><a href="'+escapeAdminHtml(company.website)+'" target="_blank" rel="noopener noreferrer">الموقع الإلكتروني</a></p>':'')+
+      (company.website?'<p><a href="'+escapeAdminHtml(company.website)+'" target="_blank" rel="noopener noreferrer">'+dashboardText("الموقع الإلكتروني","Website") + '</a></p>':'')+
       '<small class="muted">' + dashboardText("تاريخ التسجيل: ","Registered: ") + escapeAdminHtml(new Date(company.created_at).toLocaleDateString(dashboardLocale()))+'</small></article>';
     if(company.status!=="verified") {
       const guidance=company.status==="pending"?dashboardText("طلب تسجيل جهة العمل قيد المراجعة. ستتمكن من نشر الوظائف بعد اعتماد الشركة.","Your employer registration is under review. You can post jobs once the company is approved.")
