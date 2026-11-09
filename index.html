@@ -1172,6 +1172,7 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 const data=[];
 let lang=(()=>{try{return localStorage.getItem("wazifti-language")==="en"?"en":"ar"}catch(e){return "ar"}})();let T={};
 // Public browser configuration. The publishable key is safe to expose only with correct Supabase RLS policies.
+<!-- Isolated QA preview: uses Wazifti-job-alerts-test only. Never merge this branch to production. -->
 const SUPABASE_URL = "https://igkemvtpfumbixajfrjr.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_o-ohdr57eZc65JcLE6mHGQ_Qe_GkBxh";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
