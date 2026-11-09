@@ -359,4 +359,16 @@ drop trigger if exists enqueue_job_alert_after_publish on public.jobs;
 create trigger enqueue_job_alert_after_publish after insert or update of status on public.jobs
 for each row execute function private.enqueue_job_alert_on_publish();
 
+
+-- Explicit service-only policies document the worker access model and satisfy RLS linting.
+drop policy if exists "Worker manages job alert deliveries" on public.job_alert_deliveries;
+create policy "Worker manages job alert deliveries" on public.job_alert_deliveries
+  for all to service_role using (true) with check (true);
+drop policy if exists "Worker manages job alert digest runs" on public.job_alert_digest_runs;
+create policy "Worker manages job alert digest runs" on public.job_alert_digest_runs
+  for all to service_role using (true) with check (true);
+drop policy if exists "Worker manages job alert outbox" on public.job_alert_outbox;
+create policy "Worker manages job alert outbox" on public.job_alert_outbox
+  for all to service_role using (true) with check (true);
+
 -- Do not touch public.in_app_notifications, push_notification_events, applications, or push_subscriptions.
