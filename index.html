@@ -2436,6 +2436,12 @@ function employerJobStatusLabel(status) {
 }
 
 function refreshTaxonomySelectLanguage(){
+  const searchCategory=document.getElementById("searchCategorySelect");
+  const searchSpecialty=document.getElementById("searchSpecialtySelect");
+  if(searchCategory){const selected=searchCategory.value;addSelectOptions(searchCategory,waziftiTaxonomy.categories,lang==="ar"?"كل المجالات":"All fields",selected);}
+  if(searchSpecialty){const selected=searchSpecialty.value;const rows=waziftiTaxonomy.specialties.filter(x=>x.category_id===searchCategory?.value);addSelectOptions(searchSpecialty,rows,lang==="ar"?"كل التخصصات":"All specialties",selected);searchSpecialty.disabled=!searchCategory?.value||!rows.length;}
+  const citySelect=document.getElementById("searchCitySelect");
+  if(citySelect){const selected=citySelect.value;populateSearchCityOptions();citySelect.value=selected;}
   const categoryFilter=document.getElementById("jobCategoryFilter");
   const specialtyFilter=document.getElementById("jobSpecialtyFilter");
   if(categoryFilter){const selected=categoryFilter.value;addSelectOptions(categoryFilter,waziftiTaxonomy.categories,lang==="ar"?"كل التصنيفات":"All categories",selected);}
