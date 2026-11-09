@@ -1332,6 +1332,11 @@ function updateTexts(){
   const setText=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
   setText("lang",lang==="ar"?"EN":"عربي");setText("loginBtn",T.login);setText("signupBtn",T.signup);
   applyAuthModalLanguage();
+  if (typeof applyCandidateProfileLanguage === "function" && document.getElementById("profileModal")?.style.display === "flex") {
+    applyCandidateProfileLanguage();
+    loadCandidateExperiences();
+    loadCandidateResumes();
+  }
   setText("logoutBtn",T.logout);setText("profileBtn",T.profile);
   setText("myApplicationsBtn",lang==="ar"?"طلباتي":"My applications");
   setText("employerDashboardBtn",lang==="ar"?"لوحة صاحب العمل":"Employer dashboard");
@@ -1795,7 +1800,66 @@ const profileLabels = {
     failed:"Could not save profile: ", required:"Please enter your full name.",
     states:["Khartoum","Al Jazirah","Red Sea","Kassala","Al Qadarif","Sennar","White Nile","Blue Nile","River Nile","Northern","North Kordofan","South Kordofan","West Kordofan","North Darfur","South Darfur","West Darfur","Central Darfur","East Darfur"]
   }
+
 };
+
+function applyCandidateProfileLanguage() {
+  const isAr = lang === "ar";
+  const copy = isAr ? {
+    close:"إغلاق", category:"التصنيف الرئيسي", categoryPlaceholder:"اختر التصنيف الرئيسي",
+    specialtyPlaceholder:"اختر التخصص الفرعي", individualPosting:"تفعيل نشر الوظائف للأفراد",
+    individualPostingHelp:"يتيح لك هذا الخيار نشر فرص العمل من حسابك الشخصي بعد استكمال إعدادات المنصة، وتخضع جميع الإعلانات لمراجعة الإدارة قبل النشر.",
+    experience:"الخبرات العملية", addExperience:"إضافة خبرة جديدة", employer:"جهة العمل",
+    jobTitle:"المسمى الوظيفي", start:"تاريخ البداية", end:"تاريخ النهاية",
+    current:"أعمل هنا حالياً", description:"وصف المهام (اختياري)", add:"إضافة الخبرة",
+    resume:"السيرة الذاتية", resumeHint:"ارفع سيرتك الذاتية بصيغة PDF (حتى 5 ميجابايت). يمكنك الاحتفاظ بأكثر من سيرة وتحديد واحدة كافتراضية.",
+    upload:"رفع السيرة الذاتية", fileLabel:"اختر ملف السيرة الذاتية بصيغة PDF"
+  } : {
+    close:"Close", category:"Main category", categoryPlaceholder:"Select a main category",
+    specialtyPlaceholder:"Select a specialty", individualPosting:"Enable job posting for individuals",
+    individualPostingHelp:"This option allows you to publish job opportunities from your personal account once the platform setup is complete. All listings are reviewed by the administration before publication.",
+    experience:"Work experience", addExperience:"Add new experience", employer:"Employer",
+    jobTitle:"Job title", start:"Start date", end:"End date",
+    current:"I currently work here", description:"Job responsibilities (optional)", add:"Add experience",
+    resume:"My resumes", resumeHint:"Upload a PDF resume (up to 5 MB). You can keep multiple resumes and choose one as your default.",
+    upload:"Upload resume", fileLabel:"Choose a PDF resume file"
+  };
+  const modal = document.getElementById("profileModal");
+  if (modal) {
+    modal.setAttribute("dir", isAr ? "rtl" : "ltr");
+    const close = modal.querySelector(".close-btn");
+    if (close) close.setAttribute("aria-label", copy.close);
+  }
+  const setText = (id, value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
+  setText("profileCategoryLabel",copy.category);
+  setText("experienceHeading",copy.experience);
+  setText("experienceFormHeading",copy.addExperience);
+  setText("resumeHeading",copy.resume);
+  setText("resumeHint",copy.resumeHint);
+  setText("uploadCandidateResumeBtn",copy.upload);
+  setText("addExperienceBtn",copy.add);
+  const labels = {
+    experienceCompany:copy.employer, experienceTitle:copy.jobTitle,
+    experienceStart:copy.start, experienceEnd:copy.end,
+    experienceDescription:copy.description
+  };
+  Object.entries(labels).forEach(([id,value])=>{
+    const label=modal?.querySelector('label[for="'+id+'"]');
+    if(label) label.textContent=value;
+  });
+  const currentLabel=modal?.querySelector('label[for="experienceCurrent"]');
+  if(currentLabel) currentLabel.lastChild.textContent=" "+copy.current;
+  const postingLabel=modal?.querySelector('label[for="profileIndividualPostingEnabled"] span');
+  if(postingLabel) postingLabel.textContent=copy.individualPosting;
+  const postingHelp=modal?.querySelector('#profileIndividualPostingEnabled')?.closest('section')?.querySelector('p');
+  if(postingHelp) postingHelp.textContent=copy.individualPostingHelp;
+  const category=document.getElementById("profileCategory");
+  if(category?.options.length) category.options[0].textContent=copy.categoryPlaceholder;
+  const specialty=document.getElementById("profileSpecialty");
+  if(specialty?.options.length) specialty.options[0].textContent=copy.specialtyPlaceholder;
+  const file=document.getElementById("candidateResumeFile");
+  if(file) { file.setAttribute("aria-label",copy.fileLabel); file.setAttribute("title",copy.fileLabel); }
+}
 
 function openProfile() {
   if (!currentAuthUser) {
@@ -1803,6 +1867,7 @@ function openProfile() {
     return;
   }
   const m = profileLabels[lang];
+  applyCandidateProfileLanguage();
   document.getElementById("profileTitle").textContent = m.title;
   document.getElementById("profileIntro").textContent = m.intro;
   document.getElementById("profileNameLabel").textContent = m.name;
