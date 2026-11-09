@@ -2283,78 +2283,96 @@ async function previewAdminPdf(event, signedUrl, companyId) {
   event.preventDefault();
   const panel = document.getElementById("adminPdfPreview-" + companyId);
   if (!panel) {
-    toast("تعذر فتح مساحة معاينة المستند.");
+    toast(dashboardText("تعذر فتح مساحة معاينة المستند.","Could not open the document preview."));
     return false;
   }
-  panel.style.display = "block";
-  panel.innerHTML = '<p class="muted">جارٍ تحميل المستند للمعاينة...</p>';
+  panel.dataset.originalStyle = panel.getAttribute("style") || "";
+  panel.style.cssText = "display:flex;position:fixed;inset:8px;z-index:10060;width:auto;height:auto;max-height:none;overflow:hidden;flex-direction:column;gap:8px;padding:12px;background:#f4f7f5;border:1px solid #cbd8d0;border-radius:14px;box-shadow:0 12px 48px rgba(0,0,0,.28);box-sizing:border-box";
+  panel.innerHTML = '<p class="muted">' + dashboardText("جارٍ تحميل السيرة الذاتية...","Loading resume...") + '</p>';
   try {
     const response = await fetch(signedUrl);
-    if (!response.ok) throw new Error("تعذر جلب ملف PDF");
+    if (!response.ok) throw new Error(dashboardText("تعذر جلب ملف PDF","Could not fetch PDF"));
     const pdfBlob = await response.blob();
     const header = new Uint8Array(await pdfBlob.slice(0, 5).arrayBuffer());
     if (String.fromCharCode(...header) !== "%PDF-") {
-      throw new Error("الملف المستلم ليس ملف PDF صالحاً");
+      throw new Error(dashboardText("الملف المستلم ليس ملف PDF صالحاً","The received file is not a valid PDF"));
     }
 
     window.adminPdfPreviewUrls = window.adminPdfPreviewUrls || {};
-    if (window.adminPdfPreviewUrls[companyId]) {
-      URL.revokeObjectURL(window.adminPdfPreviewUrls[companyId]);
-    }
+    if (window.adminPdfPreviewUrls[companyId]) URL.revokeObjectURL(window.adminPdfPreviewUrls[companyId]);
     const previewUrl = URL.createObjectURL(pdfBlob);
     window.adminPdfPreviewUrls[companyId] = previewUrl;
 
+    const isArabic = lang === "ar";
     panel.innerHTML =
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0">' +
-      '<strong>معاينة المستند</strong>' +
-      '<a class="btn outline small" href="' + previewUrl + '" download="company-document.pdf">تنزيل PDF</a>' +
-      '<button class="btn outline small" type="button" onclick="closeAdminPdfPreview(\'' + companyId + '\')">إغلاق المعاينة</button></div>' +
-      '<div id="adminPdfPages-' + companyId + '" style="display:grid;gap:14px;justify-items:center;background:#f3f5f4;padding:10px;border-radius:10px;min-height:160px"><p class="muted">جارٍ تجهيز صفحات المستند...</p></div>';
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #dbe5df;flex-shrink:0">' +
+        '<strong>' + dashboardText("معاينة السيرة الذاتية","CV preview") + '</strong>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">' +
+          '<button type="button" class="btn outline small" data-pdf-zoom-out aria-label="' + dashboardText("تصغير","Zoom out") + '">−</button>' +
+          '<strong data-pdf-zoom-level style="min-width:48px;text-align:center">100%</strong>' +
+          '<button type="button" class="btn outline small" data-pdf-zoom-in aria-label="' + dashboardText("تكبير","Zoom in") + '">+</button>' +
+          '<button type="button" class="btn outline small" data-pdf-fit>' + dashboardText("ملاءمة العرض","Fit width") + '</button>' +
+          '<a class="btn outline small" href="' + previewUrl + '" target="_blank" rel="noopener noreferrer">' + dashboardText("فتح منفصل","Open separately") + '</a>' +
+          '<a class="btn primary small" href="' + previewUrl + '" download="resume.pdf">' + dashboardText("تنزيل","Download") + '</a>' +
+          '<button type="button" class="btn outline small" data-pdf-close>' + dashboardText("إغلاق ✕","Close ✕") + '</button>' +
+        '</div>' +
+      '</div>' +
+      '<div data-pdf-pages style="flex:1;min-height:0;overflow:auto;display:grid;gap:14px;justify-items:center;align-content:start;background:#e9eeeb;padding:12px;border-radius:10px;-webkit-overflow-scrolling:touch"></div>';
 
-    const pdfjsLib = await loadPdfJs();
-    const bytes = new Uint8Array(await pdfBlob.arrayBuffer());
-    const pdf = await pdfjsLib.getDocument({data:bytes}).promise;
-    const pagesContainer = document.getElementById("adminPdfPages-" + companyId);
-    if (!pagesContainer) return false;
-    pagesContainer.innerHTML = "";
+    const pagesContainer = panel.querySelector("[data-pdf-pages]");
+    const zoomLabel = panel.querySelector("[data-pdf-zoom-level]");
+    const pdfJs = await loadPdfJs();
+    const pdf = await pdfJs.getDocument({data:new Uint8Array(await pdfBlob.arrayBuffer())}).promise;
+    let zoom = 1;
+    let baseScale = 1;
+    const pdfPages = [];
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) pdfPages.push(await pdf.getPage(pageNumber));
 
-    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
-      const page = await pdf.getPage(pageNumber);
-      const baseViewport = page.getViewport({scale:1});
-      const availableWidth = Math.max(280, Math.min(900, (pagesContainer.clientWidth || 340) - 24));
-      const scale = Math.min(1.6, availableWidth / baseViewport.width);
-      const viewport = page.getViewport({scale});
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d", {alpha:false});
-      canvas.width = Math.ceil(viewport.width);
-      canvas.height = Math.ceil(viewport.height);
-      canvas.style.width = "100%";
-      canvas.style.maxWidth = Math.ceil(viewport.width) + "px";
-      canvas.style.height = "auto";
-      canvas.style.background = "#fff";
-      canvas.style.boxShadow = "0 1px 5px rgba(0,0,0,.15)";
-      pagesContainer.appendChild(canvas);
-      await page.render({canvasContext:context,viewport}).promise;
-    }
-    panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+    const renderPages = async () => {
+      pagesContainer.innerHTML = "";
+      const availableWidth = Math.max(240, pagesContainer.clientWidth - 28);
+      const firstViewport = pdfPages[0].getViewport({scale:1});
+      baseScale = Math.min(1.8, availableWidth / firstViewport.width);
+      zoomLabel.textContent = Math.round(zoom * 100) + "%";
+      for (let index = 0; index < pdfPages.length; index++) {
+        const page = pdfPages[index];
+        const viewport = page.getViewport({scale:baseScale * zoom});
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d", {alpha:false});
+        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.ceil(viewport.width * pixelRatio);
+        canvas.height = Math.ceil(viewport.height * pixelRatio);
+        canvas.style.cssText = "display:block;width:" + Math.ceil(viewport.width) + "px;height:auto;max-width:none;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.18)";
+        pagesContainer.appendChild(canvas);
+        await page.render({canvasContext:context,viewport,transform:pixelRatio !== 1 ? [pixelRatio,0,0,pixelRatio,0,0] : null}).promise;
+      }
+    };
+
+    panel.querySelector("[data-pdf-zoom-in]").addEventListener("click", async () => { zoom = Math.min(2.5, +(zoom + 0.25).toFixed(2)); await renderPages(); });
+    panel.querySelector("[data-pdf-zoom-out]").addEventListener("click", async () => { zoom = Math.max(0.75, +(zoom - 0.25).toFixed(2)); await renderPages(); });
+    panel.querySelector("[data-pdf-fit]").addEventListener("click", async () => { zoom = 1; await renderPages(); pagesContainer.scrollLeft = 0; });
+    panel.querySelector("[data-pdf-close]").addEventListener("click", () => closeAdminPdfPreview(companyId));
+    await renderPages();
+    panel.querySelector("[data-pdf-zoom-in]").focus({preventScroll:true});
   } catch (error) {
     console.error("PDF.js preview failed:", error);
-    const pagesContainer = document.getElementById("adminPdfPages-" + companyId);
-    if (pagesContainer) {
-      pagesContainer.innerHTML = '<p class="muted">تعذرت المعاينة داخل الصفحة. يمكنك استخدام زر تنزيل PDF.</p>';
-    } else {
-      panel.innerHTML = '<p class="muted">تعذرت معاينة الملف. يرجى المحاولة مرة أخرى أو تنزيله.</p>';
-    }
-    toast("تعذرت معاينة مستند PDF.");
+    panel.innerHTML = '<p class="muted">' + dashboardText("تعذرت معاينة الملف. يرجى المحاولة مرة أخرى أو تنزيله.","Could not preview the file. Please try again or download it.") + '</p>' +
+      '<button type="button" class="btn outline small" onclick="closeAdminPdfPreview(\'' + companyId + '\')">' + dashboardText("إغلاق المعاينة","Close preview") + '</button>';
+    toast(dashboardText("تعذرت معاينة السيرة الذاتية.","Could not preview the resume."));
   }
   return false;
 }
+
 
 function closeAdminPdfPreview(companyId) {
   const panel = document.getElementById("adminPdfPreview-" + companyId);
   if (panel) {
     panel.style.display = "none";
     panel.innerHTML = "";
+    if (panel.dataset.originalStyle !== undefined) {
+      panel.setAttribute("style", panel.dataset.originalStyle);
+      delete panel.dataset.originalStyle;
+    }
   }
   if (window.adminPdfPreviewUrls && window.adminPdfPreviewUrls[companyId]) {
     URL.revokeObjectURL(window.adminPdfPreviewUrls[companyId]);
