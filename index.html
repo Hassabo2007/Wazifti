@@ -3768,8 +3768,12 @@ if (employerRegistrationForm) {
     }
   });
 }
-// Start public listings immediately; taxonomy loading must not block the first jobs request.
-updateTexts();
+// Start public listings even if a non-critical language/UI initializer fails.
+try {
+  updateTexts();
+} catch (error) {
+  console.error("Initial language setup failed; continuing with public jobs:", error);
+}
 const initialPublicJobsLoad = loadLiveJobs();
 // Retry a few times after startup if the first public request returns no rows.
 // This covers brief mobile-network/API startup failures without requiring a logo tap.
