@@ -2384,7 +2384,7 @@ async function loadAdminPendingJobs() {
   const message = document.getElementById("adminPendingJobsMessage");
   const count = document.getElementById("adminPendingJobsCount");
   if (!list || !message) return;
-  message.textContent = "جارٍ تحميل الوظائف المعلقة...";
+  message.textContent = dashboardText("جارٍ تحميل الوظائف المعلقة...","Loading pending jobs...");
   list.innerHTML = "";
   try {
     const { data: jobs, error } = await supabaseClient.from("jobs")
@@ -2392,9 +2392,9 @@ async function loadAdminPendingJobs() {
       .eq("status", "pending").order("created_at", {ascending:false});
     if (error) throw error;
     const rows = jobs || [];
-    if (count) count.textContent = rows.length + " وظيفة";
+    if (count) count.textContent = rows.length + (lang==="ar"?" وظيفة":" jobs");
     if (!rows.length) {
-      message.textContent = "لا توجد وظائف بانتظار الموافقة حالياً.";
+      message.textContent = dashboardText("لا توجد وظائف بانتظار الموافقة حالياً.","There are no jobs awaiting approval.");
       return;
     }
     const companyIds = [...new Set(rows.map(j => j.company_id).filter(Boolean))];
@@ -2411,37 +2411,37 @@ async function loadAdminPendingJobs() {
     const companyMap = new Map((companiesResult.data || []).map(x => [x.id, x.company_name]));
     const categoryMap = new Map((categoriesResult.data || []).map(x => [x.id, x]));
     const specialtyMap = new Map((specialtiesResult.data || []).map(x => [x.id, x]));
-    const employmentLabels = {full_time:"دوام كامل",part_time:"دوام جزئي",contract:"عقد",temporary:"مؤقت",internship:"تدريب",remote:"عن بُعد"};
+    const employmentLabels = {full_time:dashboardText("دوام كامل","Full-time"),part_time:dashboardText("دوام جزئي","Part-time"),contract:dashboardText("عقد","Contract"),temporary:dashboardText("مؤقت","Temporary"),internship:dashboardText("تدريب","Internship"),remote:dashboardText("عن بُعد","Remote")};
     list.innerHTML = rows.map(job => {
       const category = categoryMap.get(job.category_id);
       const specialty = specialtyMap.get(job.specialty_id);
       const salary = job.salary_min != null || job.salary_max != null
-        ? (job.salary_min != null ? Number(job.salary_min).toLocaleString("ar") : "—") + " - " + (job.salary_max != null ? Number(job.salary_max).toLocaleString("ar") : "—") + " " + escapeAdminHtml(job.currency || "")
-        : "غير محدد";
+        ? (job.salary_min != null ? Number(job.salary_min).toLocaleString(dashboardLocale()) : "—") + " - " + (job.salary_max != null ? Number(job.salary_max).toLocaleString(dashboardLocale()) : "—") + " " + escapeAdminHtml(job.currency || "")
+        : dashboardText("غير محدد","Not specified");
       return "<article class='job' style='display:block;margin:12px 0;padding:18px;background:#fff;border:1px solid #e5eee8;border-radius:14px'>" +
-        "<div style='display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap'><h3 style='margin:0'>" + escapeAdminHtml(job.title) + "</h3><span class='tag'>قيد المراجعة</span></div>" +
-        "<p class='muted' style='margin:8px 0'><strong>" + (job.poster_type === "individual" ? "نوع المعلن:" : "جهة العمل:") + "</strong> " + escapeAdminHtml(job.poster_type === "individual" ? "معلن فردي" : (companyMap.get(job.company_id) || "شركة غير معروفة")) + "</p>" +
-        "<p style='white-space:pre-wrap;line-height:1.8'>" + escapeAdminHtml(job.description || "لا يوجد وصف.") + "</p>" +
+        "<div style='display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap'><h3 style='margin:0'>" + escapeAdminHtml(job.title) + "</h3><span class='tag'>" + dashboardText("قيد المراجعة","Pending review") + "</span></div>" +
+        "<p class='muted' style='margin:8px 0'><strong>" + dashboardText(job.poster_type === "individual" ? "نوع المعلن:" : "جهة العمل:",job.poster_type === "individual" ? "Advertiser type:" : "Employer:") + "</strong> " + escapeAdminHtml(job.poster_type === "individual" ? dashboardText("معلن فردي","Individual") : (companyMap.get(job.company_id) || dashboardText("شركة غير معروفة","Unknown company"))) + "</p>" +
+        "<p style='white-space:pre-wrap;line-height:1.8'>" + escapeAdminHtml(job.description || dashboardText("لا يوجد وصف.","No description provided.")) + "</p>" +
         "<div class='muted' style='display:grid;gap:5px'>" +
-          "<span>الموقع: " + escapeAdminHtml(job.location || "غير محدد") + "</span>" +
-          "<span>التصنيف: " + escapeAdminHtml(category ? (category.name_ar || category.name_en) : "غير محدد") + "</span>" +
-          "<span>التخصص: " + escapeAdminHtml(specialty ? (specialty.name_ar || specialty.name_en) : "غير محدد") + "</span>" +
-          "<span>نوع العمل: " + escapeAdminHtml(employmentLabels[job.employment_type] || job.employment_type || "غير محدد") + "</span>" +
-          "<span>الراتب: " + salary + "</span>" +
-          "<small>تاريخ الإرسال: " + escapeAdminHtml(new Date(job.created_at).toLocaleString("ar")) + "</small>" +
+          "<span>" + dashboardText("الموقع: ","Location: ") + escapeAdminHtml(job.location || dashboardText("غير محدد","Not specified")) + "</span>" +
+          "<span>" + dashboardText("التصنيف: ","Category: ") + escapeAdminHtml(category ? (lang==="ar"?(category.name_ar||category.name_en):(category.name_en||category.name_ar)) : dashboardText("غير محدد","Not specified")) + "</span>" +
+          "<span>" + dashboardText("التخصص: ","Specialty: ") + escapeAdminHtml(specialty ? (lang==="ar"?(specialty.name_ar||specialty.name_en):(specialty.name_en||specialty.name_ar)) : dashboardText("غير محدد","Not specified")) + "</span>" +
+          "<span>" + dashboardText("نوع العمل: ","Employment: ") + escapeAdminHtml(employmentLabels[job.employment_type] || job.employment_type || dashboardText("غير محدد","Not specified")) + "</span>" +
+          "<span>" + dashboardText("الراتب: ","Salary: ") + salary + "</span>" +
+          "<small>" + dashboardText("تاريخ الإرسال: ","Submitted: ") + escapeAdminHtml(new Date(job.created_at).toLocaleString(dashboardLocale())) + "</small>" +
         "</div>" +
         "<div style='display:flex;gap:8px;flex-wrap:wrap;margin-top:14px'>" +
-          "<button class='btn primary' type='button' data-admin-job-action='published' data-job-id='" + escapeAdminHtml(job.id) + "'>الموافقة والنشر</button>" +
-          "<button class='btn outline' type='button' data-admin-job-action='rejected' data-job-id='" + escapeAdminHtml(job.id) + "'>رفض الوظيفة</button>" +
+          "<button class='btn primary' type='button' data-admin-job-action='published' data-job-id='" + escapeAdminHtml(job.id) + "'>" + dashboardText("الموافقة والنشر","Approve & publish") + "</button>" +
+          "<button class='btn outline' type='button' data-admin-job-action='rejected' data-job-id='" + escapeAdminHtml(job.id) + "'>" + dashboardText("رفض الوظيفة","Reject job") + "</button>" +
         "</div></article>";
     }).join("");
     list.querySelectorAll("[data-admin-job-action]").forEach(button => {
       button.addEventListener("click", () => adminSetJobStatus(button.dataset.jobId, button.dataset.adminJobAction));
     });
-    message.textContent = "تظهر هنا جميع الوظائف الجديدة التي تنتظر مراجعة الإدارة.";
+    message.textContent = dashboardText("تظهر هنا جميع الوظائف الجديدة التي تنتظر مراجعة الإدارة.","New jobs awaiting admin review appear here.");
   } catch (error) {
     console.error("Admin pending jobs load failed:", error);
-    message.textContent = "تعذر تحميل الوظائف المعلقة: " + (error.message || "خطأ غير معروف");
+    message.textContent = dashboardText("تعذر تحميل الوظائف المعلقة: ","Could not load pending jobs: ") + (error.message || dashboardText("خطأ غير معروف","Unknown error"));
   }
 }
 
@@ -2450,12 +2450,12 @@ async function adminSetJobStatus(jobId, status) {
     toast("ليس لديك صلاحية تنفيذ هذا الإجراء.");
     return;
   }
-  const label = status === "published" ? "الموافقة على نشر الوظيفة" : "رفض الوظيفة";
-  if (!["published", "rejected"].includes(status) || !window.confirm("هل أنت متأكد من " + label + "؟")) return;
+  const label = status === "published" ? dashboardText("الموافقة على نشر الوظيفة","approve publishing this job") : dashboardText("رفض الوظيفة","reject this job");
+  if (!["published", "rejected"].includes(status) || !window.confirm(dashboardText("هل أنت متأكد من ","Are you sure you want to ") + label + "؟")) return;
   try {
     const { error } = await supabaseClient.from("jobs").update({status}).eq("id", jobId).eq("status", "pending");
     if (error) throw error;
-    toast(status === "published" ? "تمت الموافقة ونشر الوظيفة." : "تم رفض الوظيفة.");
+    toast(status === "published" ? dashboardText("تمت الموافقة ونشر الوظيفة.","Job approved and published.") : dashboardText("تم رفض الوظيفة.","Job rejected."));
     if (status === "published") {
       try {
         const { error: alertWorkerError } = await supabaseClient.functions.invoke("process-job-alerts", { body: { limit: 10 } });
@@ -2467,7 +2467,7 @@ async function adminSetJobStatus(jobId, status) {
     await loadAdminPendingJobs();
   } catch (error) {
     console.error("Admin job status update failed:", error);
-    toast("تعذر تحديث حالة الوظيفة: " + (error.message || "خطأ غير معروف"));
+    toast(dashboardText("تعذر تحديث حالة الوظيفة: ","Could not update job status: ") + (error.message || dashboardText("خطأ غير معروف","Unknown error")));
   }
 }
 
@@ -2476,7 +2476,7 @@ async function loadAdminCompanies() {
   const list = document.getElementById("adminCompaniesList");
   const message = document.getElementById("adminDashboardMessage");
   if (!list || !message) return;
-  message.textContent = "جارٍ تحميل طلبات الشركات...";
+  message.textContent = dashboardText("جارٍ تحميل طلبات الشركات...","Loading company requests...");
   list.innerHTML = "";
   try {
     const { data: companies, error } = await supabaseClient
@@ -2485,7 +2485,7 @@ async function loadAdminCompanies() {
       .order("created_at", {ascending:false});
     if (error) throw error;
     if (!companies || !companies.length) {
-      message.textContent = "لا توجد طلبات شركات حتى الآن.";
+      message.textContent = dashboardText("لا توجد طلبات شركات حتى الآن.","There are no company requests yet.");
       return;
     }
     const cards = await Promise.all(companies.map(async company => {
@@ -2506,30 +2506,30 @@ async function loadAdminCompanies() {
         documentLinks = links.join(" ");
       } catch (docError) {
         console.warn("Could not load company document:", company.id, docError);
-        documentLinks = '<span class="muted">تعذر تحميل المستند أو لا يوجد مستند مرفق.</span>';
+        documentLinks = '<span class="muted">'+dashboardText("تعذر تحميل المستند أو لا يوجد مستند مرفق.","Could not load the document or no document is attached.")+'</span>';
       }
-      const statusLabel = ({pending:"قيد المراجعة",verified:"معتمدة",rejected:"مرفوضة",suspended:"موقوفة"})[company.status] || company.status;
+      const statusLabel = employerCompanyStatusLabel(company.status);
       const actions = company.status === "pending"
         ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">' +
-          '<button class="btn primary" type="button" onclick="adminSetCompanyStatus(\'' + company.id + '\',\'verified\')">اعتماد الشركة</button>' +
-          '<button class="btn outline" type="button" onclick="adminSetCompanyStatus(\'' + company.id + '\',\'rejected\')">رفض الطلب</button></div>'
-        : '<div style="margin-top:12px"><button class="btn outline small" type="button" onclick="adminSetCompanyStatus(\'' + company.id + '\',\'pending\')">إعادة إلى قيد المراجعة</button></div>';
+          '<button class="btn primary" type="button" onclick="adminSetCompanyStatus(\'' + company.id + '\',\'verified\')">' + dashboardText("اعتماد الشركة","Approve company") + '</button>' +
+          '<button class="btn outline" type="button" onclick="adminSetCompanyStatus(\'' + company.id + '\',\'rejected\')">' + dashboardText("رفض الطلب","Reject request") + '</button></div>'
+        : '<div style="margin-top:12px"><button class="btn outline small" type="button" onclick="adminSetCompanyStatus(\'' + company.id + '\',\'pending\')">' + dashboardText("إعادة إلى قيد المراجعة","Return to review") + '</button></div>';
       return '<article class="job" style="display:block;margin:12px 0;padding:18px;background:#fff;border:1px solid #e5eee8;border-radius:14px">' +
         '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3 style="margin:0">' + escapeAdminHtml(company.company_name) + '</h3>' +
         '<span class="tag">' + escapeAdminHtml(statusLabel) + '</span></div>' +
-        '<p class="muted" style="line-height:1.8">' + escapeAdminHtml(company.description || "لا يوجد وصف للشركة.") + '</p>' +
-        (company.website ? '<p><a href="' + escapeAdminHtml(company.website) + '" target="_blank" rel="noopener noreferrer">الموقع الإلكتروني</a></p>' : '') +
-        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (documentLinks || '<span class="muted">لا يوجد مستند مرفق.</span>') + '</div>' +
+        '<p class="muted" style="line-height:1.8">' + escapeAdminHtml(company.description || dashboardText("لا يوجد وصف للشركة.","No company description provided.")) + '</p>' +
+        (company.website ? '<p><a href="' + escapeAdminHtml(company.website) + '" target="_blank" rel="noopener noreferrer">' + dashboardText("الموقع الإلكتروني","Website") + '</a></p>' : '') +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (documentLinks || '<span class="muted">' + dashboardText("لا يوجد مستند مرفق.","No document attached.") + '</span>') + '</div>' +
         '<div id="adminPdfPreview-' + company.id + '" style="display:none;margin-top:14px;padding:12px;border:1px solid #d8e2dc;border-radius:12px;background:#f8fbf9"></div>' +
-        '<small class="muted">تاريخ التسجيل: ' + escapeAdminHtml(new Date(company.created_at).toLocaleString("ar")) + '</small>' +
+        '<small class="muted">تاريخ التسجيل: ' + escapeAdminHtml(new Date(company.created_at).toLocaleString(dashboardLocale())) + '</small>' +
         actions + '</article>';
     }));
     list.innerHTML = cards.join("");
     const pendingCount = companies.filter(c => c.status === "pending").length;
-    message.textContent = "إجمالي الشركات: " + companies.length + " — طلبات قيد المراجعة: " + pendingCount;
+    message.textContent = lang==="ar" ? "إجمالي الشركات: " + companies.length + " — طلبات قيد المراجعة: " + pendingCount : "Total companies: " + companies.length + " — Pending review: " + pendingCount;
   } catch (error) {
     console.error("Admin companies load failed:", error);
-    message.textContent = "تعذر تحميل طلبات الشركات: " + (error.message || "خطأ غير معروف");
+    message.textContent = dashboardText("تعذر تحميل طلبات الشركات: ","Could not load company requests: ") + (error.message || dashboardText("خطأ غير معروف","Unknown error"));
   }
 }
 
@@ -2538,26 +2538,27 @@ async function adminSetCompanyStatus(companyId, status) {
     toast("ليس لديك صلاحية تنفيذ هذا الإجراء.");
     return;
   }
-  const labels = {verified:"اعتماد الشركة",rejected:"رفض الطلب",pending:"إعادة الطلب للمراجعة"};
-  if (!window.confirm("هل أنت متأكد من " + labels[status] + "؟")) return;
+  const labels = {verified:dashboardText("اعتماد الشركة","approve the company"),rejected:dashboardText("رفض الطلب","reject the request"),pending:dashboardText("إعادة الطلب للمراجعة","return the request to review")};
+  if (!window.confirm(dashboardText("هل أنت متأكد من ","Are you sure you want to ") + labels[status] + "؟")) return;
   try {
     const { error } = await supabaseClient
       .from("companies")
       .update({status})
       .eq("id", companyId);
     if (error) throw error;
-    toast("تم تحديث حالة الشركة بنجاح.");
+    toast(dashboardText("تم تحديث حالة الشركة بنجاح.","Company status updated successfully."));
     await loadAdminCompanies();
   } catch (error) {
     console.error("Company status update failed:", error);
-    toast("تعذر تحديث حالة الشركة: " + (error.message || ""));
+    toast(dashboardText("تعذر تحديث حالة الشركة: ","Could not update company status: ") + (error.message || ""));
   }
 }
 
 let employerDashboardCompany = null;
 
 function employerCompanyStatusLabel(status) {
-  return ({pending:"قيد المراجعة",verified:"معتمدة",rejected:"مرفوضة",suspended:"موقوفة"})[status] || "غير معروفة";
+  const labels={pending:["قيد المراجعة","Under review"],verified:["معتمدة","Approved"],rejected:["مرفوضة","Rejected"],suspended:["موقوفة","Suspended"]};
+  return labels[status]?dashboardText(...labels[status]):dashboardText("غير معروفة","Unknown");
 }
 
 let employerEditingJobId = null;
@@ -2565,7 +2566,8 @@ let employerJobPostingMode = "company";
 let employerViewingApplicationsFor = null;
 
 function employerJobStatusLabel(status) {
-  return ({pending:"قيد المراجعة",published:"منشورة",closed:"تم شغل الوظيفة",rejected:"مرفوضة"})[status] || status || "غير معروفة";
+  const labels={pending:["قيد المراجعة","Under review"],published:["منشورة","Published"],closed:["تم شغل الوظيفة","Filled / closed"],rejected:["مرفوضة","Rejected"]};
+  return labels[status]?dashboardText(...labels[status]):(status||dashboardText("غير معروفة","Unknown"));
 }
 
 function refreshTaxonomySelectLanguage(){
