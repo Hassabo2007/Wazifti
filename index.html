@@ -2283,78 +2283,94 @@ async function previewAdminPdf(event, signedUrl, companyId) {
   event.preventDefault();
   const panel = document.getElementById("adminPdfPreview-" + companyId);
   if (!panel) {
-    toast("تعذر فتح مساحة معاينة المستند.");
+    toast(dashboardText("تعذر فتح مساحة معاينة المستند.","Could not open the document preview."));
     return false;
   }
-  panel.style.display = "block";
-  panel.innerHTML = '<p class="muted">جارٍ تحميل المستند للمعاينة...</p>';
+  panel.dataset.originalStyle = panel.getAttribute("style") || "";
+  panel.style.cssText = "display:flex;position:fixed;inset:8px;z-index:10060;width:auto;height:auto;max-height:none;overflow:hidden;flex-direction:column;gap:8px;padding:12px;background:#f4f7f5;border:1px solid #cbd8d0;border-radius:14px;box-shadow:0 12px 48px rgba(0,0,0,.28);box-sizing:border-box";
+  panel.innerHTML = '<p class="muted">' + dashboardText("جارٍ تحميل السيرة الذاتية...","Loading resume...") + '</p>';
   try {
     const response = await fetch(signedUrl);
-    if (!response.ok) throw new Error("تعذر جلب ملف PDF");
+    if (!response.ok) throw new Error(dashboardText("تعذر جلب ملف PDF","Could not fetch PDF"));
     const pdfBlob = await response.blob();
     const header = new Uint8Array(await pdfBlob.slice(0, 5).arrayBuffer());
     if (String.fromCharCode(...header) !== "%PDF-") {
-      throw new Error("الملف المستلم ليس ملف PDF صالحاً");
+      throw new Error(dashboardText("الملف المستلم ليس ملف PDF صالحاً","The received file is not a valid PDF"));
     }
 
     window.adminPdfPreviewUrls = window.adminPdfPreviewUrls || {};
-    if (window.adminPdfPreviewUrls[companyId]) {
-      URL.revokeObjectURL(window.adminPdfPreviewUrls[companyId]);
-    }
+    if (window.adminPdfPreviewUrls[companyId]) URL.revokeObjectURL(window.adminPdfPreviewUrls[companyId]);
     const previewUrl = URL.createObjectURL(pdfBlob);
     window.adminPdfPreviewUrls[companyId] = previewUrl;
 
     panel.innerHTML =
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0">' +
-      '<strong>معاينة المستند</strong>' +
-      '<a class="btn outline small" href="' + previewUrl + '" download="company-document.pdf">تنزيل PDF</a>' +
-      '<button class="btn outline small" type="button" onclick="closeAdminPdfPreview(\'' + companyId + '\')">إغلاق المعاينة</button></div>' +
-      '<div id="adminPdfPages-' + companyId + '" style="display:grid;gap:14px;justify-items:center;background:#f3f5f4;padding:10px;border-radius:10px;min-height:160px"><p class="muted">جارٍ تجهيز صفحات المستند...</p></div>';
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #dbe5df;flex-shrink:0">' +
+        '<strong>' + dashboardText("معاينة المستند","Document preview") + '</strong>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">' +
+          '<button type="button" class="btn outline small" data-pdf-zoom-out aria-label="' + dashboardText("تصغير","Zoom out") + '">−</button>' +
+          '<strong data-pdf-zoom-level style="min-width:48px;text-align:center">100%</strong>' +
+          '<button type="button" class="btn outline small" data-pdf-zoom-in aria-label="' + dashboardText("تكبير","Zoom in") + '">+</button>' +
+          '<button type="button" class="btn outline small" data-pdf-fit>' + dashboardText("ملاءمة العرض","Fit width") + '</button>' +
+          '<a class="btn outline small" href="' + previewUrl + '" target="_blank" rel="noopener noreferrer">' + dashboardText("فتح منفصل","Open separately") + '</a>' +
+          '<a class="btn primary small" href="' + previewUrl + '" download="resume.pdf">' + dashboardText("تنزيل","Download") + '</a>' +
+          '<button type="button" class="btn outline small" data-pdf-close>' + dashboardText("إغلاق ✕","Close ✕") + '</button>' +
+        '</div>' +
+      '</div>' +
+      '<div data-pdf-pages style="flex:1;min-height:0;overflow:auto;display:grid;gap:14px;justify-items:center;align-content:start;background:#e9eeeb;padding:12px;border-radius:10px;-webkit-overflow-scrolling:touch"></div>';
 
-    const pdfjsLib = await loadPdfJs();
-    const bytes = new Uint8Array(await pdfBlob.arrayBuffer());
-    const pdf = await pdfjsLib.getDocument({data:bytes}).promise;
-    const pagesContainer = document.getElementById("adminPdfPages-" + companyId);
-    if (!pagesContainer) return false;
-    pagesContainer.innerHTML = "";
+    const pagesContainer = panel.querySelector("[data-pdf-pages]");
+    const zoomLabel = panel.querySelector("[data-pdf-zoom-level]");
+    const pdfJs = await loadPdfJs();
+    const pdf = await pdfJs.getDocument({data:new Uint8Array(await pdfBlob.arrayBuffer())}).promise;
+    let zoom = 1;
+    let baseScale = 1;
+    const pdfPages = [];
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) pdfPages.push(await pdf.getPage(pageNumber));
 
-    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
-      const page = await pdf.getPage(pageNumber);
-      const baseViewport = page.getViewport({scale:1});
-      const availableWidth = Math.max(280, Math.min(900, (pagesContainer.clientWidth || 340) - 24));
-      const scale = Math.min(1.6, availableWidth / baseViewport.width);
-      const viewport = page.getViewport({scale});
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d", {alpha:false});
-      canvas.width = Math.ceil(viewport.width);
-      canvas.height = Math.ceil(viewport.height);
-      canvas.style.width = "100%";
-      canvas.style.maxWidth = Math.ceil(viewport.width) + "px";
-      canvas.style.height = "auto";
-      canvas.style.background = "#fff";
-      canvas.style.boxShadow = "0 1px 5px rgba(0,0,0,.15)";
-      pagesContainer.appendChild(canvas);
-      await page.render({canvasContext:context,viewport}).promise;
-    }
-    panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+    const renderPages = async () => {
+      pagesContainer.innerHTML = "";
+      const availableWidth = Math.max(240, pagesContainer.clientWidth - 28);
+      const firstViewport = pdfPages[0].getViewport({scale:1});
+      baseScale = Math.min(1.8, availableWidth / firstViewport.width);
+      zoomLabel.textContent = Math.round(zoom * 100) + "%";
+      for (let index = 0; index < pdfPages.length; index++) {
+        const page = pdfPages[index];
+        const viewport = page.getViewport({scale:baseScale * zoom});
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d", {alpha:false});
+        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.ceil(viewport.width * pixelRatio);
+        canvas.height = Math.ceil(viewport.height * pixelRatio);
+        canvas.style.cssText = "display:block;width:" + Math.ceil(viewport.width) + "px;height:auto;max-width:none;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.18)";
+        pagesContainer.appendChild(canvas);
+        await page.render({canvasContext:context,viewport,transform:pixelRatio !== 1 ? [pixelRatio,0,0,pixelRatio,0,0] : null}).promise;
+      }
+    };
+
+    panel.querySelector("[data-pdf-zoom-in]").addEventListener("click", async () => { zoom = Math.min(2.5, +(zoom + 0.25).toFixed(2)); await renderPages(); });
+    panel.querySelector("[data-pdf-zoom-out]").addEventListener("click", async () => { zoom = Math.max(0.75, +(zoom - 0.25).toFixed(2)); await renderPages(); });
+    panel.querySelector("[data-pdf-fit]").addEventListener("click", async () => { zoom = 1; await renderPages(); pagesContainer.scrollLeft = 0; });
+    panel.querySelector("[data-pdf-close]").addEventListener("click", () => closeAdminPdfPreview(companyId));
+    await renderPages();
   } catch (error) {
     console.error("PDF.js preview failed:", error);
-    const pagesContainer = document.getElementById("adminPdfPages-" + companyId);
-    if (pagesContainer) {
-      pagesContainer.innerHTML = '<p class="muted">تعذرت المعاينة داخل الصفحة. يمكنك استخدام زر تنزيل PDF.</p>';
-    } else {
-      panel.innerHTML = '<p class="muted">تعذرت معاينة الملف. يرجى المحاولة مرة أخرى أو تنزيله.</p>';
-    }
-    toast("تعذرت معاينة مستند PDF.");
+    panel.innerHTML = '<p class="muted">' + dashboardText("تعذرت معاينة الملف. يرجى المحاولة مرة أخرى أو تنزيله.","Could not preview the file. Please try again or download it.") + '</p>' +
+      '<button type="button" class="btn outline small" onclick="closeAdminPdfPreview(\'' + companyId + '\')">' + dashboardText("إغلاق المعاينة","Close preview") + '</button>';
+    toast(dashboardText("تعذرت معاينة السيرة الذاتية.","Could not preview the resume."));
   }
   return false;
 }
+
 
 function closeAdminPdfPreview(companyId) {
   const panel = document.getElementById("adminPdfPreview-" + companyId);
   if (panel) {
     panel.style.display = "none";
     panel.innerHTML = "";
+    if (panel.dataset.originalStyle !== undefined) {
+      panel.setAttribute("style", panel.dataset.originalStyle);
+      delete panel.dataset.originalStyle;
+    }
   }
   if (window.adminPdfPreviewUrls && window.adminPdfPreviewUrls[companyId]) {
     URL.revokeObjectURL(window.adminPdfPreviewUrls[companyId]);
@@ -2821,7 +2837,11 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
     }
     const label = employerApplicationStatusLabels[data.status] || data.status;
     const statusNode = document.querySelector('[data-application-status="' + applicationId + '"]');
-    if (statusNode) statusNode.textContent = label;
+    if (statusNode) {
+      statusNode.textContent = label;
+      const applicantCard=statusNode.closest("[data-applicant-card]");
+      if(applicantCard) applicantCard.dataset.applicantStatus=data.status;
+    }
 
     let idsToNotify=[applicationId];
     if(data.status==="accepted"){
@@ -2869,6 +2889,23 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
     }
     toast("تعذر تحديث حالة الطلب: " + (error.message || "حدث خطأ غير متوقع"));
   }
+}
+
+function filterEmployerApplicantCards(target) {
+  if(!target) return;
+  const search=(target.querySelector("[data-applicant-search]")?.value||"").trim().toLocaleLowerCase();
+  const status=target.querySelector("[data-applicant-filter]")?.value||"all";
+  const cards=[...target.querySelectorAll("[data-applicant-card]")];
+  let visible=0;
+  cards.forEach(card=>{
+    const matchesName=(card.dataset.applicantName||"").toLocaleLowerCase().includes(search);
+    const matchesStatus=status==="all"||card.dataset.applicantStatus===status;
+    const show=matchesName&&matchesStatus;
+    card.hidden=!show;
+    if(show) visible++;
+  });
+  const count=target.querySelector("[data-applicant-count]");
+  if(count) count.textContent=dashboardText("عرض ","Showing ")+visible+dashboardText(" من "," of ")+cards.length;
 }
 
 async function toggleEmployerApplications(jobId) {
@@ -2919,7 +2956,8 @@ async function toggleEmployerApplications(jobId) {
             '<small class="muted">'+escapeAdminHtml(resume.file_name||"")+'</small>';
         }
       }
-      return '<article style="padding:12px;margin:8px 0;background:#fff;border:1px solid #e5eee8;border-radius:9px">'+
+      const applicantStatus=app.status||"submitted";
+      return '<article data-applicant-card data-applicant-name="'+escapeAdminHtml(applicantName)+'" data-applicant-status="'+escapeAdminHtml(applicantStatus)+'" style="padding:12px;margin:8px 0;background:#fff;border:1px solid #e5eee8;border-radius:9px">'+
         '<strong>'+escapeAdminHtml(applicantName)+'</strong>'+
         '<div style="margin-top:8px"><button class="btn outline small" type="button" onclick="openJobConversation(&quot;'+escapeAdminHtml(app.id)+'&quot;)">' + dashboardText("مراسلة المتقدم","Message applicant") + '</button></div>'+
         '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px"><span class="muted">' + dashboardText("الحالة:","Status:") + '</span><strong data-application-status="'+escapeAdminHtml(app.id)+'">'+escapeAdminHtml(employerApplicationStatusLabels[app.status]||app.status||dashboardText("غير محددة","Not specified"))+'</strong></div>'+
@@ -2932,7 +2970,18 @@ async function toggleEmployerApplications(jobId) {
         '<div id="adminPdfPreview-'+escapeAdminHtml(app.id)+'" style="display:none;margin-top:12px;padding:10px;border:1px solid #d8e2dc;border-radius:10px;background:#f8fbf9"></div>'+
         '<small class="muted">'+escapeAdminHtml(new Date(app.created_at).toLocaleString(dashboardLocale()))+'</small></article>';
     }));
-    target.innerHTML=cards.join("");
+    target.innerHTML=
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 14px;padding:10px;background:#f7fbf8;border:1px solid #e5eee8;border-radius:10px">'+
+        '<input type="search" data-applicant-search aria-label="'+dashboardText("البحث باسم المتقدم","Search applicants by name")+'" placeholder="'+dashboardText("ابحث باسم المتقدم...","Search by applicant name...")+'" style="flex:1;min-width:170px;padding:10px;border:1px solid #d7e4dc;border-radius:8px;font:14px Tahoma,Arial">'+
+        '<select data-applicant-filter aria-label="'+dashboardText("تصفية حسب حالة الطلب","Filter by application status")+'" style="min-width:150px;padding:10px;border:1px solid #d7e4dc;border-radius:8px;background:#fff;font:14px Tahoma,Arial">'+
+          '<option value="all">'+dashboardText("كل الحالات","All statuses")+'</option>'+
+          Object.entries(employerApplicationStatusLabels).map(([value,label])=>'<option value="'+value+'">'+label+'</option>').join("")+
+        '</select><small class="muted" data-applicant-count></small></div>'+cards.join("");
+    const applicantSearch=target.querySelector("[data-applicant-search]");
+    const applicantFilter=target.querySelector("[data-applicant-filter]");
+    if(applicantSearch) applicantSearch.addEventListener("input",()=>filterEmployerApplicantCards(target));
+    if(applicantFilter) applicantFilter.addEventListener("change",()=>filterEmployerApplicantCards(target));
+    filterEmployerApplicantCards(target);
 
     target.querySelectorAll("[data-applicant-preview]").forEach(link=>{
       link.addEventListener("click",event=>previewAdminPdf(event,link.href,link.dataset.applicantPreview));
@@ -3067,11 +3116,34 @@ async function loadEmployerDashboard() {
       .eq("company_id",company.id).order("created_at",{ascending:false});
     if(jobsError) throw jobsError;
     const rows=jobs||[];
+    let applicationRows=[];
+    if(rows.length){
+      const {data:applications,error:applicationsError}=await supabaseClient.from("applications")
+        .select("id,job_id,status").in("job_id",rows.map(job=>job.id));
+      if(applicationsError) console.warn("Employer application summary unavailable:",applicationsError);
+      else applicationRows=applications||[];
+    }
     const counts={total:rows.length,published:rows.filter(j=>j.status==="published").length,pending:rows.filter(j=>j.status==="pending").length,closed:rows.filter(j=>j.status==="closed").length};
+    const applicantCounts={
+      total:applicationRows.length,
+      submitted:applicationRows.filter(a=>(a.status||"submitted")==="submitted").length,
+      reviewing:applicationRows.filter(a=>a.status==="reviewing").length,
+      shortlisted:applicationRows.filter(a=>a.status==="shortlisted").length
+    };
+    const applicationCountByJob=new Map();
+    applicationRows.forEach(application=>applicationCountByJob.set(application.job_id,(applicationCountByJob.get(application.job_id)||0)+1));
     if(stats) {
       stats.style.display="grid";
-      stats.innerHTML=[[dashboardText("إجمالي الوظائف","Total jobs"),counts.total],[dashboardText("منشورة","Published"),counts.published],[dashboardText("قيد المراجعة","Pending review"),counts.pending],[dashboardText("مغلقة","Closed"),counts.closed]]
-        .map(([label,value])=>'<div style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px"><div class="muted" style="font-size:13px">'+label+'</div><strong style="font-size:24px;color:#064e35">'+value+'</strong></div>').join("");
+      stats.innerHTML=[
+        [dashboardText("إجمالي الوظائف","Total jobs"),counts.total],
+        [dashboardText("منشورة","Published"),counts.published],
+        [dashboardText("قيد المراجعة","Pending review"),counts.pending],
+        [dashboardText("مغلقة","Closed"),counts.closed],
+        [dashboardText("إجمالي المتقدمين","Total applicants"),applicantCounts.total],
+        [dashboardText("طلبات جديدة","New applications"),applicantCounts.submitted],
+        [dashboardText("قيد المراجعة","Under review"),applicantCounts.reviewing],
+        [dashboardText("ضمن القائمة المختصرة","Shortlisted"),applicantCounts.shortlisted]
+      ].map(([label,value])=>'<div style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px"><div class="muted" style="font-size:13px">'+label+'</div><strong style="font-size:24px;color:#064e35">'+value+'</strong></div>').join("");
     }
     if(jobsPanel) jobsPanel.style.display="block";
     if(jobsList) jobsList.innerHTML=rows.length?rows.map(job=>{
@@ -3080,6 +3152,7 @@ async function loadEmployerDashboard() {
       return '<article style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px;margin:10px 0">'+
         '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>'+escapeAdminHtml(job.title)+'</strong><span class="tag">'+escapeAdminHtml(employerJobStatusLabel(job.status))+'</span></div>'+
         '<div class="muted" style="margin:8px 0">'+escapeAdminHtml(job.location||dashboardText("الموقع غير محدد","Location not specified"))+'</div>'+
+        '<div class="muted" style="font-size:13px;margin:6px 0">'+dashboardText("طلبات التقديم: ","Applications: ")+(applicationCountByJob.get(job.id)||0)+'</div>'+
         '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
         (canEdit?'<button class="btn outline small" type="button" onclick="openEmployerJobForm(\''+job.id+'\')">' + dashboardText("تعديل","Edit") + '</button>':'')+
         (canDelete?'<button class="btn outline small" type="button" onclick="deleteEmployerJob(\''+job.id+'\')">' + dashboardText("حذف","Delete") + '</button>':'')+
@@ -3668,7 +3741,7 @@ function closeMyApplications(){
   const otherOpen=[profile,employer,application].some(x=>x&&x.style.display==="flex");
   if(!otherOpen) document.body.classList.remove("modal-open");
 }
-const WAZIFTI_VAPID_PUBLIC_KEY = "BGh1IJDO52tJUVrMGfRmhQXtOc7HMjdRCQLC5hPG6O3uyUkBqUrgwushtyem5BTNVxW4U_ghc9DBxmtR8w4vCc0";
+const WAZIFTI_VAPID_PUBLIC_KEY = "BHTM3WnP2z2RcpSN6_KLyT66XN0QyjeOElTE5RwXsGNuFWGDdI-Y9rtDfXDEtZkxXo1fbc0POk1THaf8MVliZXk";
 
 function pushFeatureAvailable(){
   return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;

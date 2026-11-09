@@ -175,13 +175,25 @@
     const permission=Notification.permission==="default"?await Notification.requestPermission():Notification.permission;
     if(permission!=="granted")throw new Error(tr("لم يتم السماح بالإشعارات من المتصفح.","Browser notification permission was not granted."));
     const reg=await navigator.serviceWorker.register("/sw.js");await navigator.serviceWorker.ready;
+    if(typeof WAZIFTI_VAPID_PUBLIC_KEY==="undefined")throw new Error(tr("مفتاح إشعارات الهاتف غير متاح.","The push notification key is not configured."));
+    const pad="=".repeat((4-WAZIFTI_VAPID_PUBLIC_KEY.length%4)%4);
+    const raw=atob((WAZIFTI_VAPID_PUBLIC_KEY+pad).replace(/-/g,"+").replace(/_/g,"/"));
+    const applicationServerKey=Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
     let sub=await reg.pushManager.getSubscription();
-    if(!sub){
-      if(typeof WAZIFTI_VAPID_PUBLIC_KEY==="undefined")throw new Error(tr("مفتاح إشعارات الهاتف غير متاح.","The push notification key is not configured."));
-      const pad="=".repeat((4-WAZIFTI_VAPID_PUBLIC_KEY.length%4)%4);
-      const raw=atob((WAZIFTI_VAPID_PUBLIC_KEY+pad).replace(/-/g,"+").replace(/_/g,"/"));
-      sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))});
+    if(sub){
+      const currentKey=sub.options?.applicationServerKey;
+      const matches=!!currentKey&&new Uint8Array(currentKey).length===applicationServerKey.length&&
+        new Uint8Array(currentKey).every((value,index)=>value===applicationServerKey[index]);
+      if(!matches){
+        const oldEndpoint=sub.endpoint;
+        await sub.unsubscribe();
+        const {error:deleteError}=await supabaseClient.from("push_subscriptions").delete()
+          .eq("user_id",currentAuthUser.id).eq("endpoint",oldEndpoint);
+        if(deleteError)throw deleteError;
+        sub=null;
+      }
     }
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey});
     const {error}=await supabaseClient.from("push_subscriptions").upsert({user_id:currentAuthUser.id,endpoint:sub.endpoint,subscription:sub.toJSON(),updated_at:new Date().toISOString()},{onConflict:"endpoint"});
     if(error)throw error;
   }
