@@ -2259,6 +2259,14 @@ async function adminSetJobStatus(jobId, status) {
     const { error } = await supabaseClient.from("jobs").update({status}).eq("id", jobId).eq("status", "pending");
     if (error) throw error;
     toast(status === "published" ? "تمت الموافقة ونشر الوظيفة." : "تم رفض الوظيفة.");
+    if (status === "published") {
+      try {
+        const { error: alertWorkerError } = await supabaseClient.functions.invoke("process-job-alerts", { body: { limit: 10 } });
+        if (alertWorkerError) console.warn("Job published, but job-alert processing did not complete:", alertWorkerError);
+      } catch (alertWorkerError) {
+        console.warn("Job published, but job-alert processing did not complete:", alertWorkerError);
+      }
+    }
     await loadAdminPendingJobs();
   } catch (error) {
     console.error("Admin job status update failed:", error);
