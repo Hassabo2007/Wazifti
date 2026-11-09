@@ -48,6 +48,11 @@
     #waziftiJobAlertsModal input,#waziftiJobAlertsModal select{max-width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccdcd2;border-radius:9px;font:inherit}
     #waziftiJobAlertsModal .wa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
     #waziftiJobAlertsModal .wa-check{display:flex;gap:7px;align-items:center;background:#f4f8f5;border-radius:9px;padding:8px;font-size:13px}
+    #waziftiJobAlertsModal .wa-select-row{display:flex;gap:8px;align-items:center}
+    #waziftiJobAlertsModal .wa-select-row select{flex:1;min-width:0;background:#fff}
+    #waziftiJobAlertsModal .wa-selected-chips{display:flex;flex-wrap:wrap;gap:6px;margin:7px 0 12px;min-height:0}
+    #waziftiJobAlertsModal .wa-chip{display:inline-flex;align-items:center;gap:6px;background:#eaf5ee;border:1px solid #d4e8da;border-radius:20px;padding:5px 9px;font-size:12px}
+    #waziftiJobAlertsModal .wa-chip button{border:0;background:transparent;color:#8b3d3d;padding:0 2px;font-size:16px;line-height:1}
     #waziftiJobAlertsModal .wa-options-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;margin:14px 0 8px;padding:13px 14px;background:#edf6f0;border:1px solid #d5e8db;border-radius:11px;color:#145b39;font-weight:700;text-align:right}
     #waziftiJobAlertsModal .wa-options-panel{padding:4px 0 8px}
     #waziftiJobAlertsModal details.wa-group{border:1px solid #e0ebe4;border-radius:11px;margin:8px 0;background:#fff;overflow:hidden}
@@ -79,8 +84,12 @@
     <button class="wa-options-toggle" id="waOptionsToggle" type="button" aria-expanded="false" aria-controls="waOptionsPanel"><span id="waOptionsText">خيارات التنبيه والتخصصات والمواقع</span><span id="waOptionsIcon" aria-hidden="true">＋</span></button>
     <div id="waOptionsPanel" class="wa-options-panel" hidden>
       <details class="wa-group"><summary>التصنيفات والتخصصات</summary><div class="wa-group-body">
-        <label class="wa-static-label">التخصصات الرئيسية</label><div id="waCategories" class="wa-grid"></div>
-        <label class="wa-static-label">التخصصات الفرعية</label><div id="waSpecialties" class="wa-grid"></div>
+        <label class="wa-static-label" for="waCategorySelect">التصنيف الرئيسي</label>
+        <div class="wa-select-row"><select id="waCategorySelect" style="width:100%"><option value="">اختر التصنيف الرئيسي</option></select><button class="wa-secondary" id="waAddCategory" type="button">إضافة</button></div>
+        <div id="waSelectedCategories" class="wa-selected-chips" aria-live="polite"></div>
+        <label class="wa-static-label" for="waSpecialtySelect">التخصص الفرعي</label>
+        <div class="wa-select-row"><select id="waSpecialtySelect" style="width:100%" disabled><option value="">اختر التخصص</option></select><button class="wa-secondary" id="waAddSpecialty" type="button" disabled>إضافة</button></div>
+        <div id="waSelectedSpecialties" class="wa-selected-chips" aria-live="polite"></div>
       </div></details>
       <details class="wa-group"><summary>موقع العمل</summary><div class="wa-group-body">
         <label for="waLocations" class="wa-static-label">الولايات أو المدن (افصل بينها بفاصلة)</label><input id="waLocations" style="width:100%" placeholder="الخرطوم، أم درمان، الجزيرة">
@@ -99,6 +108,10 @@
   modal.querySelector("#waClose").addEventListener("click",close);
   modal.querySelector("#waReload").addEventListener("click",loadInbox);
   modal.querySelector("#waSave").addEventListener("click",save);
+  modal.querySelector("#waCategorySelect").addEventListener("change",()=>{const value=modal.querySelector("#waCategorySelect").value;modal.querySelector("#waAddCategory").disabled=!value||alertCategories.includes(value);});
+  modal.querySelector("#waAddCategory").addEventListener("click",()=>{const value=modal.querySelector("#waCategorySelect").value;if(value&&!alertCategories.includes(value)){alertCategories.push(value);alertSpecialties=alertSpecialties.filter(id=>{const item=alertSpecialtyData.find(x=>x.id===id);return !item||alertCategories.includes(item.category_id);});renderAlertSelections();updateAlertSpecialtyOptions();}modal.querySelector("#waAddCategory").disabled=true;});
+  modal.querySelector("#waSpecialtySelect").addEventListener("change",()=>{const value=modal.querySelector("#waSpecialtySelect").value;modal.querySelector("#waAddSpecialty").disabled=!value||alertSpecialties.includes(value);});
+  modal.querySelector("#waAddSpecialty").addEventListener("click",()=>{const value=modal.querySelector("#waSpecialtySelect").value;if(value&&!alertSpecialties.includes(value)){alertSpecialties.push(value);renderAlertSelections();}modal.querySelector("#waAddSpecialty").disabled=true;});
   modal.querySelector("#waDeliveryMode").addEventListener("change",()=>{
     const dailyOnly=modal.querySelector("#waDeliveryMode").value==="daily";
     const push=modal.querySelector("#waPush");
@@ -115,7 +128,21 @@
   function close(){modal.style.display="none";document.body.classList.remove("modal-open");}
   function status(t){modal.querySelector("#waStatus").textContent=t;}
   function checkedValues(root){return [...root.querySelectorAll("input:checked")].map(x=>x.value);}
-  let updateAlertSpecialtyAvailability=()=>{};
+  let alertCategories=[],alertSpecialties=[],alertCategoryData=[],alertSpecialtyData=[];
+  function renderAlertSelections(){
+    const categoryRoot=modal.querySelector("#waSelectedCategories"),specialtyRoot=modal.querySelector("#waSelectedSpecialties");
+    categoryRoot.innerHTML=alertCategories.map(id=>{const item=alertCategoryData.find(x=>x.id===id);return '<span class="wa-chip">'+esc(item?(isEn()?(item.name_en||item.name_ar):(item.name_ar||item.name_en)):id)+' <button type="button" data-remove-category="'+id+'" aria-label="'+tr("إزالة التصنيف","Remove category")+'">×</button></span>';}).join("");
+    specialtyRoot.innerHTML=alertSpecialties.map(id=>{const item=alertSpecialtyData.find(x=>x.id===id);return '<span class="wa-chip">'+esc(item?(isEn()?(item.name_en||item.name_ar):(item.name_ar||item.name_en)):id)+' <button type="button" data-remove-specialty="'+id+'" aria-label="'+tr("إزالة التخصص","Remove specialty")+'">×</button></span>';}).join("");
+    categoryRoot.querySelectorAll("[data-remove-category]").forEach(button=>button.addEventListener("click",()=>{const id=button.dataset.removeCategory;alertCategories=alertCategories.filter(x=>x!==id);alertSpecialties=alertSpecialties.filter(sid=>{const specialty=alertSpecialtyData.find(x=>x.id===sid);return !specialty||!alertCategories.length||alertCategories.includes(specialty.category_id);});renderAlertSelections();updateAlertSpecialtyOptions();}));
+    specialtyRoot.querySelectorAll("[data-remove-specialty]").forEach(button=>button.addEventListener("click",()=>{alertSpecialties=alertSpecialties.filter(x=>x!==button.dataset.removeSpecialty);renderAlertSelections();}));
+  }
+  function updateAlertSpecialtyOptions(){
+    const select=modal.querySelector("#waSpecialtySelect"),add=modal.querySelector("#waAddSpecialty"),previous=select.value;
+    const available=alertSpecialtyData.filter(item=>!alertCategories.length||alertCategories.includes(item.category_id));
+    select.innerHTML='<option value="">'+tr("اختر التخصص","Choose a specialty")+'</option>'+available.map(item=>'<option value="'+item.id+'">'+esc(isEn()?(item.name_en||item.name_ar):(item.name_ar||item.name_en))+'</option>').join("");
+    if(available.some(item=>item.id===previous))select.value=previous;
+    select.disabled=!available.length;add.disabled=!select.value;
+  }
   function checkbox(value,label){return '<label class="wa-check"><input type="checkbox" value="'+value+'"> '+label+'</label>';}
   async function open(){
     if(!window.currentAuthUser && typeof currentAuthUser==="undefined"){alert("يرجى تسجيل الدخول أولاً.");return;}
@@ -129,25 +156,16 @@
     if(error)throw error;
     const {data:specs,error:se}=await supabaseClient.from("job_specialties").select("id,category_id,name_ar,name_en").order("name_ar");
     if(se)throw se;
-    const croot=modal.querySelector("#waCategories"),sroot=modal.querySelector("#waSpecialties");
-    const previouslySelectedCategories=checkedValues(croot),previouslySelectedSpecialties=checkedValues(sroot),previouslySelectedEmployment=checkedValues(modal.querySelector("#waEmployment"));
-    croot.innerHTML=(cats||[]).map(c=>checkbox(c.id,(isEn()?(c.name_en||c.name_ar):(c.name_ar||c.name_en)))).join("")||'<p class="wa-note">'+tr('لا توجد تصنيفات متاحة حالياً.','No categories are currently available.')+'</p>';
-    sroot.innerHTML=(specs||[]).map(s=>checkbox(s.id,(isEn()?(s.name_en||s.name_ar):(s.name_ar||s.name_en)))).join("")||'<p class="wa-note">'+tr('لا توجد تخصصات فرعية متاحة حالياً.','No specialties are currently available.')+'</p>';
-    const eroot=modal.querySelector("#waEmployment");eroot.innerHTML=EMPLOYMENT.map(item=>checkbox(item[0],employmentLabel(item))).join("");
-    [ [croot,previouslySelectedCategories],[sroot,previouslySelectedSpecialties],[eroot,previouslySelectedEmployment] ].forEach(([root,values])=>root.querySelectorAll("input").forEach(input=>input.checked=values.includes(input.value)));
-    updateAlertSpecialtyAvailability=()=>{
-      const selectedCategoryIds=checkedValues(croot);
-      sroot.querySelectorAll("label").forEach(label=>{
-        const input=label.querySelector("input");
-        const specialty=(specs||[]).find(item=>item.id===input?.value);
-        const allowed=!selectedCategoryIds.length||selectedCategoryIds.includes(specialty?.category_id);
-        if(input)input.disabled=!allowed;
-        label.style.opacity=allowed?"1":".45";
-        if(!allowed&&input)input.checked=false;
-      });
-    };
-    croot.querySelectorAll("input").forEach(input=>input.addEventListener("change",updateAlertSpecialtyAvailability));
-    updateAlertSpecialtyAvailability();
+    const croot=modal.querySelector("#waCategorySelect"),eroot=modal.querySelector("#waEmployment");
+    const previouslySelectedEmployment=checkedValues(eroot);
+    alertCategoryData=cats||[];alertSpecialtyData=specs||[];
+    const previousCategory=croot.value;
+    croot.innerHTML='<option value="">'+tr("اختر التصنيف الرئيسي","Choose a main category")+'</option>'+(cats||[]).map(item=>'<option value="'+item.id+'">'+esc(isEn()?(item.name_en||item.name_ar):(item.name_ar||item.name_en))+'</option>').join("");
+    if((cats||[]).some(item=>item.id===previousCategory))croot.value=previousCategory;
+    const addCategory=modal.querySelector("#waAddCategory");addCategory.disabled=!croot.value||alertCategories.includes(croot.value);
+    eroot.innerHTML=EMPLOYMENT.map(item=>checkbox(item[0],employmentLabel(item))).join("");
+    eroot.querySelectorAll("input").forEach(input=>input.checked=previouslySelectedEmployment.includes(input.value));
+    renderAlertSelections();updateAlertSpecialtyOptions();
   }
   async function loadPreferences(){
     const {data:p,error}=await supabaseClient.from("job_alert_preferences").select("id,is_enabled,push_enabled,delivery_mode,daily_send_time").eq("user_id",currentAuthUser.id).maybeSingle();
@@ -167,8 +185,9 @@
     ]);
     if(cats.error||specs.error||locs.error||types.error)throw new Error(tr("تعذر تحميل بعض الفلاتر.","Could not load some filters."));
     const set=(selector,values,key)=>{const v=new Set((values||[]).map(x=>x[key]));modal.querySelectorAll(selector+" input").forEach(x=>x.checked=v.has(x.value));};
-    set("#waCategories",cats.data,"category_id");set("#waSpecialties",specs.data,"specialty_id");
-    updateAlertSpecialtyAvailability();
+    alertCategories=(cats.data||[]).map(x=>x.category_id);
+    alertSpecialties=(specs.data||[]).map(x=>x.specialty_id);
+    renderAlertSelections();updateAlertSpecialtyOptions();
     modal.querySelector("#waLocations").value=(locs.data||[]).map(x=>x.state).join(isEn()?", ":", ");
     const troot=modal.querySelector("#waEmployment");troot.innerHTML=EMPLOYMENT.map(item=>checkbox(item[0],employmentLabel(item))).join("");
     set("#waEmployment",types.data,"employment_type");
@@ -233,8 +252,8 @@
         p_locations:locations,
         p_employment_types:checkedValues(modal.querySelector("#waEmployment")),
         p_daily_send_time:modal.querySelector("#waDailyTime").value||"08:00",
-        p_categories:checkedValues(modal.querySelector("#waCategories")),
-        p_specialties:checkedValues(modal.querySelector("#waSpecialties")),
+        p_categories:alertCategories,
+        p_specialties:alertSpecialties,
         p_push_enabled:push
       };
       const {error}=await supabaseClient.rpc("save_job_alert_preferences",args);
