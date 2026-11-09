@@ -98,9 +98,13 @@ Deno.serve(async (req: Request) => {
     }
     const processing = await processResponse.json();
 
-    const publicKey = Deno.env.get("VAPID_PUBLIC_KEY");
-    const privateKey = Deno.env.get("VAPID_PRIVATE_KEY");
-    const subject = Deno.env.get("VAPID_SUBJECT");
+    const vaultConfigResponse = await fetch(`${base}/rest/v1/rpc/get_job_alert_vapid_config`, {
+      method: "POST", headers, body: "{}",
+    });
+    const vaultConfig = vaultConfigResponse.ok ? await vaultConfigResponse.json() : {};
+    const publicKey = Deno.env.get("VAPID_PUBLIC_KEY") || vaultConfig?.public_key;
+    const privateKey = Deno.env.get("VAPID_PRIVATE_KEY") || vaultConfig?.private_key;
+    const subject = Deno.env.get("VAPID_SUBJECT") || vaultConfig?.subject;
     if (!publicKey || !privateKey || !subject) {
       return json({ ok: true, processing, push: { queued: processing?.push_deliveries_queued || 0, sent: 0, configuration_missing: true } });
     }
