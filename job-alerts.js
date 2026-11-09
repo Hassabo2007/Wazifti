@@ -168,8 +168,17 @@
   async function save(){
     const button=modal.querySelector("#waSave");button.disabled=true;status(tr("جارٍ حفظ التفضيلات...","Saving preferences..."));
     try{
-      const push=modal.querySelector("#waPush").checked;
-      if(push)await ensurePush();
+      let push=modal.querySelector("#waPush").checked;
+      let pushWarning="";
+      if(push){
+        try{
+          await ensurePush();
+        }catch(pushError){
+          push=false;
+          modal.querySelector("#waPush").checked=false;
+          pushWarning=tr(" حُفظت التفضيلات، لكن تعذر تفعيل إشعارات الهاتف في هذا المتصفح. يمكنك متابعة الفرص من صندوق التنبيهات داخل المنصة."," Preferences were saved, but phone push notifications could not be enabled in this browser. You can still view matching opportunities in the in-app alerts inbox.");
+        }
+      }
       const locations=modal.querySelector("#waLocations").value.split(/[,،]/).map(x=>x.trim()).filter(Boolean);
       const args={
         p_is_enabled:modal.querySelector("#waEnabled").checked,
@@ -183,7 +192,7 @@
       };
       const {error}=await supabaseClient.rpc("save_job_alert_preferences",args);
       if(error)throw error;
-      status(tr("تم حفظ تفضيلات التنبيهات بنجاح.","Your alert preferences have been saved."));await loadInbox();
+      status(tr("تم حفظ تفضيلات التنبيهات بنجاح.","Your alert preferences have been saved.")+pushWarning);await loadInbox();
     }catch(e){status(tr("تعذر الحفظ: ","Could not save preferences: ")+(e.message||tr("حدث خطأ","An error occurred")));}
     finally{button.disabled=false;}
   }
