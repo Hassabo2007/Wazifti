@@ -2580,7 +2580,7 @@ document.getElementById("employerJobForm")?.addEventListener("submit",async even
   const salaryMin=minRaw===""?null:Number(minRaw);
   const salaryMax=maxRaw===""?null:Number(maxRaw);
   if(salaryMin!==null && salaryMax!==null && salaryMax<salaryMin) {
-    message.textContent="الحد الأعلى للراتب يجب أن يساوي الحد الأدنى أو يتجاوزه.";
+    message.textContent=employerJobFormText("الحد الأعلى للراتب يجب أن يساوي الحد الأدنى أو يتجاوزه.","Maximum salary must be greater than or equal to minimum salary.");
     return;
   }
   const payload={
@@ -2598,11 +2598,11 @@ document.getElementById("employerJobForm")?.addEventListener("submit",async even
     currency:document.getElementById("employerJobCurrency").value
   };
   if(!payload.title||!payload.description||!payload.category_id||!payload.specialty_id) {
-    message.textContent="يرجى استكمال المسمى والوصف والتصنيف والتخصص.";
+    message.textContent=employerJobFormText("يرجى استكمال المسمى والوصف والتصنيف والتخصص.","Please complete the title, description, category, and specialty.");
     return;
   }
   button.disabled=true;
-  message.textContent="جارٍ حفظ الوظيفة وإرسالها للمراجعة...";
+  message.textContent=employerJobFormText("جارٍ حفظ الوظيفة وإرسالها للمراجعة...","Saving the job and submitting it for review...");
   try {
     let result;
     if(employerEditingJobId) {
@@ -2613,13 +2613,13 @@ document.getElementById("employerJobForm")?.addEventListener("submit",async even
       result=await supabaseClient.from("jobs").insert({...payload,status:"pending"});
     }
     if(result.error) throw result.error;
-    toast(employerEditingJobId?"تم حفظ التعديلات.":"تم إرسال الوظيفة للمراجعة بنجاح.");
+    toast(employerEditingJobId?employerJobFormText("تم حفظ التعديلات.","Changes saved."):employerJobFormText("تم إرسال الوظيفة للمراجعة بنجاح.","Your job has been submitted for review."));
     closeEmployerJobForm();
     if(employerJobPostingMode==="individual") await loadIndividualJobs();
     else await loadEmployerDashboard();
   } catch(error) {
     console.error("Employer job save failed:",error);
-    message.textContent="تعذر حفظ الوظيفة: "+(error.message||"خطأ غير معروف");
+    message.textContent=employerJobFormText("تعذر حفظ الوظيفة: ","Could not save the job: ")+(error.message||employerJobFormText("خطأ غير معروف","Unknown error"));
   } finally { button.disabled=false; }
 });
 
