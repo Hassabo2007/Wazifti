@@ -1170,7 +1170,7 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 <div class="modalbg" id="modalbg" onclick="if(event.target===this)closeModal()"><div class="modal"><button class="close" onclick="closeModal()" data-t="close">إغلاق ✕</button><div id="modalContent"></div></div></div><div class="toast" id="toastbox"></div>
 <script>
 const data=[];
-let lang="ar";let T={};
+let lang=(localStorage.getItem("wazifti-language")==="en"?"en":"ar");let T={};
 // Public browser configuration. The publishable key is safe to expose only with correct Supabase RLS policies.
 const SUPABASE_URL = "https://zaucmxoxgpmipizzhbqs.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_g-HmAZw_pmn6wQy41JjUug_VqrVrJsq";
@@ -1271,9 +1271,34 @@ function updateTexts(){
   const city=document.getElementById("searchCitySelect");
   if(city&&city.options.length)city.options[0].textContent=lang==="ar"?"كل المدن":"All cities";
   populateSearchCityOptions();
-  refreshTaxonomySelectLanguage();filterJobs();
+  refreshTaxonomySelectLanguage();applyEmployerJobFormLanguage();filterJobs();
 }
-function toggleLang(){lang=lang==="ar"?"en":"ar";updateTexts()}
+function toggleLang(){lang=lang==="ar"?"en":"ar";try{localStorage.setItem("wazifti-language",lang)}catch(e){}updateTexts()}
+function employerJobFormText(ar,en){return lang==="ar"?ar:en}
+function applyEmployerJobFormLanguage(){
+  const box=document.getElementById("employerJobFormBox");if(!box)return;
+  const labels={
+    employerJobTitle:["المسمى الوظيفي *","Job title *"],employerJobDescription:["وصف الوظيفة *","Job description *"],
+    employerJobLocation:["المدينة / الموقع","City / location"],employerJobState:["الولاية","State"],
+    employerJobType:["نوع العمل","Employment type"],employerJobCategory:["التصنيف الرئيسي *","Main category *"],
+    employerJobSpecialty:["التخصص الفرعي *","Specialty *"],employerJobSalaryMin:["الحد الأدنى للراتب","Minimum salary"],
+    employerJobSalaryMax:["الحد الأعلى للراتب","Maximum salary"],employerJobCurrency:["العملة","Currency"]
+  };
+  Object.entries(labels).forEach(([id,text])=>{const label=box.querySelector('label[for="'+id+'"]');if(label)label.textContent=employerJobFormText(...text);});
+  const states=[["اختر الولاية","Select a state"],["الخرطوم","Khartoum"],["الجزيرة","Al Jazirah"],["البحر الأحمر","Red Sea"],["كسلا","Kassala"],["القضارف","Gedaref"],["سنار","Sennar"],["النيل الأبيض","White Nile"],["النيل الأزرق","Blue Nile"],["نهر النيل","River Nile"],["الشمالية","Northern"],["شمال كردفان","North Kordofan"],["جنوب كردفان","South Kordofan"],["غرب كردفان","West Kordofan"],["شمال دارفور","North Darfur"],["جنوب دارفور","South Darfur"],["غرب دارفور","West Darfur"],["وسط دارفور","Central Darfur"],["شرق دارفور","East Darfur"]];
+  const stateSelect=document.getElementById("employerJobState");
+  if(stateSelect)Array.from(stateSelect.options).forEach((option,i)=>{if(states[i])option.textContent=employerJobFormText(...states[i]);});
+  const types={full_time:["دوام كامل","Full-time"],part_time:["دوام جزئي","Part-time"],remote:["عن بُعد","Remote"],contract:["تعاقد","Contract"],internship:["تدريب","Internship"]};
+  const typeSelect=document.getElementById("employerJobType");
+  if(typeSelect)Array.from(typeSelect.options).forEach(option=>{if(types[option.value])option.textContent=employerJobFormText(...types[option.value]);});
+  const currency=document.getElementById("employerJobCurrency");
+  if(currency)Array.from(currency.options).forEach(option=>option.textContent=option.value==="SDG"?employerJobFormText("جنيه سوداني (SDG)","Sudanese Pound (SDG)"):employerJobFormText("دولار أمريكي (USD)","US Dollar (USD)"));
+  const title=document.getElementById("employerJobFormTitle");
+  if(title)title.textContent=employerEditingJobId?employerJobFormText("تعديل الوظيفة","Edit job"):employerJobFormText("نشر وظيفة جديدة","Post a new job");
+  const save=document.getElementById("saveEmployerJobBtn");
+  if(save&&!save.disabled)save.textContent=employerEditingJobId?employerJobFormText("حفظ التعديلات","Save changes"):employerJobFormText("حفظ وإرسال للمراجعة","Save and submit for review");
+  const cancel=box.querySelector('button[onclick="closeEmployerJobForm()"]');if(cancel)cancel.textContent=employerJobFormText("إلغاء","Cancel");
+}
 function typeName(t){return T[t==="Full-time"?"full":t==="Part-time"?"part":"remote"]}
 function fieldName(f){return T[f==="Healthcare"?"health":f==="Admin"?"admin":f==="Tech"?"tech":"engineering"]}
 function jobCategoryName(job){const category=waziftiTaxonomy.categories.find(item=>item.id===job.categoryId);return category?(lang==="ar"?category.name_ar:(category.name_en||category.name_ar)):fieldName(job.field)}
