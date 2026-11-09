@@ -2821,7 +2821,11 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
     }
     const label = employerApplicationStatusLabels[data.status] || data.status;
     const statusNode = document.querySelector('[data-application-status="' + applicationId + '"]');
-    if (statusNode) statusNode.textContent = label;
+    if (statusNode) {
+      statusNode.textContent = label;
+      const applicantCard=statusNode.closest("[data-applicant-card]");
+      if(applicantCard) applicantCard.dataset.applicantStatus=data.status;
+    }
 
     let idsToNotify=[applicationId];
     if(data.status==="accepted"){
@@ -2869,6 +2873,23 @@ async function updateEmployerApplicationStatus(applicationId, newStatus, selectE
     }
     toast("تعذر تحديث حالة الطلب: " + (error.message || "حدث خطأ غير متوقع"));
   }
+}
+
+function filterEmployerApplicantCards(target) {
+  if(!target) return;
+  const search=(target.querySelector("[data-applicant-search]")?.value||"").trim().toLocaleLowerCase();
+  const status=target.querySelector("[data-applicant-filter]")?.value||"all";
+  const cards=[...target.querySelectorAll("[data-applicant-card]")];
+  let visible=0;
+  cards.forEach(card=>{
+    const matchesName=(card.dataset.applicantName||"").toLocaleLowerCase().includes(search);
+    const matchesStatus=status==="all"||card.dataset.applicantStatus===status;
+    const show=matchesName&&matchesStatus;
+    card.hidden=!show;
+    if(show) visible++;
+  });
+  const count=target.querySelector("[data-applicant-count]");
+  if(count) count.textContent=dashboardText("عرض ","Showing ")+visible+dashboardText(" من "," of ")+cards.length;
 }
 
 async function toggleEmployerApplications(jobId) {
@@ -2919,7 +2940,8 @@ async function toggleEmployerApplications(jobId) {
             '<small class="muted">'+escapeAdminHtml(resume.file_name||"")+'</small>';
         }
       }
-      return '<article style="padding:12px;margin:8px 0;background:#fff;border:1px solid #e5eee8;border-radius:9px">'+
+      const applicantStatus=app.status||"submitted";
+      return '<article data-applicant-card data-applicant-name="'+escapeAdminHtml(applicantName)+'" data-applicant-status="'+escapeAdminHtml(applicantStatus)+'" style="padding:12px;margin:8px 0;background:#fff;border:1px solid #e5eee8;border-radius:9px">'+
         '<strong>'+escapeAdminHtml(applicantName)+'</strong>'+
         '<div style="margin-top:8px"><button class="btn outline small" type="button" onclick="openJobConversation(&quot;'+escapeAdminHtml(app.id)+'&quot;)">' + dashboardText("مراسلة المتقدم","Message applicant") + '</button></div>'+
         '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px"><span class="muted">' + dashboardText("الحالة:","Status:") + '</span><strong data-application-status="'+escapeAdminHtml(app.id)+'">'+escapeAdminHtml(employerApplicationStatusLabels[app.status]||app.status||dashboardText("غير محددة","Not specified"))+'</strong></div>'+
@@ -2932,7 +2954,18 @@ async function toggleEmployerApplications(jobId) {
         '<div id="adminPdfPreview-'+escapeAdminHtml(app.id)+'" style="display:none;margin-top:12px;padding:10px;border:1px solid #d8e2dc;border-radius:10px;background:#f8fbf9"></div>'+
         '<small class="muted">'+escapeAdminHtml(new Date(app.created_at).toLocaleString(dashboardLocale()))+'</small></article>';
     }));
-    target.innerHTML=cards.join("");
+    target.innerHTML=
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 14px;padding:10px;background:#f7fbf8;border:1px solid #e5eee8;border-radius:10px">'+
+        '<input type="search" data-applicant-search aria-label="'+dashboardText("البحث باسم المتقدم","Search applicants by name")+'" placeholder="'+dashboardText("ابحث باسم المتقدم...","Search by applicant name...")+'" style="flex:1;min-width:170px;padding:10px;border:1px solid #d7e4dc;border-radius:8px;font:14px Tahoma,Arial">'+
+        '<select data-applicant-filter aria-label="'+dashboardText("تصفية حسب حالة الطلب","Filter by application status")+'" style="min-width:150px;padding:10px;border:1px solid #d7e4dc;border-radius:8px;background:#fff;font:14px Tahoma,Arial">'+
+          '<option value="all">'+dashboardText("كل الحالات","All statuses")+'</option>'+
+          Object.entries(employerApplicationStatusLabels).map(([value,label])=>'<option value="'+value+'">'+label+'</option>').join("")+
+        '</select><small class="muted" data-applicant-count></small></div>'+cards.join("");
+    const applicantSearch=target.querySelector("[data-applicant-search]");
+    const applicantFilter=target.querySelector("[data-applicant-filter]");
+    if(applicantSearch) applicantSearch.addEventListener("input",()=>filterEmployerApplicantCards(target));
+    if(applicantFilter) applicantFilter.addEventListener("change",()=>filterEmployerApplicantCards(target));
+    filterEmployerApplicantCards(target);
 
     target.querySelectorAll("[data-applicant-preview]").forEach(link=>{
       link.addEventListener("click",event=>previewAdminPdf(event,link.href,link.dataset.applicantPreview));
@@ -3067,11 +3100,34 @@ async function loadEmployerDashboard() {
       .eq("company_id",company.id).order("created_at",{ascending:false});
     if(jobsError) throw jobsError;
     const rows=jobs||[];
+    let applicationRows=[];
+    if(rows.length){
+      const {data:applications,error:applicationsError}=await supabaseClient.from("applications")
+        .select("id,job_id,status").in("job_id",rows.map(job=>job.id));
+      if(applicationsError) console.warn("Employer application summary unavailable:",applicationsError);
+      else applicationRows=applications||[];
+    }
     const counts={total:rows.length,published:rows.filter(j=>j.status==="published").length,pending:rows.filter(j=>j.status==="pending").length,closed:rows.filter(j=>j.status==="closed").length};
+    const applicantCounts={
+      total:applicationRows.length,
+      submitted:applicationRows.filter(a=>(a.status||"submitted")==="submitted").length,
+      reviewing:applicationRows.filter(a=>a.status==="reviewing").length,
+      shortlisted:applicationRows.filter(a=>a.status==="shortlisted").length
+    };
+    const applicationCountByJob=new Map();
+    applicationRows.forEach(application=>applicationCountByJob.set(application.job_id,(applicationCountByJob.get(application.job_id)||0)+1));
     if(stats) {
       stats.style.display="grid";
-      stats.innerHTML=[[dashboardText("إجمالي الوظائف","Total jobs"),counts.total],[dashboardText("منشورة","Published"),counts.published],[dashboardText("قيد المراجعة","Pending review"),counts.pending],[dashboardText("مغلقة","Closed"),counts.closed]]
-        .map(([label,value])=>'<div style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px"><div class="muted" style="font-size:13px">'+label+'</div><strong style="font-size:24px;color:#064e35">'+value+'</strong></div>').join("");
+      stats.innerHTML=[
+        [dashboardText("إجمالي الوظائف","Total jobs"),counts.total],
+        [dashboardText("منشورة","Published"),counts.published],
+        [dashboardText("قيد المراجعة","Pending review"),counts.pending],
+        [dashboardText("مغلقة","Closed"),counts.closed],
+        [dashboardText("إجمالي المتقدمين","Total applicants"),applicantCounts.total],
+        [dashboardText("طلبات جديدة","New applications"),applicantCounts.submitted],
+        [dashboardText("قيد المراجعة","Under review"),applicantCounts.reviewing],
+        [dashboardText("ضمن القائمة المختصرة","Shortlisted"),applicantCounts.shortlisted]
+      ].map(([label,value])=>'<div style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px"><div class="muted" style="font-size:13px">'+label+'</div><strong style="font-size:24px;color:#064e35">'+value+'</strong></div>').join("");
     }
     if(jobsPanel) jobsPanel.style.display="block";
     if(jobsList) jobsList.innerHTML=rows.length?rows.map(job=>{
@@ -3080,6 +3136,7 @@ async function loadEmployerDashboard() {
       return '<article style="background:#fff;border:1px solid #e5eee8;border-radius:12px;padding:14px;margin:10px 0">'+
         '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>'+escapeAdminHtml(job.title)+'</strong><span class="tag">'+escapeAdminHtml(employerJobStatusLabel(job.status))+'</span></div>'+
         '<div class="muted" style="margin:8px 0">'+escapeAdminHtml(job.location||dashboardText("الموقع غير محدد","Location not specified"))+'</div>'+
+        '<div class="muted" style="font-size:13px;margin:6px 0">'+dashboardText("طلبات التقديم: ","Applications: ")+(applicationCountByJob.get(job.id)||0)+'</div>'+
         '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
         (canEdit?'<button class="btn outline small" type="button" onclick="openEmployerJobForm(\''+job.id+'\')">' + dashboardText("تعديل","Edit") + '</button>':'')+
         (canDelete?'<button class="btn outline small" type="button" onclick="deleteEmployerJob(\''+job.id+'\')">' + dashboardText("حذف","Delete") + '</button>':'')+
