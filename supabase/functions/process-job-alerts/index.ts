@@ -22,6 +22,20 @@ function serverSecrets(): string[] {
   } catch { return []; }
 }
 async function authorized(req: Request, base: string, serviceKey: string): Promise<boolean> {
+  // Scheduled calls use a random token stored in Supabase Vault; never log or expose it.
+  const cronToken = req.headers.get("x-wazifti-cron-token") || "";
+  if (cronToken) {
+    try {
+      const verifyResponse = await fetch(`${base}/rest/v1/rpc/verify_job_alert_cron_token`, {
+        method: "POST",
+        headers: restHeaders(serviceKey),
+        body: JSON.stringify({ p_token: cronToken }),
+      });
+      if (verifyResponse.ok && await verifyResponse.json() === true) return true;
+    } catch {
+      // Fall through to the existing secret-key / authenticated-admin checks.
+    }
+  }
   const apiKey = req.headers.get("apikey") || "";
   const auth = req.headers.get("authorization") || "";
   const bearer = auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
