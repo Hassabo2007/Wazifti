@@ -16,7 +16,10 @@
       "#waEnabledLabel":tr("تفعيل تنبيهات الوظائف","Enable job alerts"),
       "#waOptionsText":tr("خيارات التنبيه والتخصصات والمواقع","Alert, category and location preferences"),
       "#waPushLabel":tr("أرسل إشعاراً فورياً على الهاتف أيضاً","Also send instant notifications to my phone"),
-      "#waPushNote":tr("إشعارات الهاتف تحتاج السماح بها من المتصفح. ستظل إشعارات حالة طلبات التقديم منفصلة كما هي.","Phone notifications require browser permission. Application-status notifications remain separate and unchanged."),
+      "#waDeliveryModeLabel":tr("طريقة وصول التنبيهات","Alert delivery mode"),
+      "#waDailyTimeLabel":tr("وقت الملخص اليومي","Daily digest time"),
+      "#waDailyNote":tr("الملخص اليومي يعرض الفرص المطابقة داخل صندوق التنبيهات حسب توقيت السودان.","The daily digest adds matching opportunities to your in-app alerts inbox using Sudan time."),
+      "#waPushNote":tr("إشعارات الهاتف فورية فقط، أما الملخص اليومي فيظهر داخل صندوق التنبيهات. تحتاج إشعارات الهاتف إلى السماح من المتصفح.","Phone push alerts are instant only; the daily digest appears in your in-app inbox. Browser permission is required for phone alerts."),
       "#waSave":tr("حفظ التفضيلات","Save preferences"),
       "#waReload":tr("تحديث التنبيهات","Refresh alerts"),
       "#waInboxTitle":tr("الفرص التي وصلت إليك","Your matching opportunities"),
@@ -30,6 +33,7 @@
     Object.entries(values).forEach(([sel,value])=>{const el=modal.querySelector(sel);if(el)el.textContent=value;});
     const intro=modal.querySelector("#waIntro"); if(intro) intro.textContent=values["#waIntro"];
     const note=modal.querySelector("#waPushNote"); if(note)note.textContent=values["#waPushNote"];
+    const dailyNote=modal.querySelector("#waDailyNote"); if(dailyNote)dailyNote.textContent=values["#waDailyNote"];
     const loc=modal.querySelector("#waLocations");if(loc)loc.placeholder=tr("الخرطوم، أم درمان، الجزيرة","Khartoum, Omdurman, Al Jazirah");
     modal.querySelectorAll("details.wa-group").forEach((d,i)=>{const s=d.querySelector("summary");if(s)s.textContent=[values["#waCategoriesTitle"],values["#waLocationTitle"],values["#waEmploymentTitle"]][i]||s.textContent;});
     const labels=modal.querySelectorAll(".wa-static-label");
@@ -67,6 +71,11 @@
     <p class="wa-note" id="waIntro">اختر مجالاتك ومواقع العمل لتصلك الفرص الجديدة. يمكنك إيقاف التنبيهات في أي وقت.</p>
     <div id="waStatus" class="wa-note" role="status" aria-live="polite">جارٍ تحميل الإعدادات...</div>
     <label class="wa-check"><input id="waEnabled" type="checkbox"> <span id="waEnabledLabel">تفعيل تنبيهات الوظائف</span></label>
+    <div class="wa-grid" style="margin:10px 0">
+      <div><label for="waDeliveryMode" id="waDeliveryModeLabel">طريقة وصول التنبيهات</label><select id="waDeliveryMode" style="width:100%"><option value="instant">فوري</option><option value="daily">ملخص يومي</option><option value="both">فوري وملخص يومي</option></select></div>
+      <div><label for="waDailyTime" id="waDailyTimeLabel">وقت الملخص اليومي</label><input id="waDailyTime" type="time" value="08:00" style="width:100%"></div>
+    </div>
+    <p class="wa-note" id="waDailyNote">الملخص اليومي يعرض الفرص المطابقة داخل صندوق التنبيهات حسب توقيت السودان.</p>
     <button class="wa-options-toggle" id="waOptionsToggle" type="button" aria-expanded="false" aria-controls="waOptionsPanel"><span id="waOptionsText">خيارات التنبيه والتخصصات والمواقع</span><span id="waOptionsIcon" aria-hidden="true">＋</span></button>
     <div id="waOptionsPanel" class="wa-options-panel" hidden>
       <details class="wa-group"><summary>التصنيفات والتخصصات</summary><div class="wa-group-body">
@@ -90,6 +99,12 @@
   modal.querySelector("#waClose").addEventListener("click",close);
   modal.querySelector("#waReload").addEventListener("click",loadInbox);
   modal.querySelector("#waSave").addEventListener("click",save);
+  modal.querySelector("#waDeliveryMode").addEventListener("change",()=>{
+    const dailyOnly=modal.querySelector("#waDeliveryMode").value==="daily";
+    const push=modal.querySelector("#waPush");
+    push.disabled=dailyOnly;
+    if(dailyOnly)push.checked=false;
+  });
   modal.querySelector("#waOptionsToggle").addEventListener("click",()=>{
     const panel=modal.querySelector("#waOptionsPanel");
     const opening=panel.hidden;
@@ -122,9 +137,14 @@
     croot.querySelectorAll("input").forEach(x=>x.addEventListener("change",()=>{const ids=checkedValues(croot);sroot.querySelectorAll("label").forEach(l=>{const input=l.querySelector("input");const item=(specs||[]).find(s=>s.id===input?.value);l.style.opacity=(!ids.length||ids.includes(item?.category_id))?"1":".45";if(ids.length&&!ids.includes(item?.category_id))input.checked=false;});}));
   }
   async function loadPreferences(){
-    const {data:p,error}=await supabaseClient.from("job_alert_preferences").select("id,is_enabled,push_enabled").eq("user_id",currentAuthUser.id).maybeSingle();
+    const {data:p,error}=await supabaseClient.from("job_alert_preferences").select("id,is_enabled,push_enabled,delivery_mode,daily_send_time").eq("user_id",currentAuthUser.id).maybeSingle();
     if(error)throw error;
-    modal.querySelector("#waEnabled").checked=!!p?.is_enabled;modal.querySelector("#waPush").checked=!!p?.push_enabled;
+    modal.querySelector("#waEnabled").checked=!!p?.is_enabled;
+    modal.querySelector("#waDeliveryMode").value=p?.delivery_mode||"instant";
+    modal.querySelector("#waDailyTime").value=(p?.daily_send_time||"08:00").slice(0,5);
+    modal.querySelector("#waPush").checked=!!p?.push_enabled;
+    modal.querySelector("#waPush").disabled=modal.querySelector("#waDeliveryMode").value==="daily";
+    if(modal.querySelector("#waPush").disabled)modal.querySelector("#waPush").checked=false;
     if(!p)return;
     const [cats,specs,locs,types]=await Promise.all([
       supabaseClient.from("job_alert_preference_categories").select("category_id").eq("preference_id",p.id),
@@ -168,7 +188,8 @@
   async function save(){
     const button=modal.querySelector("#waSave");button.disabled=true;status(tr("جارٍ حفظ التفضيلات...","Saving preferences..."));
     try{
-      let push=modal.querySelector("#waPush").checked;
+      const deliveryMode=modal.querySelector("#waDeliveryMode").value;
+      let push=modal.querySelector("#waPush").checked && deliveryMode!=="daily";
       let pushWarning="";
       if(push){
         try{
@@ -182,10 +203,10 @@
       const locations=modal.querySelector("#waLocations").value.split(/[,،]/).map(x=>x.trim()).filter(Boolean);
       const args={
         p_is_enabled:modal.querySelector("#waEnabled").checked,
-        p_delivery_mode:"instant",
+        p_delivery_mode:deliveryMode,
         p_locations:locations,
         p_employment_types:checkedValues(modal.querySelector("#waEmployment")),
-        p_daily_send_time:"08:00",
+        p_daily_send_time:modal.querySelector("#waDailyTime").value||"08:00",
         p_categories:checkedValues(modal.querySelector("#waCategories")),
         p_specialties:checkedValues(modal.querySelector("#waSpecialties")),
         p_push_enabled:push
