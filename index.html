@@ -1056,6 +1056,18 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 }
 @media(prefers-reduced-motion:reduce){.job-search-dock{scroll-behavior:auto}}
 </style>
+<style>
+/* V1.12: clearer, sequential category and specialty selection in job posting. */
+.job-taxonomy-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin:12px 0 16px}
+.job-taxonomy-fields .taxonomy-field{display:flex;align-items:flex-start;gap:12px;padding:14px;border:1px solid #dcebe1;border-radius:13px;background:#f8fbf9}
+.job-taxonomy-fields .taxonomy-step{flex:0 0 28px;width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:#087a4b;color:#fff;font-weight:800;margin-top:3px}
+.job-taxonomy-fields .taxonomy-field-content{flex:1;min-width:0}
+.job-taxonomy-fields label{display:block;margin:0 0 7px;color:#174b35;font-weight:800}
+.job-taxonomy-fields select{display:block;width:100%;min-height:48px;padding:11px 12px;border:1px solid #cbded1;border-radius:10px;background:#fff;color:#17372a;font:inherit;box-sizing:border-box}
+.job-taxonomy-fields select:disabled{background:#edf2ee;color:#78867d;cursor:not-allowed}
+.job-taxonomy-fields select:focus{outline:2px solid #b8dec7;border-color:#087a4b}
+.job-taxonomy-fields .taxonomy-help{display:block;margin-top:6px;color:#66786c;font-size:12px;line-height:1.7}
+</style>
 </head>
 <body>
 <header><div class="nav"><a class="brand" href="#jobs" onclick="event.preventDefault();loadLiveJobs({manual:true})" aria-label="وظيفتي - تحديث الوظائف" title="اضغط لتحديث الوظائف" style="text-decoration:none;color:inherit">
@@ -1150,10 +1162,24 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
         <div><label for="employerJobState">الولاية</label><select id="employerJobState"><option value="">اختر الولاية</option><option>الخرطوم</option><option>الجزيرة</option><option>البحر الأحمر</option><option>كسلا</option><option>القضارف</option><option>سنار</option><option>النيل الأبيض</option><option>النيل الأزرق</option><option>نهر النيل</option><option>الشمالية</option><option>شمال كردفان</option><option>جنوب كردفان</option><option>غرب كردفان</option><option>شمال دارفور</option><option>جنوب دارفور</option><option>غرب دارفور</option><option>وسط دارفور</option><option>شرق دارفور</option></select></div>
       </div>
       <label for="employerJobType">نوع العمل</label><select id="employerJobType"><option value="full_time">دوام كامل</option><option value="part_time">دوام جزئي</option><option value="remote">عن بُعد</option><option value="contract">تعاقد</option><option value="internship">تدريب</option></select>
-      <div class="job-form-grid">
-        <div><label for="employerJobCategory">التصنيف الرئيسي *</label><select id="employerJobCategory" required><option value="">اختر التصنيف</option></select></div>
-        <div><label for="employerJobSpecialty">التخصص الفرعي *</label><select id="employerJobSpecialty" required disabled><option value="">اختر التخصص</option></select></div>
-      </div>
+      <section class="job-taxonomy-fields" aria-label="تصنيف الوظيفة">
+        <div class="taxonomy-field">
+          <span class="taxonomy-step">1</span>
+          <div class="taxonomy-field-content">
+            <label for="employerJobCategory">التصنيف الرئيسي *</label>
+            <select id="employerJobCategory" required><option value="">اختر التصنيف الرئيسي</option></select>
+            <small id="employerJobCategoryHelp" class="taxonomy-help">اختر المجال العام الذي تنتمي إليه الوظيفة.</small>
+          </div>
+        </div>
+        <div class="taxonomy-field">
+          <span class="taxonomy-step">2</span>
+          <div class="taxonomy-field-content">
+            <label for="employerJobSpecialty">التخصص الفرعي *</label>
+            <select id="employerJobSpecialty" required disabled><option value="">اختر التصنيف الرئيسي أولاً</option></select>
+            <small id="employerJobSpecialtyHelp" class="taxonomy-help">ستظهر هنا التخصصات المرتبطة بالتصنيف الذي اخترته.</small>
+          </div>
+        </div>
+      </section>
       <div class="job-form-grid job-salary-grid">
         <div><label for="employerJobSalaryMin">الحد الأدنى للراتب</label><input id="employerJobSalaryMin" type="number" min="0" step="0.01"></div>
         <div><label for="employerJobSalaryMax">الحد الأعلى للراتب</label><input id="employerJobSalaryMax" type="number" min="0" step="0.01"></div>
@@ -1291,6 +1317,11 @@ function applyEmployerJobFormLanguage(){
     employerJobSalaryMax:["الحد الأعلى للراتب","Maximum salary"],employerJobCurrency:["العملة","Currency"]
   };
   Object.entries(labels).forEach(([id,text])=>{const label=box.querySelector('label[for="'+id+'"]');if(label)label.textContent=employerJobFormText(...text);});
+  const taxonomyHelp={
+    employerJobCategoryHelp:["اختر المجال العام الذي تنتمي إليه الوظيفة.","Choose the general field this job belongs to."],
+    employerJobSpecialtyHelp:["ستظهر هنا التخصصات المرتبطة بالتصنيف الذي اخترته.","Specialties belonging to your selected category will appear here."]
+  };
+  Object.entries(taxonomyHelp).forEach(([id,text])=>{const el=document.getElementById(id);if(el)el.textContent=employerJobFormText(...text);});
   const states=[["اختر الولاية","Select a state"],["الخرطوم","Khartoum"],["الجزيرة","Al Jazirah"],["البحر الأحمر","Red Sea"],["كسلا","Kassala"],["القضارف","Gedaref"],["سنار","Sennar"],["النيل الأبيض","White Nile"],["النيل الأزرق","Blue Nile"],["نهر النيل","River Nile"],["الشمالية","Northern"],["شمال كردفان","North Kordofan"],["جنوب كردفان","South Kordofan"],["غرب كردفان","West Kordofan"],["شمال دارفور","North Darfur"],["جنوب دارفور","South Darfur"],["غرب دارفور","West Darfur"],["وسط دارفور","Central Darfur"],["شرق دارفور","East Darfur"]];
   const stateSelect=document.getElementById("employerJobState");
   if(stateSelect)Array.from(stateSelect.options).forEach((option,i)=>{if(states[i]){option.value=states[i][0];option.textContent=employerJobFormText(...states[i]);}});
@@ -2613,9 +2644,14 @@ function populateEmployerJobCategories(selectedCategory="", selectedSpecialty=""
   addSelectOptions(categorySelect,waziftiTaxonomy.categories,lang==="ar"?"اختر التصنيف":"Select a category","");
   categorySelect.value=selectedCategory||"";
   const rows=waziftiTaxonomy.specialties.filter(x=>x.category_id===categorySelect.value);
-  addSelectOptions(specialtySelect,rows,lang==="ar"?"اختر التخصص":"Select a specialty","");
-  specialtySelect.disabled=!categorySelect.value;
+  addSelectOptions(specialtySelect,rows,categorySelect.value?(lang==="ar"?"اختر التخصص الفرعي":"Select a specialty"):(lang==="ar"?"اختر التصنيف الرئيسي أولاً":"Select a main category first"),"");
+  specialtySelect.disabled=!categorySelect.value||!rows.length;
   specialtySelect.value=selectedSpecialty||"";
+  const help=document.getElementById("employerJobSpecialtyHelp");
+  if(help)help.textContent=employerJobFormText(
+    categorySelect.value?"اختر تخصصاً واحداً من التخصصات التابعة للتصنيف المحدد.":"ستظهر التخصصات بعد اختيار التصنيف الرئيسي.",
+    categorySelect.value?"Choose one specialty belonging to the selected category.":"Specialties will appear after you choose a main category."
+  );
 }
 
 document.getElementById("employerJobCategory")?.addEventListener("change",()=>{
