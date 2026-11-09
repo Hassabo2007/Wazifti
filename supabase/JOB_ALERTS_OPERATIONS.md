@@ -28,4 +28,4 @@ The daily digest is idempotent per user, local date, and channel. Job notificati
 
 ## Push subscription changes
 
-After rotating the VAPID keypair, users must re-enable browser push on their devices so the browser creates subscriptions using the new public key.
+After rotating the VAPID keypair, the next attempt to enable browser push checks the saved subscription key and automatically replaces a stale subscription with one using the current public key. The user may need to grant browser notification permission again.
