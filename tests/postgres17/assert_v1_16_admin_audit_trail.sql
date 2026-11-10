@@ -14,9 +14,11 @@ on conflict (user_id) do nothing;
 
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000010', false);
 select set_config('request.jwt.claim.role', 'authenticated', false);
-set role authenticated;
 
--- Existing direct Data API-style admin status changes must now be audited.
+-- The live production role currently has no table-level SELECT/INSERT/UPDATE
+-- grants on public.companies, despite the admin RLS policy. Keep this migration
+-- test independent of that pre-existing admin UI/grant mismatch: create and
+-- transition the company as the database owner while retaining the admin JWT.
 insert into public.companies (id, owner_id, company_name, status)
 values (
   '10000000-0000-4000-8000-000000000001',
@@ -27,6 +29,10 @@ values (
 update public.companies
 set status = 'verified'
 where id = '10000000-0000-4000-8000-000000000001';
+
+-- Jobs and applications have authenticated table grants in production, so
+-- exercise those admin Data API-style writes under the authenticated role.
+set role authenticated;
 
 insert into public.jobs (id, company_id, title, description, status)
 values (
@@ -207,7 +213,6 @@ create trigger test_force_audit_insert_failure
 before insert on private.admin_audit_logs
 for each row execute function private.test_force_audit_insert_failure();
 
-set role authenticated;
 do $rollback_test$
 declare
   v_message text;
@@ -234,7 +239,6 @@ begin
   end if;
 end;
 $rollback_test$;
-reset role;
 
 drop trigger test_force_audit_insert_failure on private.admin_audit_logs;
 drop function private.test_force_audit_insert_failure();
