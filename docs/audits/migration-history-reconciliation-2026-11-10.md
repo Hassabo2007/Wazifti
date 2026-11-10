@@ -8,6 +8,7 @@
 ## Captured evidence
 
 - `supabase-production-migration-ledger-2026-11-10.json`: complete 26-entry `supabase_migrations.schema_migrations` snapshot, including the SQL statements recorded by Supabase for each applied version.
+- `recovered-production-migration-history-2026-11-10.sql`: a readable forensic archive of all 26 applied SQL entries, kept under `docs/audits` so Supabase CLI will not treat it as pending migrations. It is explicitly marked DO NOT RUN.
 - `supabase-production-schema-snapshot-2026-11-10.json`: captured table/column metadata, public RLS policies, indexes, and constraints.
 - A separate runtime catalog snapshot is still desirable for views, functions, triggers, extensions, enum types, grants, and publications before claiming full schema equivalence.
 
@@ -15,8 +16,8 @@
 
 - Production records **26 applied migrations**.
 - The current `main` branch contains **21 SQL files** in `supabase/migrations`.
-- Several applied migrations have no corresponding file under the same historical filename/version; some existing files contain SQL matching a production ledger statement but use a different timestamped filename.
-- Some current repository files do not exactly match any stored production migration statement. In particular, the current daily-digest and VAPID migration files have content differences from the production ledger entries; the close/archive migration file also differs in length/content from its applied counterpart.
+- The free CI content audit found **7 exact SQL-content matches** between repository files and production history: 3 with matching timestamps and 4 with filename timestamp drift. The other **19 applied ledger entries have no exact matching repository file**.
+- The current repository also contains 14 files without an exact applied-ledger match. Some are the intended unapplied V1.15 migration; others include the daily-digest, VAPID, and close/archive files whose content differs from production. They require semantic diffing, not automatic replacement.
 - The repository contains job-alert migration files whose exact SQL is not represented as a separate applied production ledger entry. They may be consolidated into the later complete job-alert migration, but that must be proven by content/DDL comparison before removing or retaining them as runnable migrations.
 - V1.15 remains a proposed, unapplied migration. This reconciliation work does not apply it.
 
