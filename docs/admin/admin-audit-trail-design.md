@@ -137,7 +137,7 @@ Production has permissive `ALL` policies named `Admins manage applications`, `Ad
 - Events related to an open complaint, investigation, legal hold, or unresolved dispute must be retained beyond 24 months until the hold is explicitly released by an authorized process.
 - Before enabling cleanup, implement and test: a verified backup/archive, a dry-run report of eligible rows, a documented approval step, bounded batch deletion, monitoring, and a recovery/rollback procedure. Never run a bulk delete directly as part of the initial audit-table migration.
 - Retention duration is therefore settled at 24 months; reason requirements and the first admin audit-viewer scope remain open product decisions.
-- The current execution environment has no installed Supabase CLI binary. No migration file has been generated, and no production DDL has been run. The implementation branch must be created using the documented `supabase migration new <name>` command in a real CLI environment; do not hand-invent a migration timestamp/name.
+- The Supabase CLI-generated migration now exists on the V1.16 implementation branch as `supabase/migrations/20261110203144_v1_16_admin_audit_trail.sql`. It was generated in GitHub Actions without linking to production. No production DDL has been run; the migration remains pending PostgreSQL 17 test and review.
 - The free PostgreSQL 17 GitHub Actions path is the intended test target. Do not create a paid Supabase branch or require a credit card.
 
 ### Implementation acceptance additions
