@@ -15,11 +15,7 @@ The project notes also record a follow-up manual SQL step that created:
 - an Auth trigger on `auth.users`
 - initial RLS policies for profiles, companies, jobs, and applications.
 
-The original SQL Editor queries were previously described as being saved under the names:
-- `Wazifti - Initial Database Schema`
-- `Wazifti - Security Policies`
-
-However, the current project file/library search did not locate either saved SQL Editor query or an exact SQL export of the manually executed statements. Therefore, the original DDL, exact policy expressions, grants, and trigger body cannot yet be reproduced byte-for-byte from available evidence.
+The user has clarified that they were unable to name the queries in the SQL Editor. Accordingly, the two query names mentioned in an earlier draft of this audit were assumptions, not verified titles, and must not be used as search targets or cited as evidence. The current project file/library search did not locate the exact manually executed SQL or an authoritative export. Therefore, the original DDL, exact policy expressions, grants, and trigger body cannot yet be reproduced byte-for-byte from available evidence.
 
 ## Important distinction: generated proposal vs executed bootstrap
 
@@ -33,7 +29,7 @@ That file explicitly says it should be run only in a new development project aft
 2. Do not put the generated proposal SQL into `supabase/migrations`.
 3. Do not mark any historical versions as applied or alter the production migration ledger to make the counts agree.
 4. Continue the free PostgreSQL 17 CI work using an explicitly labelled reconstruction fixture only if its provenance and omissions are documented. It can validate later migration behavior but cannot certify a byte-for-byte replay of the original manual bootstrap.
-5. To certify full replay compatibility, obtain the original saved SQL Editor queries or an authoritative schema-only export from the period immediately after the manual bootstrap and before the first tracked migration (2026-11-06). If the SQL Editor queries are still present in the Supabase dashboard, export their exact contents without executing them.
+5. To certify full replay compatibility, recover the original manually executed SQL by another verifiable route, or obtain an authoritative schema-only export from the period immediately after the manual bootstrap and before the first tracked migration (2026-11-06). Do not rely on guessed query titles. If the SQL can be located in the dashboard or another record, export its exact contents without executing it.
 
 ## Current confidence
 
