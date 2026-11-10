@@ -31,6 +31,19 @@ The same read-only query-history source also preserved:
 
 The exact captured statements are preserved in the forensic SQL file. The conversation history records the function/trigger/policy block as having been reported as run; the explicit “Success – No rows returned” confirmation was associated with the initial table-creation block. Query statistics show the statements were submitted/executed and retained, but do not retain a per-statement wall-clock timestamp or original transaction grouping.
 
+### Additional pre-ledger CV prerequisites recovered
+
+A further read-only `pg_stat_statements` search recovered the manual CV setup needed by the applied migration `20261107203156`:
+
+- `public.candidate_resumes` with UUID id, candidate owner FK, file name/path, 5 MiB file-size check, PDF-only MIME check, default flag and creation timestamp.
+- RLS enablement and candidate-owned CV policies.
+- `private.candidate_owns_resume(uuid, uuid)`, including the current path-prefix check through `storage.foldername(file_path)`, with EXECUTE granted to `authenticated` and PUBLIC revoked.
+- `public.applications.resume_id` referencing `public.candidate_resumes(id)` with `ON DELETE SET NULL`.
+
+The exact statements are preserved separately in `docs/audits/recovered-preledger-cv-prerequisites-2026-11-04.sql`. Query history also contains earlier variants of the CV ownership helper and add/update policies without the storage path check. The current production function and policies match the hardened path-checking variants; exact ordering of those variants is not retained. The local PostgreSQL test provides a minimal `storage.foldername()` test double and does not install or emulate Supabase Storage itself.
+
+This pre-ledger CV setup is a necessary predecessor for `20261107203156`, which references `applications.resume_id` and `private.candidate_owns_resume()` but does not create them.
+
 ### Current schema comparison (read-only)
 
 A live read-only comparison of the five recovered base tables against current `information_schema.columns` found:
