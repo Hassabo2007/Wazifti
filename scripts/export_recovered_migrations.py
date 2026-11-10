@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export the captured production migration ledger to a temporary, non-runnable audit artifact.
+"""Export captured production migration SQL to a temporary, non-runnable audit artifact.
 
 This script never writes into supabase/migrations and never connects to Supabase.
 """
@@ -15,11 +15,11 @@ MIGRATIONS = ROOT / "supabase/migrations"
 
 
 def normalize_sql(sql: str) -> str:
-    sql = re.sub(r"/\\*[\\s\\S]*?\\*/", " ", sql)
-    sql = re.sub(r"--[^\\n]*", " ", sql)
-    sql = re.sub(r"^\\s*begin\\s*;", "", sql, flags=re.I)
-    sql = re.sub(r";\\s*commit\\s*;?\\s*$", ";", sql, flags=re.I)
-    return re.sub(r"\\s+", " ", sql).strip().lower()
+    sql = re.sub(r"/\*[\s\S]*?\*/", " ", sql)
+    sql = re.sub(r"--[^\n]*", " ", sql)
+    sql = re.sub(r"^\s*begin\s*;", "", sql, flags=re.I)
+    sql = re.sub(r";\s*commit\s*;?\s*$", ";", sql, flags=re.I)
+    return re.sub(r"\s+", " ", sql).strip().lower()
 
 
 def main() -> None:
@@ -40,12 +40,12 @@ def main() -> None:
     repo_files = sorted(MIGRATIONS.glob("*.sql"))
     repo_by_version = {}
     for path in repo_files:
-        match = re.match(r"^(\\d{14})_", path.name)
+        match = re.match(r"^(\d{14})_", path.name)
         if match:
             repo_by_version.setdefault(match.group(1), []).append(path)
 
     applied_normalized = {
-        row["version"]: normalize_sql("\\n".join(row.get("statements", [])))
+        row["version"]: normalize_sql("\n".join(row.get("statements", [])))
         for row in ledger
     }
     manifest = []
@@ -60,11 +60,11 @@ def main() -> None:
     for row in ledger:
         version, name = row["version"], row["name"]
         statements = row.get("statements") or []
-        if not re.fullmatch(r"\\d{14}", version) or not re.fullmatch(r"[a-zA-Z0-9_]+", name):
+        if not re.fullmatch(r"\d{14}", version) or not re.fullmatch(r"[a-zA-Z0-9_]+", name):
             raise SystemExit(f"Unsafe ledger filename fields: {version!r} {name!r}")
         if len(statements) != 1 or not statements[0].strip():
             raise SystemExit(f"Unexpected SQL statement structure for {version} {name}")
-        sql = statements[0].strip() + "\\n"
+        sql = statements[0].strip() + "\n"
         filename = f"{version}_{name}.sql"
         target = output / filename
         target.write_text(sql, encoding="utf-8")
@@ -104,7 +104,7 @@ def main() -> None:
 
     ledger_versions = set(versions)
     for path in repo_files:
-        match = re.match(r"^(\\d{14})_", path.name)
+        match = re.match(r"^(\d{14})_", path.name)
         if match and match.group(1) not in ledger_versions:
             classifications["repository_only_file"].append(path.name)
 
@@ -116,7 +116,7 @@ def main() -> None:
         "classifications": classifications,
         "migrations": manifest,
     }
-    (output / "manifest.json").write_text(json.dumps(payload, indent=2) + "\\n", encoding="utf-8")
+    (output / "manifest.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({
         "exported_migrations": len(manifest),
         "repository_migration_files": len(repo_files),
