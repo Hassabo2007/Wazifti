@@ -89,31 +89,27 @@ The production ledger archive preserves the SQL statements for these entries. Th
 7. `20261109185459_job_alerts_daily_digest_scheduler.sql` — same timestamp as applied entry, but content differs; compare every function, secret reference, cron schedule and permission before resolving.
 8. `20261110100000_v1_15_security_performance_hygiene.sql` — intentionally pending; not in the captured production ledger.
 
-## Initial manual bootstrap and historical dependency boundary
+## Recovered manual bootstrap and historical dependency boundary
 
-Prior-conversation provenance from 2026-11-04 records that the initial SQL Editor table-creation block created:
-- `public.profiles`
-- `public.companies`
-- `public.jobs`
-- `public.applications`
+A read-only query against production `pg_stat_statements` recovered the original SQL text for the 2026-11-04 manual bootstrap. The recorded statistics reset was `2026-11-04 08:34:44.350849+00`, before the initial setup messages. The source retained the CREATE TABLE statements for `profiles`, `companies`, `jobs`, `applications`, plus the `admin_users` table, `is_admin()`, `handle_new_user()`, the Auth trigger, RLS activation and first-generation policies.
 
-The block reportedly included primary/foreign keys, defaults, check constraints, unique `(job_id, candidate_id)`, timestamp fields and RLS enablement. The user reported **“Success – No rows returned”** after running this block.
+The exact query texts are preserved in `docs/audits/recovered-manual-bootstrap-2026-11-04.sql`. They are forensic evidence, grouped in dependency order for the test; the original transaction boundaries and precise statement ordering are not retained. The user separately confirmed successful execution of the first four table-creation statements with **“Success – No rows returned”**. Query statistics retained the later Auth/security statements with recorded calls, but the explicit user success confirmation applies to the first table-creation block. See `initial-manual-bootstrap-provenance-2026-11-10.md`.
 
-A separate later block covered `handle_new_user()`, an `auth.users` trigger and initial RLS policies; the retrieved history does not independently confirm its successful execution. The exact SQL text has not yet been returned by the available retrieval interface. See `initial-manual-bootstrap-provenance-2026-11-10.md`.
+A live read-only comparison against current `information_schema.columns` found:
+- `companies` still has the original column set.
+- `profiles` adds `category_id`, `specialty_id`, and `can_post_individual_jobs`.
+- `jobs` adds `category_id`, `specialty_id`, `state`, `posted_by_user_id`, `poster_type`, `closed_at`, and `archived_at`; `company_id` changed from NOT NULL to nullable for individual postings.
+- `applications` adds `resume_id`; original `cv_url` remains.
+- `admin_users` still matches the recovered initial column set.
 
-The 26-entry production ledger starts on 2026-11-06, after those base tables already existed. Therefore:
-- the 26 entries cannot be replayed from an empty PostgreSQL database by themselves;
-- the first manual bootstrap is a required predecessor;
-- the Auth/role/publication/Vault/extension prerequisites must be supplied explicitly for any isolated test;
-- a current-state schema snapshot cannot be reversed mechanically into the exact initial schema.
+The 26-entry production ledger starts on 2026-11-06, after the manual bootstrap. It can now be replay-tested against a recovered baseline, but a stock PostgreSQL 17 instance still needs local test doubles for Supabase Auth/roles/Vault and must exclude or separately stub Supabase-managed publication, `pg_cron`, and `pg_net` dependencies.
 
 ## Safe next work
 
-1. Recover the verbatim 2026-11-04 bootstrap SQL (or a trustworthy schema-only export from immediately after that bootstrap).
-2. Recover/verify the separate `handle_new_user()` and initial RLS block.
-3. For each of the 13 applied entries without a matching repository file, compare the captured SQL statement against the current catalog snapshot and adjacent applied entries. Do not infer equivalence solely from migration names.
-4. For the 8 repository files without any exact/normalized applied match, identify whether they are pending, superseded, or partially consolidated.
-5. Build additional PostgreSQL 17 fixtures per migration family only when every prerequisite is either recovered or explicitly stubbed and the test scope is labelled partial.
-6. Keep all recovered historical SQL outside `supabase/migrations` until canonical ordering and semantic equivalence are verified.
+1. Run the recovered manual bootstrap fixture on free PostgreSQL 17 and assert its tables, RLS flags, policies, Auth trigger, admin function and unique application constraint.
+2. Once that baseline test passes, replay the captured 26 ledger SQL statements in version order in a disposable PostgreSQL 17 database, excluding only migrations whose Supabase-managed dependencies cannot be faithfully provided by stock PostgreSQL; list every exclusion.
+3. Compare each of the 13 applied entries without a repository content match against the captured SQL and current catalog; do not infer equivalence solely from migration names.
+4. For the 8 repository files without any exact/normalized applied-ledger match, identify whether they are pending, superseded, or partially consolidated.
+5. Keep recovered historical SQL outside `supabase/migrations` until canonical ordering and semantic equivalence are verified.
 
-**No production SQL, migration-history rows, or data were changed during this comparison. Do not run `supabase db push`, replay the forensic archive, or repair the production migration ledger as part of this audit.**
+**No production SQL, migration-history rows, or data were changed during this comparison. Do not run `supabase db push`, replay the forensic archive on production, or repair the production migration ledger as part of this audit.**
