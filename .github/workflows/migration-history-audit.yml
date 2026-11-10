@@ -14,7 +14,13 @@ on:
       - "docs/audits/recovered-manual-bootstrap-2026-11-04.sql"
       - "docs/audits/recovered-preledger-cv-prerequisites-2026-11-04.sql"
       - "docs/audits/migration-file-reconciliation-2026-11-10.md"
+      - "docs/audits/semantic-migration-reconciliation-2026-11-10.md"
+      - "docs/audits/unledgered-production-change-provenance-2026-11-10.md"
+      - "docs/audits/production-ledger-archive/2026-11-10/**"
       - "docs/audits/migration-history-reconciliation-2026-11-10.md"
+      - "docs/audits/semantic-migration-reconciliation-2026-11-10.md"
+      - "docs/audits/unledgered-production-change-provenance-2026-11-10.md"
+      - "docs/audits/production-ledger-archive/2026-11-10/**"
       - ".github/workflows/migration-history-audit.yml"
   pull_request:
     paths:
@@ -46,6 +52,10 @@ jobs:
           python-version: "3.x"
       - name: Compare repository migration SQL with captured production ledger
         run: python scripts/reconcile_migration_history.py
+      - name: Verify recovered historical archive integrity
+        run: |
+          cd docs/audits/production-ledger-archive/2026-11-10
+          sha256sum --check manifest.sha256
       - name: Export all applied production migrations outside the active migration folder
         run: python scripts/export_recovered_migrations.py --output-dir "$RUNNER_TEMP/wazifti-recovered-migrations"
       - name: Preserve recovered SQL and manifest as a non-runnable audit artifact
