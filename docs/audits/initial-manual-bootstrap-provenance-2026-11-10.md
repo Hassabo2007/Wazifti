@@ -70,6 +70,17 @@ A generated reference file named `wazifti_mvp_database_schema.sql` exists in the
 
 That file explicitly says it should be run only in a new development project after review. It is not evidence that this exact SQL was executed against the Wazifti production project. It remains excluded from the recovered bootstrap.
 
+## PostgreSQL 17 test outcome
+
+The recovered manual bootstrap plus pre-ledger CV prerequisites were applied to a disposable PostgreSQL 17 database on GitHub-hosted Actions. The assertions passed for:
+- all five base tables plus `candidate_resumes`;
+- RLS enablement and recovered first-generation policies;
+- Auth signup trigger and profile creation;
+- the `is_admin()` function and authenticated EXECUTE grant;
+- `applications.resume_id` and the `candidate_owns_resume()` helper's candidate/path ownership behavior.
+
+The test uses minimal local stand-ins for Supabase Auth and Storage; it does not install or reproduce Supabase Auth/Storage services. The test result validates the recovered SQL slice on PostgreSQL 17, not full production equivalence.
+
 ## Safe test plan
 
 1. Apply the recovered statements only to a temporary PostgreSQL 17 test database, with minimal local stand-ins for Supabase-managed `auth.users`, `auth.uid()`, and roles.
