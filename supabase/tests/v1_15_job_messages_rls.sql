@@ -98,8 +98,8 @@ BEGIN
     AND sender_id = '11111111-1111-4111-8111-111111111111'
     AND recipient_id = '22222222-2222-4222-8222-222222222222';
   GET DIAGNOSTICS updated_count = ROW_COUNT;
-  IF updated_count <> 1 THEN
-    RAISE EXCEPTION 'Recipient should update exactly one received message, updated %', updated_count;
+  IF updated_count <> 2 THEN
+    RAISE EXCEPTION 'Recipient should update both received messages, updated %', updated_count;
   END IF;
 END
 $block$;
