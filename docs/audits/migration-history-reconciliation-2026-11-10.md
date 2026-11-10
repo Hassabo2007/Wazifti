@@ -28,6 +28,25 @@
 2. Preserve the current production catalog metadata snapshot as a comparison baseline.
 3. Add a free GitHub Actions audit that compares repository migration file contents against the captured production ledger. It uses GitHub-hosted runners only; it does not create a Supabase branch or incur Supabase compute charges.
 4. Add `scripts/export_recovered_migrations.py`, which exports all 26 ledger SQL entries to a temporary CI artifact outside `supabase/migrations`, with SHA-256 hashes and explicit classifications. The artifact is retained for 14 days and marked forensic-only / DO NOT RUN.
+5. Add a separate PostgreSQL 17 service job, running only on GitHub-hosted Actions, to apply the V1.15 migration to a deliberately partial fixture and assert the five expected indexes and two RLS policies. Fixture and assertions live under `tests/postgres17/`; no Supabase credentials, production connection, data, or paid Supabase compute are used.
+
+## PostgreSQL 17 partial test — scope and limits
+
+The test fixture creates only the minimum object shapes referenced by V1.15: `companies(id, owner_id)`, `jobs(id, company_id, poster_type, posted_by_user_id)`, `applications(id, job_id, candidate_id)`, `job_messages(application_id, job_id, candidate_id, poster_id, sender_id, recipient_id)`, and `in_app_notifications(application_id)`, plus a minimal `auth.uid()` stub and the `authenticated` role. This is an explicitly synthetic compatibility fixture, not a recovered production baseline.
+
+The job checks:
+- PostgreSQL 17 accepts the V1.15 SQL without syntax/object-resolution errors against the stated prerequisites.
+- All five named foreign-key-supporting indexes exist after application.
+- Both expected authenticated `job_messages` RLS policies exist with SELECT and INSERT commands.
+
+It does **not** establish:
+- that the fixture columns, data types, foreign keys, grants, or existing policy definitions exactly match production;
+- that the historical 26 migrations replay successfully in order;
+- behavior of Supabase Auth, Storage, Realtime, pg_net, cron, extensions, Edge Functions, or production roles;
+- runtime authorization outcomes for real users or application data;
+- full schema, constraint, trigger, function, or RLS equivalence.
+
+The test is intentionally limited to V1.15 because the exact manual bootstrap and several historical applied migration files are unavailable or differ from repository files. We must not invent the missing schema to make a full replay appear green.
 
 ## Safety decisions
 
@@ -48,8 +67,7 @@ The exact comparison must be used to reconstruct an authoritative historical fil
 
 Then compare the captured catalog against a clean, free PostgreSQL 17 baseline. The 26-entry production ledger begins on 2026-11-06, after the application's base tables already existed; therefore these 26 migrations alone are not a complete from-empty bootstrap history. A true replay requires a verified pre-2026-11-06 baseline (or the original initial schema migrations) plus the Supabase-managed prerequisites. A current-state `pg_dump --schema-only` would help preserve the present schema, but cannot substitute for that pre-migration baseline. The existing V1.15 fixture is a focused schema-faithful test slice, not a full Supabase clone.
 
-**Current result: historical evidence is preserved and automated drift detection is in place; the migration history is not yet repaired, and full schema compatibility is not yet certified.**
-
+**Current result: historical evidence is preserved and automated drift detection is in place; a partial V1.15 PostgreSQL 17 test is implemented; the migration history is not yet repaired, and full schema compatibility is not yet certified.**
 
 ## Newly recovered bootstrap provenance
 
