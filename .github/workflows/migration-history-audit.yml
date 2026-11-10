@@ -6,6 +6,7 @@ on:
       - "docs/audits/supabase-production-migration-ledger-2026-11-10.json"
       - "docs/audits/supabase-production-schema-snapshot-2026-11-10.json"
       - "docs/audits/supabase-production-runtime-catalog-2026-11-10.json"
+      - "docs/audits/recovered-production-migration-history-2026-11-10.sql"
       - "scripts/reconcile_migration_history.py"
       - ".github/workflows/migration-history-audit.yml"
   workflow_dispatch:
