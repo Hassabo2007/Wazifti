@@ -98,3 +98,48 @@ Therefore:
 - Existing admin access policies on applications, companies, and jobs were reviewed; no RLS expansion is proposed here.
 - No audit table exists in the reviewed production public schema.
 - No database changes are part of this document.
+
+
+## 10. Production readiness review (2026-11-10; read-only)
+
+The following was verified against the live production database. No production objects or data were changed.
+
+### Confirmed schema and status constraints
+
+- No `public.audit_logs` or `public.admin_audit_logs` table exists.
+- `companies.status` is constrained to `pending`, `verified`, `rejected`, and `suspended`.
+- `jobs.status` is constrained to `pending`, `published`, `closed`, and `rejected`; there is no supported `paused` state. Do not implement `job.pause` as a status until the product state model is deliberately extended.
+- `applications.status` is constrained to `submitted`, `reviewing`, `shortlisted`, `rejected`, and `accepted`.
+
+### Critical write-path finding
+
+Production has permissive `ALL` policies named `Admins manage applications`, `Admins manage companies`, and `Admins manage jobs`, each using `is_admin()` for both USING and WITH CHECK. Consequently, an administrator can currently mutate these tables directly through the Data API without passing through a dedicated audit RPC. A new audit table alone would therefore not satisfy the requirement that every privileged admin mutation be logged.
+
+**Required remediation before enabling any admin mutation UI:**
+
+1. Implement and adversarially test narrowly scoped admin RPCs for the supported company/job/application transitions.
+2. Revoke direct client mutation grants / remove the broad admin ALL policies only in the same reviewed migration that makes the replacement RPC path available and verified; preserve existing owner/employer/candidate paths.
+3. Ensure admin RPCs derive actor from `auth.uid()`, validate target state and current state, construct before/after JSON from allowlisted columns, and write audit rows in the same transaction.
+4. Keep the admin application queue read-only until the transition matrix and all RPC tests pass.
+
+### Hiring side effects and correlation
+
+- `finalize_job_hiring(uuid)` is currently a SECURITY DEFINER function used by the employer acceptance path. It checks the caller against the owning employer, then updates the selected application to `accepted`.
+- The `close_job_when_applicant_accepted` trigger then closes the related job and rejects all other active applications. The application-status notification trigger also creates notifications for changed applications.
+- The existing trigger path is transactionally coupled, but the inspected trigger does not write audit events. A future audit implementation must record the accepted application, job closure, and every automatically rejected application under one request correlation ID, without creating duplicate events if both RPC and triggers observe the same transition.
+- `update_individual_job_application_status(uuid,text)` currently accepts any of the five database-valid statuses for an individual poster's own job; it does not encode a narrower transition graph. Do not assume the five values form a valid transition matrix.
+- `guard_application_updates()` explicitly bypasses its column guard for `public.is_admin()`. This is another reason that simply adding a trigger audit logger without removing direct admin writes would not provide a controlled admin workflow.
+
+### Retention and tooling gates
+
+- Retention duration, whether moderation reasons are mandatory, and the first admin audit-viewer scope remain product decisions and are not silently assumed here.
+- The current execution environment has no installed Supabase CLI binary. No migration file has been generated, and no production DDL has been run. The implementation branch must be created using the documented `supabase migration new <name>` command in a real CLI environment; do not hand-invent a migration timestamp/name.
+- The free PostgreSQL 17 GitHub Actions path is the intended test target. Do not create a paid Supabase branch or require a credit card.
+
+### Implementation acceptance additions
+
+- Prove that direct admin INSERT/UPDATE/DELETE through the Data API is denied after cutover, while the tested RPC paths still work.
+- Prove a non-admin and anon caller cannot execute admin RPCs; a forged actor UUID is never accepted as the audit actor.
+- Prove an audit insert failure rolls back all business changes, including trigger side effects and notifications.
+- Prove one acceptance operation creates one correlated event for each affected application and the job closure, with no CV, resume URL, cover letter, phone, or credential fields.
+- Test concurrent attempts to accept two candidates for the same job and ensure only one succeeds with a consistent audit trail.
