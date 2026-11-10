@@ -10,6 +10,7 @@ on:
       - "scripts/export_recovered_migrations.py"
       - "tests/postgres17/**"
       - "docs/audits/initial-manual-bootstrap-provenance-2026-11-10.md"
+      - "docs/audits/recovered-manual-bootstrap-2026-11-04.sql"
       - "docs/audits/migration-history-reconciliation-2026-11-10.md"
       - "docs/audits/migration-file-reconciliation-2026-11-10.md"
       - ".github/workflows/migration-history-audit.yml"
@@ -81,3 +82,36 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: psql -h localhost -U postgres -d wazifti_partial_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_v1_15_partial.sql
+
+  postgres17-recovered-bootstrap:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Create isolated bootstrap test database
+        env:
+          PGPASSWORD: postgres
+        run: createdb -h localhost -U postgres wazifti_bootstrap_test
+      - name: Apply recovered manual bootstrap to PostgreSQL 17 test database
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/manual_bootstrap_fixture.sql
+      - name: Assert recovered tables, constraints, RLS policies, admin lookup and Auth trigger
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_manual_bootstrap.sql
