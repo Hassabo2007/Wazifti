@@ -81,3 +81,8 @@ The policy is confirmed in production, and the repository file is a strong candi
 ## Safe future handling
 
 If historical execution evidence is later found (SQL Editor history, deployment logs, or a dated backup), append it here with source and timestamp. Until then, keep both SQL files outside any claim of ledger-applied history. If future schema work needs to change either object, create a new forward-only migration after reviewing the current production definition; do not replay these candidate files as historical migrations.
+
+
+## CI integrity safeguard
+
+The audit workflow now verifies the SHA-256 manifest for the recovered SQL archive on pushes and pull requests that touch the archive or its audit documentation. This check validates byte-for-byte integrity only; it does not execute the archived SQL.
