@@ -1201,13 +1201,13 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
   <section class="admin-users-panel" aria-labelledby="adminUsersHeading">
     <div class="head" style="gap:10px;flex-wrap:wrap">
       <h3 id="adminUsersHeading" style="margin:0">إدارة حسابات المستخدمين</h3>
-      <button class="btn outline small" type="button" onclick="loadAdminUsers()">تحديث الحسابات</button>
+      <button class="btn outline small" type="button" id="adminUsersRefreshBtn" onclick="loadAdminUsers()">تحديث الحسابات</button>
     </div>
     <p class="muted" id="adminUsersIntro">استعراض حسابات المنصة للمتابعة الإدارية. لا تتضمن هذه المرحلة إيقاف الحسابات أو تغيير بياناتها.</p>
     <div class="admin-users-controls">
-      <label for="adminUsersSearch" class="sr-only">البحث بالاسم</label>
+      <label for="adminUsersSearch" id="adminUsersSearchLabel" class="sr-only">البحث بالاسم</label>
       <input id="adminUsersSearch" type="search" maxlength="80" placeholder="ابحث باسم المستخدم..." autocomplete="off">
-      <button class="btn primary" type="button" onclick="loadAdminUsers(0)">بحث</button>
+      <button class="btn primary" id="adminUsersSearchBtn" type="button" onclick="loadAdminUsers(0)">بحث</button>
     </div>
     <div id="adminUsersMessage" class="muted" role="status" aria-live="polite"></div>
     <div id="adminUsersList" class="admin-users-list"></div>
@@ -2751,6 +2751,14 @@ async function loadAdminUsers(resetPage = null) {
     );
     const searchInput = document.getElementById("adminUsersSearch");
     if (searchInput) searchInput.placeholder = dashboardText("ابحث باسم المستخدم...","Search by user name...");
+    const searchLabel = document.getElementById("adminUsersSearchLabel");
+    if (searchLabel) searchLabel.textContent = dashboardText("البحث باسم المستخدم","Search users by name");
+    const refreshButton = document.getElementById("adminUsersRefreshBtn");
+    if (refreshButton) refreshButton.textContent = dashboardText("تحديث الحسابات","Refresh accounts");
+    const searchButton = document.getElementById("adminUsersSearchBtn");
+    if (searchButton) searchButton.textContent = dashboardText("بحث","Search");
+    if (prev) prev.textContent = dashboardText("السابق","Previous");
+    if (next) next.textContent = dashboardText("التالي","Next");
   } catch (error) {
     console.error("Admin users load failed:", error);
     message.textContent = dashboardText("تعذر تحميل الحسابات. تحقق من صلاحية المدير ثم حاول مجدداً.","Could not load accounts. Verify admin access and try again.");
