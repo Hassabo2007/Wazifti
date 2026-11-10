@@ -30,14 +30,10 @@ update public.companies
 set status = 'verified'
 where id = '10000000-0000-4000-8000-000000000001';
 
--- Mirror the authenticated table grants verified on production for jobs and
--- applications. These grants are test-fixture setup only; this migration does
--- not modify any production grants. Companies deliberately remain ungranted.
-grant select, insert, update, delete on public.jobs, public.applications to authenticated;
-
--- Exercise job/application admin Data API-style writes under authenticated.
-set role authenticated;
-
+-- Keep this focused migration test on trigger behavior, not a synthetic
+-- reconstruction of every table grant and ownership predicate. Seed and update
+-- the product rows as the database owner while retaining the signed-admin JWT;
+-- the trigger must still derive the actor from auth.uid() and is_admin().
 insert into public.jobs (id, company_id, title, description, status)
 values (
   '20000000-0000-4000-8000-000000000001',
