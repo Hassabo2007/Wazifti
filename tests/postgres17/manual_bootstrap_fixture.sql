@@ -31,11 +31,11 @@ $$;
 CREATE SCHEMA storage;
 CREATE FUNCTION storage.foldername(p_name text)
 RETURNS text[] LANGUAGE sql IMMUTABLE
-AS $
+AS $fn$
   SELECT CASE WHEN cardinality(parts) <= 1 THEN ARRAY[]::text[]
               ELSE parts[1:cardinality(parts)-1] END
-  FROM (SELECT string_to_array(p_name, '/') AS parts) s
-$;
+  FROM (SELECT string_to_array(p_name, '/') AS parts) s 
+$fn$;
 
 \ir ../../docs/audits/recovered-preledger-cv-prerequisites-2026-11-04.sql
 
