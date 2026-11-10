@@ -98,13 +98,12 @@ RESET ROLE;
 INSERT INTO public.candidate_resumes(candidate_id,file_name,file_path,file_size_bytes)
 VALUES ('00000000-0000-4000-8000-000000000001','cv.pdf',
         '00000000-0000-4000-8000-000000000001/cv.pdf',1024);
+SELECT set_config('test.resume_id', (SELECT id::text FROM public.candidate_resumes WHERE candidate_id='00000000-0000-4000-8000-000000000001'), false);
 SELECT set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',false);
 SET ROLE authenticated;
 DO $test$
-DECLARE v_resume_id uuid;
+DECLARE v_resume_id uuid := current_setting('test.resume_id')::uuid;
 BEGIN
-  SELECT id INTO v_resume_id FROM public.candidate_resumes
-  WHERE candidate_id='00000000-0000-4000-8000-000000000001';
   IF NOT private.candidate_owns_resume(v_resume_id,'00000000-0000-4000-8000-000000000001') THEN
     RAISE EXCEPTION 'candidate_owns_resume rejected the candidate own-CV path';
   END IF;
