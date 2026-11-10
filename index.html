@@ -1169,10 +1169,26 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
   مسح جميع الفلاتر
 </button> <h3 data-t="filters">تصفية النتائج</h3><div class="group"><strong data-t="jobType">نوع الوظيفة</strong><label><input type="checkbox" value="Full-time" onchange="filterJobs()"> <span data-t="full">دوام كامل</span></label><label><input type="checkbox" value="Part-time" onchange="filterJobs()"> <span data-t="part">دوام جزئي</span></label><label><input type="checkbox" value="Remote" onchange="filterJobs()"> <span data-t="remote">عن بُعد</span></label></div>
 <div class="group"><strong data-t="categorySpecialty">التصنيف والتخصص</strong><label for="jobCategoryFilter" data-t="mainCategoryLabel">التصنيف الرئيسي</label><select id="jobCategoryFilter" onchange="onJobCategoryFilterChange()" style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="" data-t="allCategories">كل التصنيفات</option></select><label for="jobSpecialtyFilter" data-t="subCategoryLabel">التخصص الفرعي</label><select id="jobSpecialtyFilter" onchange="filterJobs()" disabled style="width:100%;padding:10px;border:1px solid #d7e4dc;border-radius:8px;margin:6px 0 10px"><option value="" data-t="allSpecialties">كل التخصصات</option></select></div></aside><section class="list" id="list"></section></div></main>
+<style id="adminOverviewStyles">
+#adminDashboard .admin-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:18px 0 24px}
+#adminDashboard .admin-metric{background:#fff;border:1px solid #e1ece5;border-radius:15px;padding:16px;box-shadow:0 5px 18px rgba(17,65,42,.04);min-width:0}
+#adminDashboard .admin-metric span{display:block;color:#68796f;font-size:12px;line-height:1.7;margin-bottom:8px}
+#adminDashboard .admin-metric strong{display:block;color:#075b39;font-size:27px;line-height:1.2;font-weight:900;overflow-wrap:anywhere}
+#adminDashboard .admin-metric small{display:block;color:#8a988f;font-size:11px;margin-top:6px}
+@media(max-width:850px){#adminDashboard .admin-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:560px){#adminDashboard .admin-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}#adminDashboard .admin-metric{padding:13px}#adminDashboard .admin-metric strong{font-size:23px}}
+</style>
 <section class="wrap" id="adminDashboard" style="display:none">
   <div class="head"><h2 data-t="adminDashboardTitle">لوحة إدارة وظيفتي</h2><button class="btn outline" type="button" onclick="loadAdminDashboardData()" data-t="refreshLists">تحديث القوائم</button></div>
   <p class="muted" data-t="adminIntro">مراجعة طلبات تسجيل الشركات والوظائف قبل نشرها.</p>
   <div id="adminDashboardMessage" role="status" aria-live="polite" class="muted" style="margin:12px 0"></div>
+  <div class="admin-metrics" aria-label="مؤشرات لوحة الإدارة">
+    <article class="admin-metric"><span>إجمالي الحسابات</span><strong id="adminMetricProfiles">—</strong><small>All accounts</small></article>
+    <article class="admin-metric"><span>الشركات المسجلة</span><strong id="adminMetricCompanies">—</strong><small>Registered companies</small></article>
+    <article class="admin-metric"><span>الشركات قيد المراجعة</span><strong id="adminMetricPendingCompanies">—</strong><small>Pending companies</small></article>
+    <article class="admin-metric"><span>الوظائف المنشورة</span><strong id="adminMetricPublishedJobs">—</strong><small>Published jobs</small></article>
+    <article class="admin-metric"><span>طلبات التوظيف</span><strong id="adminMetricApplications">—</strong><small>Applications</small></article>
+  </div>
   <h3 style="margin-top:22px" data-t="companyApprovalRequests">طلبات اعتماد الشركات</h3>
   <div id="adminCompaniesList"></div>
   <div style="margin-top:30px;padding-top:20px;border-top:2px solid #e5eee8">
@@ -2582,8 +2598,39 @@ function openAdminDashboard() {
   loadAdminDashboardData();
 }
 
+async function loadAdminDashboardMetrics() {
+  if (!currentAuthUser || !isAdminUser) return;
+  const metrics = [
+    ["adminMetricProfiles", () => supabaseClient.from("profiles").select("id", {count:"exact", head:true})],
+    ["adminMetricCompanies", () => supabaseClient.from("companies").select("id", {count:"exact", head:true})],
+    ["adminMetricPendingCompanies", () => supabaseClient.from("companies").select("id", {count:"exact", head:true}).eq("status","pending")],
+    ["adminMetricPublishedJobs", () => supabaseClient.from("jobs").select("id", {count:"exact", head:true}).eq("status","published")],
+    ["adminMetricApplications", () => supabaseClient.from("applications").select("id", {count:"exact", head:true})]
+  ];
+  const results = await Promise.all(metrics.map(async ([id, query]) => {
+    try {
+      const {count, error} = await query();
+      if (error) throw error;
+      const target = document.getElementById(id);
+      if (target) target.textContent = Number(count || 0).toLocaleString(lang === "ar" ? "ar-SD" : "en-GB");
+      return true;
+    } catch (error) {
+      console.error("Admin metric load failed:", id, error);
+      const target = document.getElementById(id);
+      if (target) target.textContent = "—";
+      return false;
+    }
+  }));
+  const message = document.getElementById("adminDashboardMessage");
+  if (message && results.some(ok => !ok)) {
+    message.textContent = dashboardText("تعذر تحميل بعض المؤشرات. يمكنك تحديث اللوحة والمحاولة مجدداً.","Some dashboard metrics could not be loaded. Refresh the dashboard and try again.");
+  } else if (message) {
+    message.textContent = "";
+  }
+}
+
 async function loadAdminDashboardData() {
-  await Promise.all([loadAdminCompanies(), loadAdminPendingJobs()]);
+  await Promise.all([loadAdminDashboardMetrics(), loadAdminCompanies(), loadAdminPendingJobs()]);
 }
 
 async function loadAdminPendingJobs() {
