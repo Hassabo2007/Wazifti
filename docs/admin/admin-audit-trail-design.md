@@ -147,3 +147,40 @@ Production has permissive `ALL` policies named `Admins manage applications`, `Ad
 - Prove an audit insert failure rolls back all business changes, including trigger side effects and notifications.
 - Prove one acceptance operation creates one correlated event for each affected application and the job closure, with no CV, resume URL, cover letter, phone, or credential fields.
 - Test concurrent attempts to accept two candidates for the same job and ensure only one succeeds with a consistent audit trail.
+
+## 11. Admin write-path review (2026-11-10; production + application source)
+
+A further review compared the live production policies/functions with the current index.html admin actions. This is a read-only review; no code or database objects were changed.
+
+### Confirmed application write paths
+
+- adminSetCompanyStatus(companyId, status) directly updates public.companies.status through the browser Data API. The current UI supports verified, rejected, and returning a non-pending company to pending.
+- adminSetJobStatus(jobId, status) directly updates public.jobs.status through the browser Data API. The pending-job UI supports published and rejected.
+- The administrative applications section is read-only. It does not currently expose an admin status mutation.
+- Company-document preview uses the existing Storage signed-URL flow and is separate from status mutation.
+
+### Confirmed database implications
+
+- public.is_admin() checks membership in public.admin_users using auth.uid() and is SECURITY DEFINER.
+- The broad admin ALL policies on companies, jobs, and applications are not the only write paths: owner/employer/candidate policies and table grants also serve normal product workflows. A table-level grant revocation would therefore risk breaking existing user flows.
+- The applications status trigger creates in-app notifications on each status change.
+- The acceptance trigger closes the job and rejects other active applications in the same transaction; each changed application also fires its notification trigger.
+- finalize_job_hiring(uuid) is currently the employer-facing acceptance path. update_individual_job_application_status(uuid,text) is an individual poster path and permits any database-valid status, so a narrower transition matrix must not be invented without product approval.
+- Existing jobs and applications table grants are shared with normal authenticated workflows. Do not revoke broad table grants as a shortcut; constrain the admin-specific RLS path and preserve owner/candidate policies.
+
+### Safe implementation sequence
+
+1. Create the audit table and private helper/trigger functions in a CLI-generated migration. Use a transaction correlation identifier shared by all trigger effects; derive actor from auth.uid() and never accept an actor UUID from client arguments.
+2. Use table triggers for the actual row-level changes so direct admin updates and automatic hiring side effects cannot bypass audit capture. Record only allowlisted identifiers/status fields and safe company/job labels; never copy CV URLs, resume IDs, cover letters, phone numbers, credentials, document URLs, or raw request bodies.
+3. Ensure audit writes are in the same transaction as the source mutation; an audit insert failure must abort the business mutation and its notifications/trigger side effects.
+4. Keep audit rows in a non-exposed schema (or otherwise deny Data API access), with explicit admin-only read access through a narrowly scoped, tested read path. Deny client INSERT/UPDATE/DELETE.
+5. Remove or narrow the broad admin ALL policies only after trigger coverage and the replacement admin workflows are tested. Preserve existing employer, individual-poster, and candidate policy paths; do not revoke shared table grants indiscriminately.
+6. Add application UI changes only after the database migration and security tests pass. Keep the current application overview read-only until an explicit admin transition workflow is approved.
+7. Test direct admin Data API status writes, owner/employer normal writes, forged actor values, anon/non-admin reads and writes, trigger side effects, rollback on audit failure, and concurrent hiring.
+
+### Tooling blocker — migration source of truth
+
+- The production migration history lists 27 versions through 20261110173838_v1_15_security_performance_hygiene, but the repository currently has no supabase/config.toml at its root and the CLI-generated migration workspace is not available in this execution environment.
+- The repository contains a migration SQL file, but the complete local migration directory/configuration needed for a reproducible local reset and PostgreSQL 17 migration test was not established by this review.
+- Do not hand-create a timestamped migration, apply DDL through the production SQL tool, or modify production RLS before this source-of-truth gap is reconciled.
+- Next engineering gate: restore/establish the complete migration workspace from the canonical history, generate the next migration with supabase migration new, then validate on free PostgreSQL 17 CI before a reviewed production rollout.
