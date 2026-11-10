@@ -61,11 +61,18 @@ No production change is recommended as part of this audit.
 
 ## D. Required follow-up before closing PR #28
 
-1. Add a **forensic-only historical SQL archive** for the nine applied migrations that have no repository counterpart. Keep it outside `supabase/migrations` until exact chronological placement and dependencies are reviewed.
-2. Add a provenance note for the two catalog-present/unledgered effects (message notification status and individual-poster profile visibility). The available evidence confirms current effects, not their original execution source.
+1. **Completed:** restored the nine exact recovered SQL texts that had no repository counterpart under `docs/audits/production-ledger-archive/2026-11-10/`. The archive includes a README safety warning and SHA-256 manifest. It is outside `supabase/migrations` and must never be replayed.
+2. **Completed:** documented both catalog-present/unledgered effects in `docs/audits/unledgered-production-change-provenance-2026-11-10.md`. Their current definitions are confirmed, but their execution channel/time/actor remain unproven.
 3. Document the `close_and_archive_filled_jobs` sequence as applied 08123633 → applied 08123637 function hardening → applied 08123757 duplicate-policy cleanup, and explain how repository file 08080000 represents a later consolidated state.
 4. Mark the V1.10 partial preference/queue file as superseded/overlapping and the standalone push index as redundant; do not delete either until the repository history and consumers are checked.
 5. Keep PR #28 Draft. Do not run `supabase db push`, replay recovered SQL on production, or edit `supabase_migrations.schema_migrations`.
+
+## Archive and provenance deliverables
+
+- Exact recovered historical SQL archive (9 files): `docs/audits/production-ledger-archive/2026-11-10/`.
+- Integrity file: `docs/audits/production-ledger-archive/2026-11-10/manifest.sha256`.
+- Provenance assessment for the two unledgered catalog effects: `docs/audits/unledgered-production-change-provenance-2026-11-10.md`.
+- The two related files already in `supabase/migrations` remain unledgered candidates; they were not moved into the historical archive and were not executed.
 
 ## Confidence and limits
 
