@@ -30,7 +30,7 @@ jobs:
           --health-retries 10
     steps:
       - uses: actions/checkout@v4
-      - name: Build isolated Supabase-like schema
+      - name: Build schema-faithful isolated Supabase fixture
         env:
           PGPASSWORD: postgres
         run: |
@@ -40,14 +40,36 @@ jobs:
           CREATE SCHEMA auth;
           CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE
             AS $$ SELECT NULLIF(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
-          CREATE TABLE public.in_app_notifications (id bigint generated always as identity primary key, application_id bigint);
-          CREATE TABLE public.applications (id bigint primary key, job_id bigint not null, candidate_id uuid not null);
-          CREATE TABLE public.jobs (id bigint primary key, company_id bigint, poster_type text, posted_by_user_id uuid);
-          CREATE TABLE public.companies (id bigint primary key, owner_id uuid);
+          CREATE TABLE public.companies (
+            id uuid PRIMARY KEY,
+            owner_id uuid NOT NULL
+          );
+          CREATE TABLE public.jobs (
+            id uuid PRIMARY KEY,
+            company_id uuid REFERENCES public.companies(id),
+            poster_type text NOT NULL CHECK (poster_type IN ('company','individual')),
+            posted_by_user_id uuid
+          );
+          CREATE TABLE public.applications (
+            id uuid PRIMARY KEY,
+            job_id uuid NOT NULL REFERENCES public.jobs(id),
+            candidate_id uuid NOT NULL
+          );
+          CREATE TABLE public.in_app_notifications (
+            id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+            application_id uuid NOT NULL
+          );
           CREATE TABLE public.job_messages (
-            id bigint generated always as identity primary key,
-            application_id bigint, job_id bigint, candidate_id uuid, poster_id uuid,
-            sender_id uuid, recipient_id uuid
+            id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+            application_id uuid NOT NULL REFERENCES public.applications(id),
+            job_id uuid NOT NULL REFERENCES public.jobs(id),
+            candidate_id uuid NOT NULL,
+            poster_id uuid NOT NULL,
+            sender_id uuid NOT NULL,
+            recipient_id uuid NOT NULL,
+            body text NOT NULL,
+            created_at timestamptz NOT NULL DEFAULT now(),
+            read_at timestamptz
           );
           ALTER TABLE public.job_messages ENABLE ROW LEVEL SECURITY;
           SQL
@@ -56,7 +78,7 @@ jobs:
           PGPASSWORD: postgres
         run: |
           psql -h localhost -U postgres -d wazifti_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261110100000_v1_15_security_performance_hygiene.sql
-      - name: Verify indexes and policy definitions
+      - name: Verify indexes and preserved policies
         env:
           PGPASSWORD: postgres
         run: |
@@ -76,8 +98,14 @@ jobs:
               END IF;
             END LOOP;
             IF (SELECT count(*) FROM pg_policies WHERE schemaname='public' AND tablename='job_messages'
-                AND roles @> ARRAY['authenticated']::name[] AND cmd IN ('SELECT','INSERT')) <> 2 THEN
+                AND policyname IN ('Conversation participants read messages','Conversation participants send messages')
+                AND roles @> ARRAY['authenticated']::name[]) <> 2 THEN
               RAISE EXCEPTION 'Expected authenticated SELECT and INSERT policies';
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public'
+              AND tablename='job_messages' AND policyname='Recipients mark own messages read'
+              AND cmd='UPDATE') THEN
+              RAISE EXCEPTION 'UPDATE policy missing';
             END IF;
           END $$;
           SQL
