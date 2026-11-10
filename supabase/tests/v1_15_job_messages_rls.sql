@@ -35,7 +35,7 @@ VALUES
 
 GRANT USAGE ON SCHEMA public, auth TO authenticated;
 GRANT SELECT ON public.applications, public.jobs, public.companies, public.job_messages TO authenticated;
-GRANT INSERT ON public.job_messages TO authenticated;
+GRANT INSERT, UPDATE ON public.job_messages TO authenticated;
 
 SET ROLE authenticated;
 
@@ -87,6 +87,21 @@ INSERT INTO public.job_messages
 VALUES
   ('20000000-0000-4000-8000-000000000100', '10000000-0000-4000-8000-000000000010', '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222',
    '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111', 'company reply');
+
+-- Company owner can mark a message addressed to them as read (preserved UPDATE policy).
+UPDATE public.job_messages
+SET read_at = now()
+WHERE application_id = '20000000-0000-4000-8000-000000000100'
+  AND sender_id = '11111111-1111-4111-8111-111111111111'
+  AND recipient_id = '22222222-2222-4222-8222-222222222222';
+DO $
+DECLARE updated_count integer;
+BEGIN
+  GET DIAGNOSTICS updated_count = ROW_COUNT;
+  IF updated_count <> 1 THEN
+    RAISE EXCEPTION 'Recipient should update exactly one received message, updated %', updated_count;
+  END IF;
+END $;
 
 -- Individual poster can read and reply.
 SELECT set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', false);
