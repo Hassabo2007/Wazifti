@@ -132,7 +132,11 @@ Production has permissive `ALL` policies named `Admins manage applications`, `Ad
 
 ### Retention and tooling gates
 
-- Retention duration, whether moderation reasons are mandatory, and the first admin audit-viewer scope remain product decisions and are not silently assumed here.
+- **Approved retention target: 24 months** from `created_at` for ordinary audit events.
+- **Initial launch behavior: retain indefinitely; do not enable automatic deletion.** The 24-month target is a policy decision, not permission to delete data before a tested archive/export and cleanup process exists.
+- Events related to an open complaint, investigation, legal hold, or unresolved dispute must be retained beyond 24 months until the hold is explicitly released by an authorized process.
+- Before enabling cleanup, implement and test: a verified backup/archive, a dry-run report of eligible rows, a documented approval step, bounded batch deletion, monitoring, and a recovery/rollback procedure. Never run a bulk delete directly as part of the initial audit-table migration.
+- Retention duration is therefore settled at 24 months; reason requirements and the first admin audit-viewer scope remain open product decisions.
 - The current execution environment has no installed Supabase CLI binary. No migration file has been generated, and no production DDL has been run. The implementation branch must be created using the documented `supabase migration new <name>` command in a real CLI environment; do not hand-invent a migration timestamp/name.
 - The free PostgreSQL 17 GitHub Actions path is the intended test target. Do not create a paid Supabase branch or require a credit card.
 
