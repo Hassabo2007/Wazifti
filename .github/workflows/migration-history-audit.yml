@@ -1,4 +1,4 @@
-name: Supabase migration history audit (free GitHub Actions)
+name: Supabase migration history audit and PostgreSQL 17 partial compatibility test
 on:
   push:
     branches:
@@ -8,6 +8,7 @@ on:
       - "docs/audits/supabase-production-migration-ledger-2026-11-10.json"
       - "scripts/reconcile_migration_history.py"
       - "scripts/export_recovered_migrations.py"
+      - "tests/postgres17/**"
       - "docs/audits/initial-manual-bootstrap-provenance-2026-11-10.md"
       - "docs/audits/migration-history-reconciliation-2026-11-10.md"
       - ".github/workflows/migration-history-audit.yml"
@@ -20,6 +21,7 @@ on:
       - "docs/audits/recovered-production-migration-history-2026-11-10.sql"
       - "scripts/reconcile_migration_history.py"
       - "scripts/export_recovered_migrations.py"
+      - "tests/postgres17/**"
       - "docs/audits/initial-manual-bootstrap-provenance-2026-11-10.md"
       - "docs/audits/migration-history-reconciliation-2026-11-10.md"
       - ".github/workflows/migration-history-audit.yml"
@@ -45,3 +47,36 @@ jobs:
           path: ${{ runner.temp }}/wazifti-recovered-migrations/
           if-no-files-found: error
           retention-days: 14
+
+  postgres17-v1-15-partial:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: wazifti_partial_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d wazifti_partial_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Build explicitly partial prerequisite fixture
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_partial_test -v ON_ERROR_STOP=1 -f tests/postgres17/v1_15_partial_fixture.sql
+      - name: Apply V1.15 migration against the partial fixture
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_partial_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261110100000_v1_15_security_performance_hygiene.sql
+      - name: Assert V1.15 indexes and RLS policies
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_partial_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_v1_15_partial.sql
