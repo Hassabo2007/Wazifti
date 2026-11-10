@@ -1182,12 +1182,12 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
   <div class="head"><h2 data-t="adminDashboardTitle">لوحة إدارة وظيفتي</h2><button class="btn outline" type="button" onclick="loadAdminDashboardData()" data-t="refreshLists">تحديث القوائم</button></div>
   <p class="muted" data-t="adminIntro">مراجعة طلبات تسجيل الشركات والوظائف قبل نشرها.</p>
   <div id="adminDashboardMessage" role="status" aria-live="polite" class="muted" style="margin:12px 0"></div>
-  <div class="admin-metrics" aria-label="مؤشرات لوحة الإدارة">
-    <article class="admin-metric"><span>إجمالي الحسابات</span><strong id="adminMetricProfiles">—</strong><small>All accounts</small></article>
-    <article class="admin-metric"><span>الشركات المسجلة</span><strong id="adminMetricCompanies">—</strong><small>Registered companies</small></article>
-    <article class="admin-metric"><span>الشركات قيد المراجعة</span><strong id="adminMetricPendingCompanies">—</strong><small>Pending companies</small></article>
-    <article class="admin-metric"><span>الوظائف المنشورة</span><strong id="adminMetricPublishedJobs">—</strong><small>Published jobs</small></article>
-    <article class="admin-metric"><span>طلبات التوظيف</span><strong id="adminMetricApplications">—</strong><small>Applications</small></article>
+  <div class="admin-metrics" id="adminMetricsGrid" aria-label="مؤشرات لوحة الإدارة">
+    <article class="admin-metric"><span id="adminMetricProfilesLabel">إجمالي الحسابات</span><strong id="adminMetricProfiles">—</strong><small>All accounts</small></article>
+    <article class="admin-metric"><span id="adminMetricCompaniesLabel">الشركات المسجلة</span><strong id="adminMetricCompanies">—</strong><small>Registered companies</small></article>
+    <article class="admin-metric"><span id="adminMetricPendingCompaniesLabel">الشركات قيد المراجعة</span><strong id="adminMetricPendingCompanies">—</strong><small>Pending companies</small></article>
+    <article class="admin-metric"><span id="adminMetricPublishedJobsLabel">الوظائف المنشورة</span><strong id="adminMetricPublishedJobs">—</strong><small>Published jobs</small></article>
+    <article class="admin-metric"><span id="adminMetricApplicationsLabel">طلبات التوظيف</span><strong id="adminMetricApplications">—</strong><small>Applications</small></article>
   </div>
   <h3 style="margin-top:22px" data-t="companyApprovalRequests">طلبات اعتماد الشركات</h3>
   <div id="adminCompaniesList"></div>
@@ -2600,6 +2600,20 @@ function openAdminDashboard() {
 
 async function loadAdminDashboardMetrics() {
   if (!currentAuthUser || !isAdminUser) return;
+  const ar = lang === "ar";
+  const metricLabels = [
+    ["adminMetricProfilesLabel", "إجمالي الحسابات", "Total accounts"],
+    ["adminMetricCompaniesLabel", "الشركات المسجلة", "Registered companies"],
+    ["adminMetricPendingCompaniesLabel", "الشركات قيد المراجعة", "Companies pending review"],
+    ["adminMetricPublishedJobsLabel", "الوظائف المنشورة", "Published jobs"],
+    ["adminMetricApplicationsLabel", "طلبات التوظيف", "Applications"]
+  ];
+  metricLabels.forEach(([id, arabic, english]) => {
+    const label = document.getElementById(id);
+    if (label) label.textContent = ar ? arabic : english;
+  });
+  const grid = document.getElementById("adminMetricsGrid");
+  if (grid) grid.setAttribute("aria-label", ar ? "مؤشرات لوحة الإدارة" : "Admin dashboard metrics");
   const metrics = [
     ["adminMetricProfiles", () => supabaseClient.from("profiles").select("id", {count:"exact", head:true})],
     ["adminMetricCompanies", () => supabaseClient.from("companies").select("id", {count:"exact", head:true})],
