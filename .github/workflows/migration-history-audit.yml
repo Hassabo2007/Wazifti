@@ -1,0 +1,21 @@
+name: Supabase migration history audit (free PostgreSQL-free check)
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/**"
+      - "docs/audits/supabase-production-migration-ledger-2026-11-10.json"
+      - "scripts/reconcile_migration_history.py"
+      - ".github/workflows/migration-history-audit.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Compare repository migration SQL with captured production ledger
+        run: python scripts/reconcile_migration_history.py
