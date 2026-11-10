@@ -8,6 +8,8 @@ on:
       - "docs/audits/supabase-production-migration-ledger-2026-11-10.json"
       - "scripts/reconcile_migration_history.py"
       - "scripts/export_recovered_migrations.py"
+      - "docs/audits/initial-manual-bootstrap-provenance-2026-11-10.md"
+      - "docs/audits/migration-history-reconciliation-2026-11-10.md"
       - ".github/workflows/migration-history-audit.yml"
   pull_request:
     paths:
@@ -18,6 +20,8 @@ on:
       - "docs/audits/recovered-production-migration-history-2026-11-10.sql"
       - "scripts/reconcile_migration_history.py"
       - "scripts/export_recovered_migrations.py"
+      - "docs/audits/initial-manual-bootstrap-provenance-2026-11-10.md"
+      - "docs/audits/migration-history-reconciliation-2026-11-10.md"
       - ".github/workflows/migration-history-audit.yml"
   workflow_dispatch:
 permissions:
