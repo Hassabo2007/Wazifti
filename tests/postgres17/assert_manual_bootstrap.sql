@@ -1,7 +1,7 @@
 -- Assertions for the recovered manual bootstrap on PostgreSQL 17.
 DO $$
 DECLARE
-  expected_tables text[] := ARRAY['profiles','companies','jobs','applications','admin_users'];
+  expected_tables text[] := ARRAY['profiles','companies','jobs','applications','admin_users','candidate_resumes'];
   expected_policies text[] := ARRAY[
     'Users view own profile',
     'Owners view own companies',
@@ -12,7 +12,12 @@ DECLARE
     'Admins manage companies',
     'Admins manage jobs',
     'Admins view all profiles',
-    'Verified companies create jobs'
+    'Verified companies create jobs',
+    'Candidates view own CVs',
+    'Candidates add own CVs',
+    'Candidates update own CVs',
+    'Candidates delete own CVs',
+    'Employers view resumes attached to their applications'
   ];
   item text;
 BEGIN
@@ -54,6 +59,17 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='applications' AND column_name='resume_id'
+  ) THEN
+    RAISE EXCEPTION 'Recovered applications.resume_id column missing';
+  END IF;
+
+  IF to_regprocedure('private.candidate_owns_resume(uuid,uuid)') IS NULL THEN
+    RAISE EXCEPTION 'Recovered candidate_owns_resume helper missing';
+  END IF;
+
+  IF NOT EXISTS (
     SELECT 1 FROM pg_constraint
     WHERE conrelid='public.applications'::regclass
       AND contype='u'
@@ -76,6 +92,26 @@ BEGIN
     RAISE EXCEPTION 'Recovered is_admin() did not recognize the seeded admin';
   END IF;
 END $$;
+RESET ROLE;
+
+-- Verify the CV ownership helper uses the authenticated identity and path prefix.
+INSERT INTO public.candidate_resumes(candidate_id,file_name,file_path,file_size_bytes)
+VALUES ('00000000-0000-4000-8000-000000000001','cv.pdf',
+        '00000000-0000-4000-8000-000000000001/cv.pdf',1024);
+SELECT set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',false);
+SET ROLE authenticated;
+DO $
+DECLARE v_resume_id uuid;
+BEGIN
+  SELECT id INTO v_resume_id FROM public.candidate_resumes
+  WHERE candidate_id='00000000-0000-4000-8000-000000000001';
+  IF NOT private.candidate_owns_resume(v_resume_id,'00000000-0000-4000-8000-000000000001') THEN
+    RAISE EXCEPTION 'candidate_owns_resume rejected the candidate own-CV path';
+  END IF;
+  IF private.candidate_owns_resume(v_resume_id,'00000000-0000-4000-8000-000000000002') THEN
+    RAISE EXCEPTION 'candidate_owns_resume accepted a mismatched candidate';
+  END IF;
+END $;
 RESET ROLE;
 
 SELECT 'Recovered 2026-11-04 manual bootstrap passed PostgreSQL 17 checks' AS result;
