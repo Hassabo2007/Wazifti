@@ -8,9 +8,12 @@ on:
       - "docs/audits/supabase-production-migration-ledger-2026-11-10.json"
       - "scripts/reconcile_migration_history.py"
       - "scripts/export_recovered_migrations.py"
+      - "scripts/replay_recovered_migrations_pg17.py"
       - "tests/postgres17/**"
       - "docs/audits/initial-manual-bootstrap-provenance-2026-11-10.md"
       - "docs/audits/recovered-manual-bootstrap-2026-11-04.sql"
+      - "docs/audits/recovered-preledger-cv-prerequisites-2026-11-04.sql"
+      - "docs/audits/migration-file-reconciliation-2026-11-10.md"
       - "docs/audits/migration-history-reconciliation-2026-11-10.md"
       - "docs/audits/migration-file-reconciliation-2026-11-10.md"
       - ".github/workflows/migration-history-audit.yml"
@@ -84,6 +87,7 @@ jobs:
         run: psql -h localhost -U postgres -d wazifti_partial_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_v1_15_partial.sql
 
   postgres17-recovered-bootstrap:
+    needs: audit
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -115,3 +119,20 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_manual_bootstrap.sql
+      - name: Prepare local Vault stand-in for VAPID RPC
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/historical_replay_prerequisites.sql
+      - name: Download captured production migration SQL artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: wazifti-recovered-production-migrations
+          path: ${{ runner.temp }}/wazifti-recovered-migrations
+      - name: Replay supported production migrations in version order on PostgreSQL 17
+        env:
+          PGPASSWORD: postgres
+        run: python scripts/replay_recovered_migrations_pg17.py --input-dir "$RUNNER_TEMP/wazifti-recovered-migrations" --database wazifti_bootstrap_test
+      - name: Assert final schema after 24-migration partial replay
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_historical_replay.sql
