@@ -15,7 +15,6 @@ on:
       - "docs/audits/recovered-preledger-cv-prerequisites-2026-11-04.sql"
       - "docs/audits/migration-file-reconciliation-2026-11-10.md"
       - "docs/audits/migration-history-reconciliation-2026-11-10.md"
-      - "docs/audits/migration-file-reconciliation-2026-11-10.md"
       - ".github/workflows/migration-history-audit.yml"
   pull_request:
     paths:
@@ -26,8 +25,12 @@ on:
       - "docs/audits/recovered-production-migration-history-2026-11-10.sql"
       - "scripts/reconcile_migration_history.py"
       - "scripts/export_recovered_migrations.py"
+      - "scripts/replay_recovered_migrations_pg17.py"
       - "tests/postgres17/**"
       - "docs/audits/initial-manual-bootstrap-provenance-2026-11-10.md"
+      - "docs/audits/recovered-manual-bootstrap-2026-11-04.sql"
+      - "docs/audits/recovered-preledger-cv-prerequisites-2026-11-04.sql"
+      - "docs/audits/migration-file-reconciliation-2026-11-10.md"
       - "docs/audits/migration-history-reconciliation-2026-11-10.md"
       - ".github/workflows/migration-history-audit.yml"
   workflow_dispatch:
