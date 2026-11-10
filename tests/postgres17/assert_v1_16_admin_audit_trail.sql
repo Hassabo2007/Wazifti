@@ -30,8 +30,12 @@ update public.companies
 set status = 'verified'
 where id = '10000000-0000-4000-8000-000000000001';
 
--- Jobs and applications have authenticated table grants in production, so
--- exercise those admin Data API-style writes under the authenticated role.
+-- Mirror the authenticated table grants verified on production for jobs and
+-- applications. These grants are test-fixture setup only; this migration does
+-- not modify any production grants. Companies deliberately remain ungranted.
+grant select, insert, update, delete on public.jobs, public.applications to authenticated;
+
+-- Exercise job/application admin Data API-style writes under authenticated.
 set role authenticated;
 
 insert into public.jobs (id, company_id, title, description, status)
