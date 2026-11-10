@@ -164,3 +164,18 @@ The first implementation slice is deliberately narrower than the later RPC cutov
 The repository already contains the recovered production ledger, the nine-file forensic SQL archive with SHA-256 manifest, the pre-ledger bootstrap/CV prerequisites, and a PostgreSQL 17 partial replay test. The historical ledger replay covers 24 of 26 entries; the Realtime publication and pg_cron/pg_net scheduler migrations are excluded because they require Supabase-managed services. The production-applied V1.15 migration is then applied to the disposable PostgreSQL 17 database before the audit migration.
 
 The new CI workflow runs `supabase migration new v1_16_admin_audit_trail` using the official Supabase CLI setup action, tests the generated file against that disposable PostgreSQL 17 history, and verifies actor integrity, hiring correlation, private access, append-only behavior, and rollback on audit-write failure. No Supabase credentials, paid branch, or production database connection are required.
+
+## 13. Additional production grant mismatch found during PostgreSQL 17 testing
+
+The first end-to-end CI test attempted to perform the company status update as `authenticated` and failed before RLS evaluation with `permission denied for table companies`. A read-only production check confirmed:
+
+- `has_table_privilege('authenticated', 'public.companies', 'SELECT') = false`
+- `has_table_privilege('authenticated', 'public.companies', 'INSERT') = false`
+- `has_table_privilege('authenticated', 'public.companies', 'UPDATE') = false`
+- Authenticated does have UPDATE privileges on `jobs` and `applications`.
+- The `Admins manage companies` RLS ALL policy exists, but RLS policies do not grant table privileges by themselves.
+- The current `index.html` function `adminSetCompanyStatus` calls `supabaseClient.from("companies").update({status})` directly. Without an authenticated UPDATE grant, this browser Data API path cannot succeed as written.
+
+This is a pre-existing admin company moderation access mismatch, separate from the audit migration. The audit migration does not change table grants or the UI. Its test creates/updates the company as the database owner while retaining an administrator JWT, so it can validate the database trigger and actor derivation without silently broadening production privileges.
+
+**Follow-up required:** replace the company admin direct Data API mutation (and confirm the admin read path) with a narrowly scoped `SECURITY DEFINER` admin RPC that validates `public.is_admin()`, or propose narrowly scoped grants with RLS after reviewing all company policies. Do not grant broad table privileges as a test workaround. Add positive admin and negative non-admin/anon tests before enabling the UI action.
