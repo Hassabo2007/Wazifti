@@ -43,6 +43,6 @@ The exact comparison must be used to reconstruct an authoritative historical fil
 - repository-only files that are either genuinely pending or already consolidated into a later applied migration;
 - the intentionally pending V1.15 migration.
 
-Then the full runtime catalog must be captured (views, functions, triggers, extensions, types, grants, publications and relevant RLS metadata), and a clean, free PostgreSQL 17 test database must be built from a verified baseline before replaying the canonical migration sequence. The existing V1.15 fixture is a focused schema-faithful test slice, not a full Supabase clone.
+Then compare the captured catalog against a clean, free PostgreSQL 17 baseline. Because the snapshots are catalog exports rather than a restorable full `pg_dump`, a faithful replay still requires generating a complete schema-only dump using authorized read-only database connection credentials or reconstructing every required Supabase-managed prerequisite. Do not treat the current snapshots as a full clone. The existing V1.15 fixture is a focused schema-faithful test slice, not a full Supabase clone.
 
 **Current result: historical evidence is preserved and automated drift detection is in place; the migration history is not yet repaired, and full schema compatibility is not yet certified.**
