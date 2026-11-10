@@ -11,6 +11,7 @@ on:
       - "tests/postgres17/**"
       - "docs/audits/initial-manual-bootstrap-provenance-2026-11-10.md"
       - "docs/audits/migration-history-reconciliation-2026-11-10.md"
+      - "docs/audits/migration-file-reconciliation-2026-11-10.md"
       - ".github/workflows/migration-history-audit.yml"
   pull_request:
     paths:
