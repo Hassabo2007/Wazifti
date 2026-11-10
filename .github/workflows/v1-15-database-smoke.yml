@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -48,7 +48,7 @@ jobs:
             full_name text NOT NULL,
             email text,
             phone text,
-            account_type text NOT NULL DEFAULT 'candidate',
+            account_type text NOT NULL DEFAULT 'candidate' CHECK (account_type IN ('candidate','employer','admin')),
             created_at timestamptz DEFAULT now(),
             category_id uuid,
             specialty_id uuid,
