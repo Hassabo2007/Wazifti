@@ -1,0 +1,123 @@
+name: V1.15 database migration smoke test
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20261110100000_v1_15_security_performance_hygiene.sql"
+      - ".github/workflows/v1-15-database-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-smoke-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: wazifti_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d wazifti_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare isolated schema fixture
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d wazifti_test -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE anon NOLOGIN;
+          CREATE ROLE authenticated NOLOGIN;
+          CREATE SCHEMA auth;
+          CREATE FUNCTION auth.uid() RETURNS uuid
+            LANGUAGE sql STABLE
+            AS $$ SELECT NULLIF(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+
+          CREATE TABLE public.in_app_notifications (
+            id bigint generated always as identity primary key,
+            application_id bigint
+          );
+          CREATE TABLE public.applications (
+            id bigint primary key,
+            job_id bigint not null,
+            candidate_id uuid not null
+          );
+          CREATE TABLE public.jobs (
+            id bigint primary key,
+            company_id bigint,
+            poster_type text,
+            posted_by_user_id uuid
+          );
+          CREATE TABLE public.companies (
+            id bigint primary key,
+            owner_id uuid
+          );
+          CREATE TABLE public.job_messages (
+            id bigint generated always as identity primary key,
+            application_id bigint,
+            job_id bigint,
+            candidate_id uuid,
+            poster_id uuid,
+            sender_id uuid,
+            recipient_id uuid
+          );
+          ALTER TABLE public.job_messages ENABLE ROW LEVEL SECURITY;
+          SQL
+
+      - name: Apply V1.15 migration to disposable PostgreSQL
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d wazifti_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261110100000_v1_15_security_performance_hygiene.sql
+
+      - name: Assert indexes and RLS policies
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d wazifti_test -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          DECLARE
+            expected text[] := ARRAY[
+              'in_app_notifications_application_id_idx',
+              'job_messages_application_id_idx',
+              'job_messages_candidate_id_idx',
+              'job_messages_poster_id_idx',
+              'job_messages_sender_id_idx'
+            ];
+            item text;
+          BEGIN
+            FOREACH item IN ARRAY expected LOOP
+              IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='public' AND indexname=item) THEN
+                RAISE EXCEPTION 'Missing expected index: %', item;
+              END IF;
+            END LOOP;
+
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_policies
+              WHERE schemaname='public' AND tablename='job_messages'
+                AND policyname='Conversation participants read messages'
+                AND cmd='SELECT' AND roles @> ARRAY['authenticated']::name[]
+            ) THEN
+              RAISE EXCEPTION 'SELECT participant policy missing or misconfigured';
+            END IF;
+
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_policies
+              WHERE schemaname='public' AND tablename='job_messages'
+                AND policyname='Conversation participants send messages'
+                AND cmd='INSERT' AND roles @> ARRAY['authenticated']::name[]
+            ) THEN
+              RAISE EXCEPTION 'INSERT participant policy missing or misconfigured';
+            END IF;
+          END $$;
+          SQL
