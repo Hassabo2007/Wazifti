@@ -2,8 +2,8 @@
 """Export captured production migration SQL to a temporary, non-runnable audit artifact.
 
 This script never writes into supabase/migrations and never connects to Supabase.
-It distinguishes byte-for-byte matches from normalized-text matches; neither
-normalized match nor filename timestamp drift proves semantic equivalence.
+Exact text, normalized text, and timestamp drift are reported separately.
+None of these classifications alone proves safe replay or semantic equivalence.
 """
 import argparse
 import hashlib
@@ -49,18 +49,16 @@ def main() -> None:
         if match:
             repo_by_version.setdefault(match.group(1), []).append(path)
 
-    applied_normalized = {
-        row["version"]: normalize_sql("\n".join(row.get("statements", [])))
-        for row in ledger
-    }
     manifest = []
     classifications = {
         "same_version_exact": [],
-        "same_version_normalized_match": [],
+        "same_version_normalized_only": [],
         "same_version_content_drift": [],
-        "content_match_timestamp_drift": [],
-        "missing_repository_file": [],
-        "repository_only_timestamp_drift_match": [],
+        "timestamp_drift_exact": [],
+        "timestamp_drift_normalized_only": [],
+        "no_repository_content_match": [],
+        "repository_only_timestamp_drift_exact": [],
+        "repository_only_timestamp_drift_normalized": [],
         "unmatched_repository_only_file": [],
     }
 
@@ -71,15 +69,21 @@ def main() -> None:
             raise SystemExit(f"Unsafe ledger filename fields: {version!r} {name!r}")
         if len(statements) != 1 or not statements[0].strip():
             raise SystemExit(f"Unexpected SQL statement structure for {version} {name}")
-        sql = statements[0].strip() + "\n"
-        filename = f"{version}_{name}.sql"
-        (output / filename).write_text(sql, encoding="utf-8")
-        digest = hashlib.sha256(sql.encode("utf-8")).hexdigest()
+
+        sql = statements[0].strip()
         normalized = normalize_sql(sql)
+        filename = f"{version}_{name}.sql"
+        (output / filename).write_text(sql + "\n", encoding="utf-8")
+        digest = hashlib.sha256((sql + "\n").encode("utf-8")).hexdigest()
 
         same_version = repo_by_version.get(version, [])
-        repository_file = same_version[0].name if len(same_version) == 1 else None
-        timestamp_matches = [
+        same_name = same_version[0].name if len(same_version) == 1 else None
+        same_raw = repo_contents[same_version[0]] if len(same_version) == 1 else None
+        exact_timestamp_matches = [
+            path.name for path, raw in repo_contents.items()
+            if path.name.split("_", 1)[0] != version and raw == sql
+        ]
+        normalized_timestamp_matches = [
             path.name for path, raw in repo_contents.items()
             if path.name.split("_", 1)[0] != version and normalize_sql(raw) == normalized
         ]
@@ -87,26 +91,29 @@ def main() -> None:
         if len(same_version) > 1:
             classification = "same_version_content_drift"
             classifications[classification].append(version)
+        elif len(same_version) == 1 and same_raw == sql:
+            classification = "same_version_exact"
+            classifications[classification].append(version)
+        elif len(same_version) == 1 and normalize_sql(same_raw) == normalized:
+            classification = "same_version_normalized_only"
+            classifications[classification].append(version)
         elif len(same_version) == 1:
-            raw = repo_contents[same_version[0]]
-            if raw == statements[0].strip():
-                classification = "same_version_exact"
-                classifications[classification].append(version)
-            elif normalize_sql(raw) == normalized:
-                classification = "same_version_normalized_match"
-                classifications[classification].append(version)
-            else:
-                classification = "same_version_content_drift"
-                classifications[classification].append(version)
-        elif timestamp_matches:
-            classification = "content_match_timestamp_drift"
+            classification = "same_version_content_drift"
+            classifications[classification].append(version)
+        elif exact_timestamp_matches:
+            classification = "timestamp_drift_exact"
             classifications[classification].append({
-                "applied_version": version,
-                "applied_name": name,
-                "repository_files": timestamp_matches,
+                "applied_version": version, "applied_name": name,
+                "repository_files": exact_timestamp_matches,
+            })
+        elif normalized_timestamp_matches:
+            classification = "timestamp_drift_normalized_only"
+            classifications[classification].append({
+                "applied_version": version, "applied_name": name,
+                "repository_files": normalized_timestamp_matches,
             })
         else:
-            classification = "missing_repository_file"
+            classification = "no_repository_content_match"
             classifications[classification].append(version)
 
         manifest.append({
@@ -115,8 +122,9 @@ def main() -> None:
             "file": filename,
             "sha256": digest,
             "classification": classification,
-            "repository_file_same_version": repository_file,
-            "repository_timestamp_drift_matches": timestamp_matches,
+            "repository_file_same_version": same_name,
+            "timestamp_drift_exact_matches": exact_timestamp_matches,
+            "timestamp_drift_normalized_matches": normalized_timestamp_matches,
         })
 
     ledger_versions = set(versions)
@@ -124,16 +132,21 @@ def main() -> None:
         match = re.match(r"^(\d{14})_", path.name)
         if not match or match.group(1) in ledger_versions:
             continue
-        normalized = normalize_sql(raw)
-        applied_matches = [
+        exact_matches = [
             {"version": row["version"], "name": row["name"]}
-            for row in ledger
-            if normalize_sql("\n".join(row.get("statements", []))) == normalized
+            for row in ledger if raw == row["statements"][0].strip()
         ]
-        if applied_matches:
-            classifications["repository_only_timestamp_drift_match"].append({
-                "file": path.name,
-                "matches": applied_matches,
+        normalized_matches = [
+            {"version": row["version"], "name": row["name"]}
+            for row in ledger if normalize_sql(raw) == normalize_sql(row["statements"][0])
+        ]
+        if exact_matches:
+            classifications["repository_only_timestamp_drift_exact"].append({
+                "file": path.name, "matches": exact_matches,
+            })
+        elif normalized_matches:
+            classifications["repository_only_timestamp_drift_normalized"].append({
+                "file": path.name, "matches": normalized_matches,
             })
         else:
             classifications["unmatched_repository_only_file"].append(path.name)
