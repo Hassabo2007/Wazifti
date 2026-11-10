@@ -49,3 +49,12 @@ The exact comparison must be used to reconstruct an authoritative historical fil
 Then compare the captured catalog against a clean, free PostgreSQL 17 baseline. The 26-entry production ledger begins on 2026-11-06, after the application's base tables already existed; therefore these 26 migrations alone are not a complete from-empty bootstrap history. A true replay requires a verified pre-2026-11-06 baseline (or the original initial schema migrations) plus the Supabase-managed prerequisites. A current-state `pg_dump --schema-only` would help preserve the present schema, but cannot substitute for that pre-migration baseline. The existing V1.15 fixture is a focused schema-faithful test slice, not a full Supabase clone.
 
 **Current result: historical evidence is preserved and automated drift detection is in place; the migration history is not yet repaired, and full schema compatibility is not yet certified.**
+
+
+## Newly recovered bootstrap provenance
+
+Project history confirms that the first production schema was created manually in the Supabase SQL Editor before tracked migrations began. The initial manually-created tables were `profiles`, `companies`, `jobs`, and `applications`; a follow-up query created `handle_new_user()`, its `auth.users` trigger, and initial RLS policies. The SQL Editor queries were described as saved under `Wazifti - Initial Database Schema` and `Wazifti - Security Policies`, but neither exact query was found in the currently accessible project files/library.
+
+A generated reference file `wazifti_mvp_database_schema.sql` was found in the file library. It is a proposal, not proof of what was executed; it contains additional tables and a wider profile schema than the contemporaneous initial profile inspection. It is therefore explicitly excluded as an authoritative bootstrap. See [initial manual bootstrap provenance](initial-manual-bootstrap-provenance-2026-11-10.md).
+
+**Consequence:** a true historical replay from empty PostgreSQL is still blocked on recovering the exact manual SQL Editor queries (or an authoritative pre-2026-11-06 schema-only export). No guessed baseline migration will be added to the active migration directory.
