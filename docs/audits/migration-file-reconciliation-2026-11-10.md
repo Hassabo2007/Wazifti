@@ -110,7 +110,7 @@ The 26-entry production ledger starts on 2026-11-06, after this manual/pre-ledge
 
 A free GitHub-hosted PostgreSQL 17 workflow now builds the recovered manual baseline and pre-ledger CV prerequisites in a disposable database, then replays the captured production SQL in chronological version order.
 
-**Latest validated run:** `42805488079` — all three jobs passed.
+**Latest validated run:** `42805760976` — all three jobs passed.
 
 - Recovered manual bootstrap: passed. Assertions cover `profiles`, `companies`, `jobs`, `applications`, `admin_users`, `candidate_resumes`, the application resume link, RLS activation, recovered policies, Auth signup trigger, `is_admin()`, and `candidate_owns_resume()`.
 - Historical ledger replay: **24 of 26** captured applied migrations passed in order on PostgreSQL 17.
