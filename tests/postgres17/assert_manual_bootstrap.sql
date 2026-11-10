@@ -111,11 +111,11 @@ BEGIN
   END IF;
 END $test$;
 
-DO $
+DO $priv$
 BEGIN
   IF NOT has_function_privilege('authenticated','private.candidate_owns_resume(uuid,uuid)','EXECUTE') THEN
     RAISE EXCEPTION 'Authenticated role lacks EXECUTE on candidate_owns_resume';
   END IF;
-END $;
+END $priv$;
 
 SELECT 'Recovered 2026-11-04 manual bootstrap passed PostgreSQL 17 checks' AS result;
