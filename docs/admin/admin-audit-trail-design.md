@@ -147,3 +147,20 @@ Production has permissive `ALL` policies named `Admins manage applications`, `Ad
 - Prove an audit insert failure rolls back all business changes, including trigger side effects and notifications.
 - Prove one acceptance operation creates one correlated event for each affected application and the job closure, with no CV, resume URL, cover letter, phone, or credential fields.
 - Test concurrent attempts to accept two candidates for the same job and ensure only one succeeds with a consistent audit trail.
+
+## 12. First implementation slice — admin status audit capture
+
+The first implementation slice is deliberately narrower than the later RPC cutover:
+
+- Add a private, non-API-exposed `private.admin_audit_logs` table with only actor UUID, transaction ID, entity type/UUID, action, old/new status, and timestamp.
+- Capture status changes on companies, jobs, and applications only when `public.is_admin()` confirms the authenticated actor. Actor identity is always derived from `auth.uid()`; clients cannot supply it.
+- Use row triggers so direct admin Data API status updates and nested hiring side effects are captured in the same transaction. The hiring acceptance chain must record the accepted application, closed job, and rejected competing applications with one transaction ID.
+- Deny all client roles direct table/sequence access, enable RLS with no client policies, and add a mutation-blocking trigger for append-only protection.
+- An audit insert failure must abort the original status change and every nested side effect. The migration intentionally does not add a viewer or grant read access; the initial audit inspection remains a privileged database-operator task.
+- This slice does **not** yet narrow broad admin table policies or add RPC-only admin workflows. Those changes must follow separate tests to preserve employer, individual-poster, and candidate paths.
+
+### Free validation route
+
+The repository already contains the recovered production ledger, the nine-file forensic SQL archive with SHA-256 manifest, the pre-ledger bootstrap/CV prerequisites, and a PostgreSQL 17 partial replay test. The historical ledger replay covers 24 of 26 entries; the Realtime publication and pg_cron/pg_net scheduler migrations are excluded because they require Supabase-managed services. The production-applied V1.15 migration is then applied to the disposable PostgreSQL 17 database before the audit migration.
+
+The new CI workflow runs `supabase migration new v1_16_admin_audit_trail` using the official Supabase CLI setup action, tests the generated file against that disposable PostgreSQL 17 history, and verifies actor integrity, hiring correlation, private access, append-only behavior, and rollback on audit-write failure. No Supabase credentials, paid branch, or production database connection are required.
