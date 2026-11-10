@@ -72,6 +72,10 @@ jobs:
             read_at timestamptz
           );
           ALTER TABLE public.job_messages ENABLE ROW LEVEL SECURITY;
+          CREATE POLICY "Recipients mark own messages read" ON public.job_messages
+            FOR UPDATE TO authenticated
+            USING (recipient_id = (SELECT auth.uid()))
+            WITH CHECK (recipient_id = (SELECT auth.uid()));
           SQL
       - name: Apply proposed V1.15 migration
         env:
