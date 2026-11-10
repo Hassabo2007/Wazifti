@@ -1184,6 +1184,12 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
 #adminDashboard .admin-user-row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(100px,.7fr) minmax(130px,1fr);gap:10px;align-items:center;padding:13px;border:1px solid #edf2ee;border-radius:10px}
 #adminDashboard .admin-user-row strong{overflow-wrap:anywhere;color:#174c33}
 #adminDashboard .admin-users-pagination{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px}
+#adminDashboard .admin-applications-panel{margin:26px 0;padding:18px;background:#fff;border:1px solid #e1ece5;border-radius:15px}
+#adminDashboard .admin-applications-list{display:grid;gap:9px;margin-top:12px}
+#adminDashboard .admin-application-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) auto;gap:10px;align-items:center;padding:13px;border:1px solid #edf2ee;border-radius:10px}
+#adminDashboard .admin-application-row strong{overflow-wrap:anywhere;color:#174c33}
+@media(max-width:560px){#adminDashboard .admin-application-row{grid-template-columns:1fr;gap:5px}}
+
 @media(max-width:560px){#adminDashboard .admin-user-row{grid-template-columns:1fr;gap:5px}}
 
 </style>
@@ -1216,6 +1222,16 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileD
       <span id="adminUsersPageLabel" class="muted" aria-live="polite">1</span>
       <button class="btn outline small" id="adminUsersNext" type="button" onclick="changeAdminUsersPage(1)" disabled>التالي</button>
     </div>
+  </section>
+  <section class="admin-applications-panel" aria-labelledby="adminApplicationsHeading">
+    <div class="head" style="gap:10px;flex-wrap:wrap"><h3 id="adminApplicationsHeading" style="margin:0">مراجعة طلبات التوظيف</h3>
+    <button class="btn outline small" id="adminApplicationsRefresh" type="button" onclick="loadAdminApplications()">تحديث الطلبات</button></div>
+    <p class="muted" id="adminApplicationsIntro">قائمة متابعة إدارية مختصرة. لا تعرض ملفات السيرة الذاتية أو خطابات التقديم.</p>
+    <div id="adminApplicationsMessage" class="muted" role="status" aria-live="polite"></div>
+    <div id="adminApplicationsList" class="admin-applications-list"></div>
+    <div class="admin-users-pagination"><button class="btn outline small" id="adminApplicationsPrev" type="button" onclick="changeAdminApplicationsPage(-1)" disabled>السابق</button>
+    <span id="adminApplicationsPageLabel" class="muted" aria-live="polite">1</span>
+    <button class="btn outline small" id="adminApplicationsNext" type="button" onclick="changeAdminApplicationsPage(1)" disabled>التالي</button></div>
   </section>
   <h3 style="margin-top:22px" data-t="companyApprovalRequests">طلبات اعتماد الشركات</h3>
   <div id="adminCompaniesList"></div>
@@ -2672,7 +2688,7 @@ async function loadAdminDashboardMetrics() {
 }
 
 async function loadAdminDashboardData() {
-  await Promise.all([loadAdminDashboardMetrics(), loadAdminCompanies(), loadAdminPendingJobs(), loadAdminUsers()]);
+  await Promise.all([loadAdminDashboardMetrics(), loadAdminCompanies(), loadAdminPendingJobs(), loadAdminUsers(), loadAdminApplications()]);
 }
 
 let adminUsersPage = 0;
@@ -2765,6 +2781,39 @@ async function loadAdminUsers(resetPage = null) {
   }
 }
 
+let adminApplicationsPage = 0;
+const ADMIN_APPLICATIONS_PAGE_SIZE = 15;
+function changeAdminApplicationsPage(delta){adminApplicationsPage=Math.max(0,adminApplicationsPage+delta);loadAdminApplications();}
+async function loadAdminApplications(){
+ if(!currentAuthUser||!isAdminUser)return;
+ const list=document.getElementById("adminApplicationsList"),message=document.getElementById("adminApplicationsMessage");
+ const prev=document.getElementById("adminApplicationsPrev"),next=document.getElementById("adminApplicationsNext"),pageLabel=document.getElementById("adminApplicationsPageLabel");
+ if(!list||!message)return;
+ message.textContent=dashboardText("جارٍ تحميل الطلبات...","Loading applications...");list.innerHTML="";
+ try{
+  const from=adminApplicationsPage*ADMIN_APPLICATIONS_PAGE_SIZE,to=from+ADMIN_APPLICATIONS_PAGE_SIZE-1;
+  const {data,count,error}=await supabaseClient.from("applications").select("id,job_id,candidate_id,status,created_at",{count:"exact"}).order("created_at",{ascending:false}).range(from,to);
+  if(error)throw error;
+  const rows=data||[],total=Number(count||0),pages=Math.max(1,Math.ceil(total/ADMIN_APPLICATIONS_PAGE_SIZE));
+  if(adminApplicationsPage>=pages){adminApplicationsPage=Math.max(0,pages-1);return loadAdminApplications();}
+  const candidateIds=[...new Set(rows.map(r=>r.candidate_id).filter(Boolean))],jobIds=[...new Set(rows.map(r=>r.job_id).filter(Boolean))];
+  const [profilesResult,jobsResult]=await Promise.all([
+   candidateIds.length?supabaseClient.from("profiles").select("id,full_name").in("id",candidateIds):Promise.resolve({data:[],error:null}),
+   jobIds.length?supabaseClient.from("jobs").select("id,title").in("id",jobIds):Promise.resolve({data:[],error:null})
+  ]);
+  if(profilesResult.error)throw profilesResult.error;if(jobsResult.error)throw jobsResult.error;
+  const names=new Map((profilesResult.data||[]).map(x=>[x.id,x.full_name])),titles=new Map((jobsResult.data||[]).map(x=>[x.id,x.title]));
+  const statusLabels={submitted:dashboardText("مُرسل","Submitted"),shortlisted:dashboardText("ضمن القائمة المختصرة","Shortlisted"),rejected:dashboardText("مرفوض","Rejected"),accepted:dashboardText("مقبول","Accepted"),hired:dashboardText("تم التوظيف","Hired"),withdrawn:dashboardText("مسحوب","Withdrawn")};
+  list.innerHTML=rows.length?rows.map(row=>"<article class='admin-application-row'><div><strong>"+escapeAdminHtml(names.get(row.candidate_id)||dashboardText("باحث عن عمل","Job seeker"))+"</strong><div class='muted'>"+dashboardText("الوظيفة: ","Job: ")+escapeAdminHtml(titles.get(row.job_id)||dashboardText("وظيفة غير متاحة","Unavailable job"))+"</div></div><small class='muted'>"+dashboardText("تاريخ التقديم: ","Applied: ")+escapeAdminHtml(row.created_at?new Date(row.created_at).toLocaleDateString(dashboardLocale()):"—")+"</small><span class='tag'>"+escapeAdminHtml(statusLabels[row.status]||row.status||dashboardText("غير محدد","Unspecified"))+"</span></article>").join(""):"<p class='muted'>"+dashboardText("لا توجد طلبات توظيف حالياً.","No applications found.")+"</p>";
+  message.textContent=dashboardText("إجمالي الطلبات: ","Total applications: ")+total.toLocaleString(dashboardLocale());
+  if(prev)prev.disabled=adminApplicationsPage<=0;if(next)next.disabled=adminApplicationsPage+1>=pages;
+  if(pageLabel)pageLabel.textContent=dashboardText("صفحة ","Page ")+(adminApplicationsPage+1)+" / "+pages;
+  const heading=document.getElementById("adminApplicationsHeading");if(heading)heading.textContent=dashboardText("مراجعة طلبات التوظيف","Application overview");
+  const intro=document.getElementById("adminApplicationsIntro");if(intro)intro.textContent=dashboardText("قائمة متابعة إدارية مختصرة. لا تعرض ملفات السيرة الذاتية أو خطابات التقديم.","A minimal administrative overview. CV files and cover letters are not exposed.");
+  const refresh=document.getElementById("adminApplicationsRefresh");if(refresh)refresh.textContent=dashboardText("تحديث الطلبات","Refresh applications");
+  if(prev)prev.textContent=dashboardText("السابق","Previous");if(next)next.textContent=dashboardText("التالي","Next");
+ }catch(error){console.error("Admin applications load failed:",error);message.textContent=dashboardText("تعذر تحميل الطلبات. تحقق من صلاحية المدير ثم حاول مجدداً.","Could not load applications. Verify admin access and try again.");}
+}
 async function loadAdminPendingJobs() {
   if (!currentAuthUser || !isAdminUser) return;
   const list = document.getElementById("adminPendingJobsList");
