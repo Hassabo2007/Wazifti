@@ -1,0 +1,151 @@
+name: Supabase migration history audit and PostgreSQL 17 partial compatibility test
+on:
+  push:
+    branches:
+      - "audit/migration-history-reconciliation"
+    paths:
+      - "supabase/migrations/**"
+      - "docs/audits/supabase-production-migration-ledger-2026-11-10.json"
+      - "scripts/reconcile_migration_history.py"
+      - "scripts/export_recovered_migrations.py"
+      - "scripts/replay_recovered_migrations_pg17.py"
+      - "tests/postgres17/**"
+      - "docs/audits/initial-manual-bootstrap-provenance-2026-11-10.md"
+      - "docs/audits/recovered-manual-bootstrap-2026-11-04.sql"
+      - "docs/audits/recovered-preledger-cv-prerequisites-2026-11-04.sql"
+      - "docs/audits/migration-file-reconciliation-2026-11-10.md"
+      - "docs/audits/semantic-migration-reconciliation-2026-11-10.md"
+      - "docs/audits/unledgered-production-change-provenance-2026-11-10.md"
+      - "docs/audits/production-ledger-archive/2026-11-10/**"
+      - "docs/audits/migration-history-reconciliation-2026-11-10.md"
+      - "docs/audits/semantic-migration-reconciliation-2026-11-10.md"
+      - "docs/audits/unledgered-production-change-provenance-2026-11-10.md"
+      - "docs/audits/production-ledger-archive/2026-11-10/**"
+      - ".github/workflows/migration-history-audit.yml"
+  pull_request:
+    paths:
+      - "supabase/migrations/**"
+      - "docs/audits/supabase-production-migration-ledger-2026-11-10.json"
+      - "docs/audits/supabase-production-schema-snapshot-2026-11-10.json"
+      - "docs/audits/supabase-production-runtime-catalog-2026-11-10.json"
+      - "docs/audits/recovered-production-migration-history-2026-11-10.sql"
+      - "scripts/reconcile_migration_history.py"
+      - "scripts/export_recovered_migrations.py"
+      - "scripts/replay_recovered_migrations_pg17.py"
+      - "tests/postgres17/**"
+      - "docs/audits/initial-manual-bootstrap-provenance-2026-11-10.md"
+      - "docs/audits/recovered-manual-bootstrap-2026-11-04.sql"
+      - "docs/audits/recovered-preledger-cv-prerequisites-2026-11-04.sql"
+      - "docs/audits/migration-file-reconciliation-2026-11-10.md"
+      - "docs/audits/migration-history-reconciliation-2026-11-10.md"
+      - ".github/workflows/migration-history-audit.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Compare repository migration SQL with captured production ledger
+        run: python scripts/reconcile_migration_history.py
+      - name: Verify recovered historical archive integrity
+        run: |
+          cd docs/audits/production-ledger-archive/2026-11-10
+          sha256sum --check manifest.sha256
+      - name: Export all applied production migrations outside the active migration folder
+        run: python scripts/export_recovered_migrations.py --output-dir "$RUNNER_TEMP/wazifti-recovered-migrations"
+      - name: Preserve recovered SQL and manifest as a non-runnable audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wazifti-recovered-production-migrations
+          path: ${{ runner.temp }}/wazifti-recovered-migrations/
+          if-no-files-found: error
+          retention-days: 14
+
+  postgres17-v1-15-partial:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: wazifti_partial_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d wazifti_partial_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Build explicitly partial prerequisite fixture
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_partial_test -v ON_ERROR_STOP=1 -f tests/postgres17/v1_15_partial_fixture.sql
+      - name: Apply V1.15 migration against the partial fixture
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_partial_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261110100000_v1_15_security_performance_hygiene.sql
+      - name: Assert V1.15 indexes and RLS policies
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_partial_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_v1_15_partial.sql
+
+  postgres17-recovered-bootstrap:
+    needs: audit
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Create isolated bootstrap test database
+        env:
+          PGPASSWORD: postgres
+        run: createdb -h localhost -U postgres wazifti_bootstrap_test
+      - name: Apply recovered manual bootstrap to PostgreSQL 17 test database
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/manual_bootstrap_fixture.sql
+      - name: Assert recovered tables, constraints, RLS policies, admin lookup and Auth trigger
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_manual_bootstrap.sql
+      - name: Prepare local Vault stand-in for VAPID RPC
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/historical_replay_prerequisites.sql
+      - name: Download captured production migration SQL artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: wazifti-recovered-production-migrations
+          path: ${{ runner.temp }}/wazifti-recovered-migrations
+      - name: Replay supported production migrations in version order on PostgreSQL 17
+        env:
+          PGPASSWORD: postgres
+        run: python scripts/replay_recovered_migrations_pg17.py --input-dir "$RUNNER_TEMP/wazifti-recovered-migrations" --database wazifti_bootstrap_test
+      - name: Assert final schema after 24-migration partial replay
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_historical_replay.sql

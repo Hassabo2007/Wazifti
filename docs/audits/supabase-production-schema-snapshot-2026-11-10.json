@@ -1,0 +1,5171 @@
+{
+    "tables": [
+        {
+            "table": "audit_log_entries",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "instance_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "payload",
+                    "type": "json",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "ip_address",
+                    "type": "character varying",
+                    "default": "''::character varying",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "custom_oauth_providers",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "provider_type",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "identifier",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "name",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "client_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "client_secret",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "acceptable_client_ids",
+                    "type": "ARRAY",
+                    "default": "'{}'::text[]",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "scopes",
+                    "type": "ARRAY",
+                    "default": "'{}'::text[]",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "pkce_enabled",
+                    "type": "boolean",
+                    "default": "true",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "attribute_mapping",
+                    "type": "jsonb",
+                    "default": "'{}'::jsonb",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "authorization_params",
+                    "type": "jsonb",
+                    "default": "'{}'::jsonb",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "enabled",
+                    "type": "boolean",
+                    "default": "true",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "email_optional",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "issuer",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "discovery_url",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "skip_nonce_check",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "cached_discovery",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "discovery_cached_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "authorization_url",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "token_url",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "userinfo_url",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "jwks_uri",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "custom_claims_allowlist",
+                    "type": "ARRAY",
+                    "default": "'{}'::text[]",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "flow_state",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "auth_code",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "code_challenge_method",
+                    "type": "USER-DEFINED",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "code_challenge",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "provider_type",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "provider_access_token",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "provider_refresh_token",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "authentication_method",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "auth_code_issued_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "invite_token",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "referrer",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "oauth_client_state_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "linking_target_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "email_optional",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "identities",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "provider_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "identity_data",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "provider",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "last_sign_in_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "email",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "instances",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "uuid",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "raw_base_config",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "mfa_amr_claims",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "session_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "authentication_method",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "mfa_challenges",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "factor_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "verified_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "ip_address",
+                    "type": "inet",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "otp_code",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "web_authn_session_data",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "mfa_factors",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "friendly_name",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "factor_type",
+                    "type": "USER-DEFINED",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "status",
+                    "type": "USER-DEFINED",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "secret",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "phone",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "last_challenged_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "web_authn_credential",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "web_authn_aaguid",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "last_webauthn_challenge_data",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "mfa_recovery_code_sets",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "mfa_factor_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "failed_verification_count",
+                    "type": "integer",
+                    "default": "0",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "verification_locked_until",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "mfa_recovery_codes",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "mfa_recovery_code_set_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "code_hash",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "consumed_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "oauth_authorizations",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "authorization_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "client_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "redirect_uri",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "scope",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "state",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "resource",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "code_challenge",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "code_challenge_method",
+                    "type": "USER-DEFINED",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "response_type",
+                    "type": "USER-DEFINED",
+                    "default": "'code'::auth.oauth_response_type",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "status",
+                    "type": "USER-DEFINED",
+                    "default": "'pending'::auth.oauth_authorization_status",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "authorization_code",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "expires_at",
+                    "type": "timestamp with time zone",
+                    "default": "(now() + '00:03:00'::interval)",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "approved_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "nonce",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "oauth_client_states",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "provider_type",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "code_verifier",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "oauth_clients",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "client_secret_hash",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "registration_type",
+                    "type": "USER-DEFINED",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "redirect_uris",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "grant_types",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "client_name",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "client_uri",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "logo_uri",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "deleted_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "client_type",
+                    "type": "USER-DEFINED",
+                    "default": "'confidential'::auth.oauth_client_type",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "token_endpoint_auth_method",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "oauth_consents",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "client_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "scopes",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "granted_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "revoked_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "one_time_tokens",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "token_type",
+                    "type": "USER-DEFINED",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "token_hash",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "relates_to",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp without time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp without time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "expires_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "refresh_tokens",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "instance_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "id",
+                    "type": "bigint",
+                    "default": "nextval('auth.refresh_tokens_id_seq'::regclass)",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "token",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "user_id",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "revoked",
+                    "type": "boolean",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "parent",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "session_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "saml_providers",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "sso_provider_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "entity_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "metadata_xml",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "metadata_url",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "attribute_mapping",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "name_id_format",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "saml_relay_states",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "sso_provider_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "request_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "for_email",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "redirect_to",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "flow_state_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "schema_migrations",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "version",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "scim_tokens",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "sso_provider_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "token_hash",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "prefix",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "expires_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "revoked_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "last_used_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "scim_users",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "sso_provider_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "resource",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_name",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "external_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "active",
+                    "type": "boolean",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "deleted_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "sessions",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "factor_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "aal",
+                    "type": "USER-DEFINED",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "not_after",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "refreshed_at",
+                    "type": "timestamp without time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "user_agent",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "ip",
+                    "type": "inet",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "tag",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "oauth_client_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "refresh_token_hmac_key",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "refresh_token_counter",
+                    "type": "bigint",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "scopes",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "sso_domains",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "sso_provider_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "domain",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "sso_providers",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "resource_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "users",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "instance_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "aud",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "role",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "email",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "encrypted_password",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "email_confirmed_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "invited_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "confirmation_token",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "confirmation_sent_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "recovery_token",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "recovery_sent_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "email_change_token_new",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "email_change",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "email_change_sent_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "last_sign_in_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "raw_app_meta_data",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "raw_user_meta_data",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "is_super_admin",
+                    "type": "boolean",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "phone",
+                    "type": "text",
+                    "default": "NULL::character varying",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "phone_confirmed_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "phone_change",
+                    "type": "text",
+                    "default": "''::character varying",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "phone_change_token",
+                    "type": "character varying",
+                    "default": "''::character varying",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "phone_change_sent_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "confirmed_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "email_change_token_current",
+                    "type": "character varying",
+                    "default": "''::character varying",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "email_change_confirm_status",
+                    "type": "smallint",
+                    "default": "0",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "banned_until",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "reauthentication_token",
+                    "type": "character varying",
+                    "default": "''::character varying",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "reauthentication_sent_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "is_sso_user",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "deleted_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "is_anonymous",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "webauthn_challenges",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "challenge_type",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "session_data",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "expires_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "webauthn_credentials",
+            "schema": "auth",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "credential_id",
+                    "type": "bytea",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "public_key",
+                    "type": "bytea",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "attestation_type",
+                    "type": "text",
+                    "default": "''::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "aaguid",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "sign_count",
+                    "type": "bigint",
+                    "default": "0",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "transports",
+                    "type": "jsonb",
+                    "default": "'[]'::jsonb",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "backup_eligible",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "backed_up",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "friendly_name",
+                    "type": "text",
+                    "default": "''::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "last_used_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "_http_response",
+            "schema": "net",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "bigint",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "status_code",
+                    "type": "integer",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "content_type",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "headers",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "content",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "timed_out",
+                    "type": "boolean",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "error_msg",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "http_request_queue",
+            "schema": "net",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "bigint",
+                    "default": "nextval('net.http_request_queue_id_seq'::regclass)",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "method",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "url",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "headers",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "body",
+                    "type": "bytea",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "timeout_milliseconds",
+                    "type": "integer",
+                    "default": null,
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "admin_users",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "applications",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "job_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "candidate_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "cv_url",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "cover_letter",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "status",
+                    "type": "text",
+                    "default": "'submitted'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "resume_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "candidate_experiences",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "candidate_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "company_name",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "job_title",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "start_date",
+                    "type": "date",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "end_date",
+                    "type": "date",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "is_current",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "description",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "candidate_resumes",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "candidate_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "file_name",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "file_path",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "file_size_bytes",
+                    "type": "bigint",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "mime_type",
+                    "type": "text",
+                    "default": "'application/pdf'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "is_default",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "companies",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "owner_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "company_name",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "description",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "website",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "status",
+                    "type": "text",
+                    "default": "'pending'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "in_app_notifications",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "application_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "job_title",
+                    "type": "text",
+                    "default": "'الوظيفة'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "old_status",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "new_status",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "message",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "read_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "notification_type",
+                    "type": "text",
+                    "default": "'application_status'::text",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "job_alert_deliveries",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "notification_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "channel",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "delivery_kind",
+                    "type": "text",
+                    "default": "'instant'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "batch_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "status",
+                    "type": "text",
+                    "default": "'pending'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "attempt_count",
+                    "type": "integer",
+                    "default": "0",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "last_error",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "sent_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "job_alert_digest_runs",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "digest_date",
+                    "type": "date",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "channel",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "batch_id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "status",
+                    "type": "text",
+                    "default": "'pending'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "attempt_count",
+                    "type": "integer",
+                    "default": "0",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "last_error",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "sent_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "job_alert_notifications",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "job_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "job_title_snapshot",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "job_location_snapshot",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "available_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "read_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "job_alert_outbox",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "event_type",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "job_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "status",
+                    "type": "text",
+                    "default": "'pending'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "attempt_count",
+                    "type": "integer",
+                    "default": "0",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "available_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "locked_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "last_error",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "processed_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "job_alert_preference_categories",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "preference_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "category_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "job_alert_preference_employment_types",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "preference_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "employment_type",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "job_alert_preference_locations",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "preference_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "state",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "job_alert_preference_specialties",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "preference_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "specialty_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "job_alert_preferences",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "is_enabled",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "delivery_mode",
+                    "type": "text",
+                    "default": "'both'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "in_app_enabled",
+                    "type": "boolean",
+                    "default": "true",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "push_enabled",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "daily_send_time",
+                    "type": "time without time zone",
+                    "default": "'08:00:00'::time without time zone",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "timezone",
+                    "type": "text",
+                    "default": "'Africa/Khartoum'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "job_categories",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "slug",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "name_ar",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "name_en",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "sort_order",
+                    "type": "integer",
+                    "default": "0",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "is_active",
+                    "type": "boolean",
+                    "default": "true",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "job_messages",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "job_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "application_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "candidate_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "poster_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "sender_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "recipient_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "body",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "read_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "job_specialties",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "category_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "slug",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "name_ar",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "name_en",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "sort_order",
+                    "type": "integer",
+                    "default": "0",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "is_active",
+                    "type": "boolean",
+                    "default": "true",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "jobs",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "company_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "title",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "description",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "location",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "employment_type",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "salary_min",
+                    "type": "numeric",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "salary_max",
+                    "type": "numeric",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "currency",
+                    "type": "text",
+                    "default": "'SDG'::text",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "status",
+                    "type": "text",
+                    "default": "'pending'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "category_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "specialty_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "state",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "posted_by_user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "poster_type",
+                    "type": "text",
+                    "default": "'company'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "closed_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "archived_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "profiles",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "full_name",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "email",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "phone",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "account_type",
+                    "type": "text",
+                    "default": "'candidate'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "category_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "specialty_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "can_post_individual_jobs",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "push_notification_events",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "application_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "status",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "sent_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "push_subscriptions",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "endpoint",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "subscription",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "bucket_lifecycle_states",
+            "schema": "storage",
+            "columns": [
+                {
+                    "name": "bucket_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "generation",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "next_run_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "claim_id",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "claim_until",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "continuation",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "last_started_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "last_completed_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "last_success_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "last_result",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "failure_count",
+                    "type": "integer",
+                    "default": "0",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "last_error",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "buckets",
+            "schema": "storage",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "name",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "owner",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "public",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "avif_autodetection",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "file_size_limit",
+                    "type": "bigint",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "allowed_mime_types",
+                    "type": "ARRAY",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "owner_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "type",
+                    "type": "USER-DEFINED",
+                    "default": "'STANDARD'::storage.buckettype",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "versioning_status",
+                    "type": "text",
+                    "default": "'DISABLED'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "lifecycle_configuration",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "lifecycle_configuration_generation",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "buckets_analytics",
+            "schema": "storage",
+            "columns": [
+                {
+                    "name": "name",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "type",
+                    "type": "USER-DEFINED",
+                    "default": "'ANALYTICS'::storage.buckettype",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "format",
+                    "type": "text",
+                    "default": "'ICEBERG'::text",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "deleted_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "buckets_vectors",
+            "schema": "storage",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "type",
+                    "type": "USER-DEFINED",
+                    "default": "'VECTOR'::storage.buckettype",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "lifecycle_abandoned_artifacts",
+            "schema": "storage",
+            "columns": [
+                {
+                    "name": "bucket_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "key",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "name",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "version",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "attempted_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "migrations",
+            "schema": "storage",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "name",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "hash",
+                    "type": "character varying",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "executed_at",
+                    "type": "timestamp without time zone",
+                    "default": "CURRENT_TIMESTAMP",
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "objects",
+            "schema": "storage",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "bucket_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "name",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "owner",
+                    "type": "uuid",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "last_accessed_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "YES"
+                },
+                {
+                    "name": "metadata",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "path_tokens",
+                    "type": "ARRAY",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "version",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "owner_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "user_metadata",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "archived_at",
+                    "type": "timestamp with time zone",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "is_delete_marker",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "is_versioned",
+                    "type": "boolean",
+                    "default": "false",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "s3_multipart_uploads",
+            "schema": "storage",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "in_progress_size",
+                    "type": "bigint",
+                    "default": "0",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "upload_signature",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "bucket_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "key",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "version",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "owner_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "user_metadata",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "metadata",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                }
+            ]
+        },
+        {
+            "table": "s3_multipart_uploads_parts",
+            "schema": "storage",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "upload_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "size",
+                    "type": "bigint",
+                    "default": "0",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "part_number",
+                    "type": "integer",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "bucket_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "key",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "etag",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "owner_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "version",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        },
+        {
+            "table": "vector_indexes",
+            "schema": "storage",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "text",
+                    "default": "gen_random_uuid()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "name",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "bucket_id",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "data_type",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "dimension",
+                    "type": "integer",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "distance_metric",
+                    "type": "text",
+                    "default": null,
+                    "nullable": "NO"
+                },
+                {
+                    "name": "metadata_configuration",
+                    "type": "jsonb",
+                    "default": null,
+                    "nullable": "YES"
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                },
+                {
+                    "name": "updated_at",
+                    "type": "timestamp with time zone",
+                    "default": "now()",
+                    "nullable": "NO"
+                }
+            ]
+        }
+    ],
+    "indexes": [
+        {
+            "name": "admin_users_pkey",
+            "table": "admin_users",
+            "definition": "CREATE UNIQUE INDEX admin_users_pkey ON public.admin_users USING btree (user_id)"
+        },
+        {
+            "name": "applications_candidate_id_idx",
+            "table": "applications",
+            "definition": "CREATE INDEX applications_candidate_id_idx ON public.applications USING btree (candidate_id)"
+        },
+        {
+            "name": "applications_job_id_candidate_id_key",
+            "table": "applications",
+            "definition": "CREATE UNIQUE INDEX applications_job_id_candidate_id_key ON public.applications USING btree (job_id, candidate_id)"
+        },
+        {
+            "name": "applications_job_status_idx",
+            "table": "applications",
+            "definition": "CREATE INDEX applications_job_status_idx ON public.applications USING btree (job_id, status)"
+        },
+        {
+            "name": "applications_one_per_candidate_job",
+            "table": "applications",
+            "definition": "CREATE UNIQUE INDEX applications_one_per_candidate_job ON public.applications USING btree (job_id, candidate_id)"
+        },
+        {
+            "name": "applications_pkey",
+            "table": "applications",
+            "definition": "CREATE UNIQUE INDEX applications_pkey ON public.applications USING btree (id)"
+        },
+        {
+            "name": "applications_resume_id_idx",
+            "table": "applications",
+            "definition": "CREATE INDEX applications_resume_id_idx ON public.applications USING btree (resume_id)"
+        },
+        {
+            "name": "candidate_experiences_candidate_id_idx",
+            "table": "candidate_experiences",
+            "definition": "CREATE INDEX candidate_experiences_candidate_id_idx ON public.candidate_experiences USING btree (candidate_id)"
+        },
+        {
+            "name": "candidate_experiences_pkey",
+            "table": "candidate_experiences",
+            "definition": "CREATE UNIQUE INDEX candidate_experiences_pkey ON public.candidate_experiences USING btree (id)"
+        },
+        {
+            "name": "candidate_resumes_file_path_key",
+            "table": "candidate_resumes",
+            "definition": "CREATE UNIQUE INDEX candidate_resumes_file_path_key ON public.candidate_resumes USING btree (file_path)"
+        },
+        {
+            "name": "candidate_resumes_pkey",
+            "table": "candidate_resumes",
+            "definition": "CREATE UNIQUE INDEX candidate_resumes_pkey ON public.candidate_resumes USING btree (id)"
+        },
+        {
+            "name": "one_default_cv_per_candidate",
+            "table": "candidate_resumes",
+            "definition": "CREATE UNIQUE INDEX one_default_cv_per_candidate ON public.candidate_resumes USING btree (candidate_id) WHERE (is_default = true)"
+        },
+        {
+            "name": "companies_owner_id_idx",
+            "table": "companies",
+            "definition": "CREATE INDEX companies_owner_id_idx ON public.companies USING btree (owner_id)"
+        },
+        {
+            "name": "companies_pkey",
+            "table": "companies",
+            "definition": "CREATE UNIQUE INDEX companies_pkey ON public.companies USING btree (id)"
+        },
+        {
+            "name": "in_app_notifications_pkey",
+            "table": "in_app_notifications",
+            "definition": "CREATE UNIQUE INDEX in_app_notifications_pkey ON public.in_app_notifications USING btree (id)"
+        },
+        {
+            "name": "in_app_notifications_user_created_idx",
+            "table": "in_app_notifications",
+            "definition": "CREATE INDEX in_app_notifications_user_created_idx ON public.in_app_notifications USING btree (user_id, created_at DESC)"
+        },
+        {
+            "name": "in_app_notifications_user_unread_idx",
+            "table": "in_app_notifications",
+            "definition": "CREATE INDEX in_app_notifications_user_unread_idx ON public.in_app_notifications USING btree (user_id) WHERE (read_at IS NULL)"
+        },
+        {
+            "name": "job_alert_deliveries_batch_idx",
+            "table": "job_alert_deliveries",
+            "definition": "CREATE INDEX job_alert_deliveries_batch_idx ON public.job_alert_deliveries USING btree (batch_id) WHERE (batch_id IS NOT NULL)"
+        },
+        {
+            "name": "job_alert_deliveries_notification_id_channel_delivery_kind_key",
+            "table": "job_alert_deliveries",
+            "definition": "CREATE UNIQUE INDEX job_alert_deliveries_notification_id_channel_delivery_kind_key ON public.job_alert_deliveries USING btree (notification_id, channel, delivery_kind)"
+        },
+        {
+            "name": "job_alert_deliveries_pkey",
+            "table": "job_alert_deliveries",
+            "definition": "CREATE UNIQUE INDEX job_alert_deliveries_pkey ON public.job_alert_deliveries USING btree (id)"
+        },
+        {
+            "name": "job_alert_deliveries_status_created_idx",
+            "table": "job_alert_deliveries",
+            "definition": "CREATE INDEX job_alert_deliveries_status_created_idx ON public.job_alert_deliveries USING btree (status, created_at)"
+        },
+        {
+            "name": "job_alert_digest_runs_batch_id_key",
+            "table": "job_alert_digest_runs",
+            "definition": "CREATE UNIQUE INDEX job_alert_digest_runs_batch_id_key ON public.job_alert_digest_runs USING btree (batch_id)"
+        },
+        {
+            "name": "job_alert_digest_runs_due_idx",
+            "table": "job_alert_digest_runs",
+            "definition": "CREATE INDEX job_alert_digest_runs_due_idx ON public.job_alert_digest_runs USING btree (status, digest_date, created_at)"
+        },
+        {
+            "name": "job_alert_digest_runs_pkey",
+            "table": "job_alert_digest_runs",
+            "definition": "CREATE UNIQUE INDEX job_alert_digest_runs_pkey ON public.job_alert_digest_runs USING btree (id)"
+        },
+        {
+            "name": "job_alert_digest_runs_user_id_digest_date_channel_key",
+            "table": "job_alert_digest_runs",
+            "definition": "CREATE UNIQUE INDEX job_alert_digest_runs_user_id_digest_date_channel_key ON public.job_alert_digest_runs USING btree (user_id, digest_date, channel)"
+        },
+        {
+            "name": "job_alert_notifications_job_id_idx",
+            "table": "job_alert_notifications",
+            "definition": "CREATE INDEX job_alert_notifications_job_id_idx ON public.job_alert_notifications USING btree (job_id)"
+        },
+        {
+            "name": "job_alert_notifications_pkey",
+            "table": "job_alert_notifications",
+            "definition": "CREATE UNIQUE INDEX job_alert_notifications_pkey ON public.job_alert_notifications USING btree (id)"
+        },
+        {
+            "name": "job_alert_notifications_user_created_idx",
+            "table": "job_alert_notifications",
+            "definition": "CREATE INDEX job_alert_notifications_user_created_idx ON public.job_alert_notifications USING btree (user_id, available_at, created_at DESC)"
+        },
+        {
+            "name": "job_alert_notifications_user_job_uidx",
+            "table": "job_alert_notifications",
+            "definition": "CREATE UNIQUE INDEX job_alert_notifications_user_job_uidx ON public.job_alert_notifications USING btree (user_id, job_id) WHERE (job_id IS NOT NULL)"
+        },
+        {
+            "name": "job_alert_outbox_event_type_job_id_key",
+            "table": "job_alert_outbox",
+            "definition": "CREATE UNIQUE INDEX job_alert_outbox_event_type_job_id_key ON public.job_alert_outbox USING btree (event_type, job_id)"
+        },
+        {
+            "name": "job_alert_outbox_job_id_idx",
+            "table": "job_alert_outbox",
+            "definition": "CREATE INDEX job_alert_outbox_job_id_idx ON public.job_alert_outbox USING btree (job_id)"
+        },
+        {
+            "name": "job_alert_outbox_pkey",
+            "table": "job_alert_outbox",
+            "definition": "CREATE UNIQUE INDEX job_alert_outbox_pkey ON public.job_alert_outbox USING btree (id)"
+        },
+        {
+            "name": "job_alert_outbox_ready_idx",
+            "table": "job_alert_outbox",
+            "definition": "CREATE INDEX job_alert_outbox_ready_idx ON public.job_alert_outbox USING btree (status, available_at, created_at)"
+        },
+        {
+            "name": "job_alert_preference_categories_category_idx",
+            "table": "job_alert_preference_categories",
+            "definition": "CREATE INDEX job_alert_preference_categories_category_idx ON public.job_alert_preference_categories USING btree (category_id)"
+        },
+        {
+            "name": "job_alert_preference_categories_pkey",
+            "table": "job_alert_preference_categories",
+            "definition": "CREATE UNIQUE INDEX job_alert_preference_categories_pkey ON public.job_alert_preference_categories USING btree (preference_id, category_id)"
+        },
+        {
+            "name": "job_alert_preference_employment_types_pkey",
+            "table": "job_alert_preference_employment_types",
+            "definition": "CREATE UNIQUE INDEX job_alert_preference_employment_types_pkey ON public.job_alert_preference_employment_types USING btree (preference_id, employment_type)"
+        },
+        {
+            "name": "job_alert_preference_employment_types_type_idx",
+            "table": "job_alert_preference_employment_types",
+            "definition": "CREATE INDEX job_alert_preference_employment_types_type_idx ON public.job_alert_preference_employment_types USING btree (employment_type)"
+        },
+        {
+            "name": "job_alert_preference_locations_pkey",
+            "table": "job_alert_preference_locations",
+            "definition": "CREATE UNIQUE INDEX job_alert_preference_locations_pkey ON public.job_alert_preference_locations USING btree (preference_id, state)"
+        },
+        {
+            "name": "job_alert_preference_locations_state_idx",
+            "table": "job_alert_preference_locations",
+            "definition": "CREATE INDEX job_alert_preference_locations_state_idx ON public.job_alert_preference_locations USING btree (state)"
+        },
+        {
+            "name": "job_alert_preference_specialties_pkey",
+            "table": "job_alert_preference_specialties",
+            "definition": "CREATE UNIQUE INDEX job_alert_preference_specialties_pkey ON public.job_alert_preference_specialties USING btree (preference_id, specialty_id)"
+        },
+        {
+            "name": "job_alert_preference_specialties_specialty_idx",
+            "table": "job_alert_preference_specialties",
+            "definition": "CREATE INDEX job_alert_preference_specialties_specialty_idx ON public.job_alert_preference_specialties USING btree (specialty_id)"
+        },
+        {
+            "name": "job_alert_preferences_pkey",
+            "table": "job_alert_preferences",
+            "definition": "CREATE UNIQUE INDEX job_alert_preferences_pkey ON public.job_alert_preferences USING btree (id)"
+        },
+        {
+            "name": "job_alert_preferences_user_id_key",
+            "table": "job_alert_preferences",
+            "definition": "CREATE UNIQUE INDEX job_alert_preferences_user_id_key ON public.job_alert_preferences USING btree (user_id)"
+        },
+        {
+            "name": "job_categories_pkey",
+            "table": "job_categories",
+            "definition": "CREATE UNIQUE INDEX job_categories_pkey ON public.job_categories USING btree (id)"
+        },
+        {
+            "name": "job_categories_slug_key",
+            "table": "job_categories",
+            "definition": "CREATE UNIQUE INDEX job_categories_slug_key ON public.job_categories USING btree (slug)"
+        },
+        {
+            "name": "job_messages_conversation_idx",
+            "table": "job_messages",
+            "definition": "CREATE INDEX job_messages_conversation_idx ON public.job_messages USING btree (job_id, application_id, created_at)"
+        },
+        {
+            "name": "job_messages_pkey",
+            "table": "job_messages",
+            "definition": "CREATE UNIQUE INDEX job_messages_pkey ON public.job_messages USING btree (id)"
+        },
+        {
+            "name": "job_messages_recipient_unread_idx",
+            "table": "job_messages",
+            "definition": "CREATE INDEX job_messages_recipient_unread_idx ON public.job_messages USING btree (recipient_id, created_at DESC) WHERE (read_at IS NULL)"
+        },
+        {
+            "name": "job_specialties_category_id_idx",
+            "table": "job_specialties",
+            "definition": "CREATE INDEX job_specialties_category_id_idx ON public.job_specialties USING btree (category_id)"
+        },
+        {
+            "name": "job_specialties_id_category_unique",
+            "table": "job_specialties",
+            "definition": "CREATE UNIQUE INDEX job_specialties_id_category_unique ON public.job_specialties USING btree (id, category_id)"
+        },
+        {
+            "name": "job_specialties_pkey",
+            "table": "job_specialties",
+            "definition": "CREATE UNIQUE INDEX job_specialties_pkey ON public.job_specialties USING btree (id)"
+        },
+        {
+            "name": "job_specialties_slug_key",
+            "table": "job_specialties",
+            "definition": "CREATE UNIQUE INDEX job_specialties_slug_key ON public.job_specialties USING btree (slug)"
+        },
+        {
+            "name": "jobs_category_specialty_status_idx",
+            "table": "jobs",
+            "definition": "CREATE INDEX jobs_category_specialty_status_idx ON public.jobs USING btree (category_id, specialty_id, status)"
+        },
+        {
+            "name": "jobs_company_id_idx",
+            "table": "jobs",
+            "definition": "CREATE INDEX jobs_company_id_idx ON public.jobs USING btree (company_id)"
+        },
+        {
+            "name": "jobs_filled_archive_due_idx",
+            "table": "jobs",
+            "definition": "CREATE INDEX jobs_filled_archive_due_idx ON public.jobs USING btree (closed_at) WHERE ((status = 'closed'::text) AND (archived_at IS NULL) AND (closed_at IS NOT NULL))"
+        },
+        {
+            "name": "jobs_pkey",
+            "table": "jobs",
+            "definition": "CREATE UNIQUE INDEX jobs_pkey ON public.jobs USING btree (id)"
+        },
+        {
+            "name": "jobs_posted_by_user_id_idx",
+            "table": "jobs",
+            "definition": "CREATE INDEX jobs_posted_by_user_id_idx ON public.jobs USING btree (posted_by_user_id)"
+        },
+        {
+            "name": "jobs_specialty_category_fk_idx",
+            "table": "jobs",
+            "definition": "CREATE INDEX jobs_specialty_category_fk_idx ON public.jobs USING btree (specialty_id, category_id)"
+        },
+        {
+            "name": "profiles_category_specialty_idx",
+            "table": "profiles",
+            "definition": "CREATE INDEX profiles_category_specialty_idx ON public.profiles USING btree (category_id, specialty_id)"
+        },
+        {
+            "name": "profiles_pkey",
+            "table": "profiles",
+            "definition": "CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)"
+        },
+        {
+            "name": "profiles_specialty_category_fk_idx",
+            "table": "profiles",
+            "definition": "CREATE INDEX profiles_specialty_category_fk_idx ON public.profiles USING btree (specialty_id, category_id)"
+        },
+        {
+            "name": "push_notification_events_application_id_status_key",
+            "table": "push_notification_events",
+            "definition": "CREATE UNIQUE INDEX push_notification_events_application_id_status_key ON public.push_notification_events USING btree (application_id, status)"
+        },
+        {
+            "name": "push_notification_events_pkey",
+            "table": "push_notification_events",
+            "definition": "CREATE UNIQUE INDEX push_notification_events_pkey ON public.push_notification_events USING btree (id)"
+        },
+        {
+            "name": "push_subscriptions_endpoint_key",
+            "table": "push_subscriptions",
+            "definition": "CREATE UNIQUE INDEX push_subscriptions_endpoint_key ON public.push_subscriptions USING btree (endpoint)"
+        },
+        {
+            "name": "push_subscriptions_pkey",
+            "table": "push_subscriptions",
+            "definition": "CREATE UNIQUE INDEX push_subscriptions_pkey ON public.push_subscriptions USING btree (id)"
+        },
+        {
+            "name": "push_subscriptions_user_id_idx",
+            "table": "push_subscriptions",
+            "definition": "CREATE INDEX push_subscriptions_user_id_idx ON public.push_subscriptions USING btree (user_id)"
+        }
+    ],
+    "policies": [
+        {
+            "name": "Admins manage applications",
+            "check": "is_admin()",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "applications",
+            "using": "is_admin()",
+            "command": "ALL"
+        },
+        {
+            "name": "Candidates and employers view applications",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "applications",
+            "using": "((candidate_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1\n   FROM (jobs j\n     JOIN companies c ON ((c.id = j.company_id)))\n  WHERE ((j.id = applications.job_id) AND (c.owner_id = ( SELECT auth.uid() AS uid))))))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Candidates submit applications",
+            "check": "((candidate_id = ( SELECT auth.uid() AS uid)) AND ((resume_id IS NULL) OR private.candidate_owns_resume(resume_id, candidate_id)) AND (EXISTS ( SELECT 1\n   FROM jobs j\n  WHERE ((j.id = applications.job_id) AND (j.status = 'published'::text)))))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "applications",
+            "using": null,
+            "command": "INSERT"
+        },
+        {
+            "name": "Employers update own application statuses",
+            "check": "(EXISTS ( SELECT 1\n   FROM (jobs j\n     JOIN companies c ON ((c.id = j.company_id)))\n  WHERE ((j.id = applications.job_id) AND (c.owner_id = ( SELECT auth.uid() AS uid)))))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "applications",
+            "using": "(EXISTS ( SELECT 1\n   FROM (jobs j\n     JOIN companies c ON ((c.id = j.company_id)))\n  WHERE ((j.id = applications.job_id) AND (c.owner_id = ( SELECT auth.uid() AS uid)))))",
+            "command": "UPDATE"
+        },
+        {
+            "name": "Individuals view applications for own jobs",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "applications",
+            "using": "(EXISTS ( SELECT 1\n   FROM jobs j\n  WHERE ((j.id = applications.job_id) AND (j.poster_type = 'individual'::text) AND (j.posted_by_user_id = ( SELECT auth.uid() AS uid)))))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Candidates and admins view candidate experiences",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "candidate_experiences",
+            "using": "((candidate_id = ( SELECT auth.uid() AS uid)) OR is_admin())",
+            "command": "SELECT"
+        },
+        {
+            "name": "Candidates create own experiences",
+            "check": "(candidate_id = ( SELECT auth.uid() AS uid))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "candidate_experiences",
+            "using": null,
+            "command": "INSERT"
+        },
+        {
+            "name": "Candidates delete own experiences",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "candidate_experiences",
+            "using": "(candidate_id = ( SELECT auth.uid() AS uid))",
+            "command": "DELETE"
+        },
+        {
+            "name": "Candidates update own experiences",
+            "check": "(candidate_id = ( SELECT auth.uid() AS uid))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "candidate_experiences",
+            "using": "(candidate_id = ( SELECT auth.uid() AS uid))",
+            "command": "UPDATE"
+        },
+        {
+            "name": "Candidates add own CVs",
+            "check": "((candidate_id = ( SELECT auth.uid() AS uid)) AND ((storage.foldername(file_path))[1] = (( SELECT auth.uid() AS uid))::text))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "candidate_resumes",
+            "using": null,
+            "command": "INSERT"
+        },
+        {
+            "name": "Candidates delete own CVs",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "candidate_resumes",
+            "using": "(candidate_id = ( SELECT auth.uid() AS uid))",
+            "command": "DELETE"
+        },
+        {
+            "name": "Candidates update own CVs",
+            "check": "((candidate_id = ( SELECT auth.uid() AS uid)) AND ((storage.foldername(file_path))[1] = (( SELECT auth.uid() AS uid))::text))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "candidate_resumes",
+            "using": "(candidate_id = ( SELECT auth.uid() AS uid))",
+            "command": "UPDATE"
+        },
+        {
+            "name": "Candidates view own CVs",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "candidate_resumes",
+            "using": "(candidate_id = ( SELECT auth.uid() AS uid))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Employers view resumes attached to their applications",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "candidate_resumes",
+            "using": "(EXISTS ( SELECT 1\n   FROM ((applications a\n     JOIN jobs j ON ((j.id = a.job_id)))\n     JOIN companies c ON ((c.id = j.company_id)))\n  WHERE ((a.resume_id = candidate_resumes.id) AND (a.candidate_id = candidate_resumes.candidate_id) AND ((storage.foldername(candidate_resumes.file_path))[1] = (candidate_resumes.candidate_id)::text) AND (c.owner_id = ( SELECT auth.uid() AS uid)))))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Admins manage companies",
+            "check": "is_admin()",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "companies",
+            "using": "is_admin()",
+            "command": "ALL"
+        },
+        {
+            "name": "Owners register pending companies",
+            "check": "((owner_id = ( SELECT auth.uid() AS uid)) AND (status = 'pending'::text))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "companies",
+            "using": null,
+            "command": "INSERT"
+        },
+        {
+            "name": "Owners view own companies",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "companies",
+            "using": "(owner_id = ( SELECT auth.uid() AS uid))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Public can view verified companies",
+            "check": null,
+            "roles": [
+                "anon",
+                "authenticated"
+            ],
+            "table": "companies",
+            "using": "(status = 'verified'::text)",
+            "command": "SELECT"
+        },
+        {
+            "name": "Candidates mark their own in-app notifications read",
+            "check": "(user_id = ( SELECT auth.uid() AS uid))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "in_app_notifications",
+            "using": "(user_id = ( SELECT auth.uid() AS uid))",
+            "command": "UPDATE"
+        },
+        {
+            "name": "Candidates read their own in-app notifications",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "in_app_notifications",
+            "using": "(user_id = ( SELECT auth.uid() AS uid))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Worker manages job alert deliveries",
+            "check": "true",
+            "roles": [
+                "service_role"
+            ],
+            "table": "job_alert_deliveries",
+            "using": "true",
+            "command": "ALL"
+        },
+        {
+            "name": "Worker manages job alert digest runs",
+            "check": "true",
+            "roles": [
+                "service_role"
+            ],
+            "table": "job_alert_digest_runs",
+            "using": "true",
+            "command": "ALL"
+        },
+        {
+            "name": "Users mark own job alert notifications read",
+            "check": "(user_id = ( SELECT auth.uid() AS uid))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_notifications",
+            "using": "(user_id = ( SELECT auth.uid() AS uid))",
+            "command": "UPDATE"
+        },
+        {
+            "name": "Users read own job alert notifications",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_notifications",
+            "using": "(user_id = ( SELECT auth.uid() AS uid))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Worker manages job alert outbox",
+            "check": "true",
+            "roles": [
+                "service_role"
+            ],
+            "table": "job_alert_outbox",
+            "using": "true",
+            "command": "ALL"
+        },
+        {
+            "name": "Users add own alert categories",
+            "check": "(EXISTS ( SELECT 1\n   FROM job_alert_preferences p\n  WHERE ((p.id = job_alert_preference_categories.preference_id) AND (p.user_id = ( SELECT auth.uid() AS uid)))))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_preference_categories",
+            "using": null,
+            "command": "INSERT"
+        },
+        {
+            "name": "Users read own alert categories",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_preference_categories",
+            "using": "(EXISTS ( SELECT 1\n   FROM job_alert_preferences p\n  WHERE ((p.id = job_alert_preference_categories.preference_id) AND (p.user_id = ( SELECT auth.uid() AS uid)))))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Users remove own alert categories",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_preference_categories",
+            "using": "(EXISTS ( SELECT 1\n   FROM job_alert_preferences p\n  WHERE ((p.id = job_alert_preference_categories.preference_id) AND (p.user_id = ( SELECT auth.uid() AS uid)))))",
+            "command": "DELETE"
+        },
+        {
+            "name": "Users add own alert employment types",
+            "check": "(EXISTS ( SELECT 1\n   FROM job_alert_preferences p\n  WHERE ((p.id = job_alert_preference_employment_types.preference_id) AND (p.user_id = ( SELECT auth.uid() AS uid)))))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_preference_employment_types",
+            "using": null,
+            "command": "INSERT"
+        },
+        {
+            "name": "Users read own alert employment types",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_preference_employment_types",
+            "using": "(EXISTS ( SELECT 1\n   FROM job_alert_preferences p\n  WHERE ((p.id = job_alert_preference_employment_types.preference_id) AND (p.user_id = ( SELECT auth.uid() AS uid)))))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Users remove own alert employment types",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_preference_employment_types",
+            "using": "(EXISTS ( SELECT 1\n   FROM job_alert_preferences p\n  WHERE ((p.id = job_alert_preference_employment_types.preference_id) AND (p.user_id = ( SELECT auth.uid() AS uid)))))",
+            "command": "DELETE"
+        },
+        {
+            "name": "Users add own alert locations",
+            "check": "(EXISTS ( SELECT 1\n   FROM job_alert_preferences p\n  WHERE ((p.id = job_alert_preference_locations.preference_id) AND (p.user_id = ( SELECT auth.uid() AS uid)))))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_preference_locations",
+            "using": null,
+            "command": "INSERT"
+        },
+        {
+            "name": "Users read own alert locations",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_preference_locations",
+            "using": "(EXISTS ( SELECT 1\n   FROM job_alert_preferences p\n  WHERE ((p.id = job_alert_preference_locations.preference_id) AND (p.user_id = ( SELECT auth.uid() AS uid)))))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Users remove own alert locations",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_preference_locations",
+            "using": "(EXISTS ( SELECT 1\n   FROM job_alert_preferences p\n  WHERE ((p.id = job_alert_preference_locations.preference_id) AND (p.user_id = ( SELECT auth.uid() AS uid)))))",
+            "command": "DELETE"
+        },
+        {
+            "name": "Users add own alert specialties",
+            "check": "(EXISTS ( SELECT 1\n   FROM job_alert_preferences p\n  WHERE ((p.id = job_alert_preference_specialties.preference_id) AND (p.user_id = ( SELECT auth.uid() AS uid)))))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_preference_specialties",
+            "using": null,
+            "command": "INSERT"
+        },
+        {
+            "name": "Users read own alert specialties",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_preference_specialties",
+            "using": "(EXISTS ( SELECT 1\n   FROM job_alert_preferences p\n  WHERE ((p.id = job_alert_preference_specialties.preference_id) AND (p.user_id = ( SELECT auth.uid() AS uid)))))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Users remove own alert specialties",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_preference_specialties",
+            "using": "(EXISTS ( SELECT 1\n   FROM job_alert_preferences p\n  WHERE ((p.id = job_alert_preference_specialties.preference_id) AND (p.user_id = ( SELECT auth.uid() AS uid)))))",
+            "command": "DELETE"
+        },
+        {
+            "name": "Users manage own job alert preferences",
+            "check": "(user_id = ( SELECT auth.uid() AS uid))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_alert_preferences",
+            "using": "(user_id = ( SELECT auth.uid() AS uid))",
+            "command": "ALL"
+        },
+        {
+            "name": "Admins manage job categories",
+            "check": "is_admin()",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_categories",
+            "using": "is_admin()",
+            "command": "ALL"
+        },
+        {
+            "name": "Public can view active job categories",
+            "check": null,
+            "roles": [
+                "anon",
+                "authenticated"
+            ],
+            "table": "job_categories",
+            "using": "(is_active = true)",
+            "command": "SELECT"
+        },
+        {
+            "name": "Conversation participants read messages",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_messages",
+            "using": "((auth.uid() = candidate_id) OR (auth.uid() = poster_id))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Conversation participants send messages",
+            "check": "((sender_id = auth.uid()) AND (((sender_id = candidate_id) AND (recipient_id = poster_id) AND (EXISTS ( SELECT 1\n   FROM ((applications a\n     JOIN jobs j ON ((j.id = a.job_id)))\n     LEFT JOIN companies c ON ((c.id = j.company_id)))\n  WHERE ((a.id = job_messages.application_id) AND (a.job_id = job_messages.job_id) AND (a.candidate_id = job_messages.candidate_id) AND (job_messages.poster_id =\n        CASE\n            WHEN (j.poster_type = 'individual'::text) THEN j.posted_by_user_id\n            ELSE c.owner_id\n        END))))) OR ((sender_id = poster_id) AND (recipient_id = candidate_id) AND (EXISTS ( SELECT 1\n   FROM ((applications a\n     JOIN jobs j ON ((j.id = a.job_id)))\n     LEFT JOIN companies c ON ((c.id = j.company_id)))\n  WHERE ((a.id = job_messages.application_id) AND (a.job_id = job_messages.job_id) AND (a.candidate_id = job_messages.candidate_id) AND (((j.poster_type = 'individual'::text) AND (j.posted_by_user_id = auth.uid())) OR (c.owner_id = auth.uid()))))))))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_messages",
+            "using": null,
+            "command": "INSERT"
+        },
+        {
+            "name": "Recipients mark own messages read",
+            "check": "(recipient_id = ( SELECT auth.uid() AS uid))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_messages",
+            "using": "(recipient_id = ( SELECT auth.uid() AS uid))",
+            "command": "UPDATE"
+        },
+        {
+            "name": "Admins manage job specialties",
+            "check": "is_admin()",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "job_specialties",
+            "using": "is_admin()",
+            "command": "ALL"
+        },
+        {
+            "name": "Public can view active job specialties",
+            "check": null,
+            "roles": [
+                "anon",
+                "authenticated"
+            ],
+            "table": "job_specialties",
+            "using": "((is_active = true) AND (EXISTS ( SELECT 1\n   FROM job_categories c\n  WHERE ((c.id = job_specialties.category_id) AND (c.is_active = true)))))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Admins manage jobs",
+            "check": "is_admin()",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "jobs",
+            "using": "is_admin()",
+            "command": "ALL"
+        },
+        {
+            "name": "Anonymous view published jobs",
+            "check": null,
+            "roles": [
+                "anon"
+            ],
+            "table": "jobs",
+            "using": "(status = 'published'::text)",
+            "command": "SELECT"
+        },
+        {
+            "name": "Authenticated view published and own jobs",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "jobs",
+            "using": "((status = 'published'::text) OR (EXISTS ( SELECT 1\n   FROM companies c\n  WHERE ((c.id = jobs.company_id) AND (c.owner_id = ( SELECT auth.uid() AS uid))))) OR (posted_by_user_id = ( SELECT auth.uid() AS uid)))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Employers delete own pending or rejected jobs",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "jobs",
+            "using": "((status = ANY (ARRAY['pending'::text, 'rejected'::text])) AND (EXISTS ( SELECT 1\n   FROM companies c\n  WHERE ((c.id = jobs.company_id) AND (c.owner_id = ( SELECT auth.uid() AS uid))))))",
+            "command": "DELETE"
+        },
+        {
+            "name": "Employers update own pending jobs",
+            "check": "((status = 'pending'::text) AND (EXISTS ( SELECT 1\n   FROM companies c\n  WHERE ((c.id = jobs.company_id) AND (c.owner_id = ( SELECT auth.uid() AS uid)) AND (c.status = 'verified'::text)))))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "jobs",
+            "using": "((status = 'pending'::text) AND (EXISTS ( SELECT 1\n   FROM companies c\n  WHERE ((c.id = jobs.company_id) AND (c.owner_id = ( SELECT auth.uid() AS uid)) AND (c.status = 'verified'::text)))))",
+            "command": "UPDATE"
+        },
+        {
+            "name": "Individual users create pending jobs when enabled",
+            "check": "((company_id IS NULL) AND (poster_type = 'individual'::text) AND (posted_by_user_id = ( SELECT auth.uid() AS uid)) AND (status = 'pending'::text) AND private.current_user_can_post_individual_jobs())",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "jobs",
+            "using": null,
+            "command": "INSERT"
+        },
+        {
+            "name": "Individuals delete own pending or rejected jobs",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "jobs",
+            "using": "((poster_type = 'individual'::text) AND (posted_by_user_id = ( SELECT auth.uid() AS uid)) AND (status = ANY (ARRAY['pending'::text, 'rejected'::text])))",
+            "command": "DELETE"
+        },
+        {
+            "name": "Individuals update own pending jobs",
+            "check": "((poster_type = 'individual'::text) AND (posted_by_user_id = ( SELECT auth.uid() AS uid)) AND (company_id IS NULL) AND (status = 'pending'::text))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "jobs",
+            "using": "((poster_type = 'individual'::text) AND (posted_by_user_id = ( SELECT auth.uid() AS uid)) AND (status = 'pending'::text))",
+            "command": "UPDATE"
+        },
+        {
+            "name": "Verified companies create pending jobs",
+            "check": "((status = 'pending'::text) AND (EXISTS ( SELECT 1\n   FROM companies c\n  WHERE ((c.id = jobs.company_id) AND (c.owner_id = ( SELECT auth.uid() AS uid)) AND (c.status = 'verified'::text)))))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "jobs",
+            "using": null,
+            "command": "INSERT"
+        },
+        {
+            "name": "Admins view all profiles",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "profiles",
+            "using": "is_admin()",
+            "command": "SELECT"
+        },
+        {
+            "name": "Employers view profiles of their applicants",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "profiles",
+            "using": "(EXISTS ( SELECT 1\n   FROM ((applications a\n     JOIN jobs j ON ((j.id = a.job_id)))\n     JOIN companies c ON ((c.id = j.company_id)))\n  WHERE ((a.candidate_id = profiles.id) AND (c.owner_id = ( SELECT auth.uid() AS uid)))))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Enable insert for users based on user_id",
+            "check": "(( SELECT auth.uid() AS uid) = id)",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "profiles",
+            "using": null,
+            "command": "INSERT"
+        },
+        {
+            "name": "Individual job posters view applicant profiles",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "profiles",
+            "using": "(EXISTS ( SELECT 1\n   FROM (applications a\n     JOIN jobs j ON ((j.id = a.job_id)))\n  WHERE ((a.candidate_id = profiles.id) AND (j.poster_type = 'individual'::text) AND (j.posted_by_user_id = ( SELECT auth.uid() AS uid)))))",
+            "command": "SELECT"
+        },
+        {
+            "name": "User update own profile",
+            "check": "(( SELECT auth.uid() AS uid) = id)",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "profiles",
+            "using": "(( SELECT auth.uid() AS uid) = id)",
+            "command": "UPDATE"
+        },
+        {
+            "name": "Users view own profile",
+            "check": null,
+            "roles": [
+                "authenticated"
+            ],
+            "table": "profiles",
+            "using": "(id = ( SELECT auth.uid() AS uid))",
+            "command": "SELECT"
+        },
+        {
+            "name": "Users manage their own push subscriptions",
+            "check": "(user_id = ( SELECT auth.uid() AS uid))",
+            "roles": [
+                "authenticated"
+            ],
+            "table": "push_subscriptions",
+            "using": "(user_id = ( SELECT auth.uid() AS uid))",
+            "command": "ALL"
+        }
+    ],
+    "constraints": [
+        {
+            "name": "admin_users_pkey",
+            "type": "p",
+            "table": "admin_users",
+            "definition": "PRIMARY KEY (user_id)"
+        },
+        {
+            "name": "admin_users_user_id_fkey",
+            "type": "f",
+            "table": "admin_users",
+            "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "applications_candidate_id_fkey",
+            "type": "f",
+            "table": "applications",
+            "definition": "FOREIGN KEY (candidate_id) REFERENCES profiles(id)"
+        },
+        {
+            "name": "applications_job_id_candidate_id_key",
+            "type": "u",
+            "table": "applications",
+            "definition": "UNIQUE (job_id, candidate_id)"
+        },
+        {
+            "name": "applications_job_id_fkey",
+            "type": "f",
+            "table": "applications",
+            "definition": "FOREIGN KEY (job_id) REFERENCES jobs(id)"
+        },
+        {
+            "name": "applications_pkey",
+            "type": "p",
+            "table": "applications",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "applications_resume_id_fkey",
+            "type": "f",
+            "table": "applications",
+            "definition": "FOREIGN KEY (resume_id) REFERENCES candidate_resumes(id) ON DELETE SET NULL"
+        },
+        {
+            "name": "applications_status_check",
+            "type": "c",
+            "table": "applications",
+            "definition": "CHECK ((status = ANY (ARRAY['submitted'::text, 'reviewing'::text, 'shortlisted'::text, 'rejected'::text, 'accepted'::text])))"
+        },
+        {
+            "name": "candidate_experiences_candidate_id_fkey",
+            "type": "f",
+            "table": "candidate_experiences",
+            "definition": "FOREIGN KEY (candidate_id) REFERENCES profiles(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "candidate_experiences_current_end_check",
+            "type": "c",
+            "table": "candidate_experiences",
+            "definition": "CHECK (((NOT is_current) OR (end_date IS NULL)))"
+        },
+        {
+            "name": "candidate_experiences_dates_check",
+            "type": "c",
+            "table": "candidate_experiences",
+            "definition": "CHECK (((start_date IS NULL) OR (end_date IS NULL) OR (end_date >= start_date)))"
+        },
+        {
+            "name": "candidate_experiences_pkey",
+            "type": "p",
+            "table": "candidate_experiences",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "candidate_resumes_candidate_id_fkey",
+            "type": "f",
+            "table": "candidate_resumes",
+            "definition": "FOREIGN KEY (candidate_id) REFERENCES profiles(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "candidate_resumes_file_path_key",
+            "type": "u",
+            "table": "candidate_resumes",
+            "definition": "UNIQUE (file_path)"
+        },
+        {
+            "name": "candidate_resumes_file_size_bytes_check",
+            "type": "c",
+            "table": "candidate_resumes",
+            "definition": "CHECK ((file_size_bytes <= 5242880))"
+        },
+        {
+            "name": "candidate_resumes_mime_type_check",
+            "type": "c",
+            "table": "candidate_resumes",
+            "definition": "CHECK ((mime_type = 'application/pdf'::text))"
+        },
+        {
+            "name": "candidate_resumes_pkey",
+            "type": "p",
+            "table": "candidate_resumes",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "companies_owner_id_fkey",
+            "type": "f",
+            "table": "companies",
+            "definition": "FOREIGN KEY (owner_id) REFERENCES profiles(id)"
+        },
+        {
+            "name": "companies_pkey",
+            "type": "p",
+            "table": "companies",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "companies_status_check",
+            "type": "c",
+            "table": "companies",
+            "definition": "CHECK ((status = ANY (ARRAY['pending'::text, 'verified'::text, 'rejected'::text, 'suspended'::text])))"
+        },
+        {
+            "name": "in_app_notifications_application_id_fkey",
+            "type": "f",
+            "table": "in_app_notifications",
+            "definition": "FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "in_app_notifications_new_status_check",
+            "type": "c",
+            "table": "in_app_notifications",
+            "definition": "CHECK ((new_status = ANY (ARRAY['submitted'::text, 'reviewing'::text, 'shortlisted'::text, 'rejected'::text, 'accepted'::text, 'message'::text])))"
+        },
+        {
+            "name": "in_app_notifications_pkey",
+            "type": "p",
+            "table": "in_app_notifications",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "in_app_notifications_user_id_fkey",
+            "type": "f",
+            "table": "in_app_notifications",
+            "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_alert_deliveries_attempt_count_check",
+            "type": "c",
+            "table": "job_alert_deliveries",
+            "definition": "CHECK ((attempt_count >= 0))"
+        },
+        {
+            "name": "job_alert_deliveries_channel_check",
+            "type": "c",
+            "table": "job_alert_deliveries",
+            "definition": "CHECK ((channel = ANY (ARRAY['in_app'::text, 'push'::text])))"
+        },
+        {
+            "name": "job_alert_deliveries_delivery_kind_check",
+            "type": "c",
+            "table": "job_alert_deliveries",
+            "definition": "CHECK ((delivery_kind = ANY (ARRAY['instant'::text, 'daily_digest'::text])))"
+        },
+        {
+            "name": "job_alert_deliveries_notification_id_channel_delivery_kind_key",
+            "type": "u",
+            "table": "job_alert_deliveries",
+            "definition": "UNIQUE (notification_id, channel, delivery_kind)"
+        },
+        {
+            "name": "job_alert_deliveries_notification_id_fkey",
+            "type": "f",
+            "table": "job_alert_deliveries",
+            "definition": "FOREIGN KEY (notification_id) REFERENCES job_alert_notifications(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_alert_deliveries_pkey",
+            "type": "p",
+            "table": "job_alert_deliveries",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "job_alert_deliveries_status_check",
+            "type": "c",
+            "table": "job_alert_deliveries",
+            "definition": "CHECK ((status = ANY (ARRAY['pending'::text, 'processing'::text, 'sent'::text, 'failed'::text, 'skipped'::text])))"
+        },
+        {
+            "name": "job_alert_digest_runs_attempt_count_check",
+            "type": "c",
+            "table": "job_alert_digest_runs",
+            "definition": "CHECK ((attempt_count >= 0))"
+        },
+        {
+            "name": "job_alert_digest_runs_batch_id_key",
+            "type": "u",
+            "table": "job_alert_digest_runs",
+            "definition": "UNIQUE (batch_id)"
+        },
+        {
+            "name": "job_alert_digest_runs_channel_check",
+            "type": "c",
+            "table": "job_alert_digest_runs",
+            "definition": "CHECK ((channel = ANY (ARRAY['in_app'::text, 'push'::text])))"
+        },
+        {
+            "name": "job_alert_digest_runs_pkey",
+            "type": "p",
+            "table": "job_alert_digest_runs",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "job_alert_digest_runs_status_check",
+            "type": "c",
+            "table": "job_alert_digest_runs",
+            "definition": "CHECK ((status = ANY (ARRAY['pending'::text, 'processing'::text, 'sent'::text, 'failed'::text, 'skipped'::text])))"
+        },
+        {
+            "name": "job_alert_digest_runs_user_id_digest_date_channel_key",
+            "type": "u",
+            "table": "job_alert_digest_runs",
+            "definition": "UNIQUE (user_id, digest_date, channel)"
+        },
+        {
+            "name": "job_alert_digest_runs_user_id_fkey",
+            "type": "f",
+            "table": "job_alert_digest_runs",
+            "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_alert_notifications_job_id_fkey",
+            "type": "f",
+            "table": "job_alert_notifications",
+            "definition": "FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE SET NULL"
+        },
+        {
+            "name": "job_alert_notifications_pkey",
+            "type": "p",
+            "table": "job_alert_notifications",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "job_alert_notifications_user_id_fkey",
+            "type": "f",
+            "table": "job_alert_notifications",
+            "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_alert_outbox_attempt_count_check",
+            "type": "c",
+            "table": "job_alert_outbox",
+            "definition": "CHECK ((attempt_count >= 0))"
+        },
+        {
+            "name": "job_alert_outbox_event_type_check",
+            "type": "c",
+            "table": "job_alert_outbox",
+            "definition": "CHECK ((event_type = 'job_published'::text))"
+        },
+        {
+            "name": "job_alert_outbox_event_type_job_id_key",
+            "type": "u",
+            "table": "job_alert_outbox",
+            "definition": "UNIQUE (event_type, job_id)"
+        },
+        {
+            "name": "job_alert_outbox_job_id_fkey",
+            "type": "f",
+            "table": "job_alert_outbox",
+            "definition": "FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_alert_outbox_pkey",
+            "type": "p",
+            "table": "job_alert_outbox",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "job_alert_outbox_status_check",
+            "type": "c",
+            "table": "job_alert_outbox",
+            "definition": "CHECK ((status = ANY (ARRAY['pending'::text, 'processing'::text, 'completed'::text, 'failed'::text])))"
+        },
+        {
+            "name": "job_alert_preference_categories_category_id_fkey",
+            "type": "f",
+            "table": "job_alert_preference_categories",
+            "definition": "FOREIGN KEY (category_id) REFERENCES job_categories(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_alert_preference_categories_pkey",
+            "type": "p",
+            "table": "job_alert_preference_categories",
+            "definition": "PRIMARY KEY (preference_id, category_id)"
+        },
+        {
+            "name": "job_alert_preference_categories_preference_id_fkey",
+            "type": "f",
+            "table": "job_alert_preference_categories",
+            "definition": "FOREIGN KEY (preference_id) REFERENCES job_alert_preferences(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_alert_preference_employment_types_employment_type_check",
+            "type": "c",
+            "table": "job_alert_preference_employment_types",
+            "definition": "CHECK ((employment_type = ANY (ARRAY['full_time'::text, 'part_time'::text, 'remote'::text, 'contract'::text, 'temporary'::text, 'internship'::text])))"
+        },
+        {
+            "name": "job_alert_preference_employment_types_pkey",
+            "type": "p",
+            "table": "job_alert_preference_employment_types",
+            "definition": "PRIMARY KEY (preference_id, employment_type)"
+        },
+        {
+            "name": "job_alert_preference_employment_types_preference_id_fkey",
+            "type": "f",
+            "table": "job_alert_preference_employment_types",
+            "definition": "FOREIGN KEY (preference_id) REFERENCES job_alert_preferences(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_alert_preference_locations_pkey",
+            "type": "p",
+            "table": "job_alert_preference_locations",
+            "definition": "PRIMARY KEY (preference_id, state)"
+        },
+        {
+            "name": "job_alert_preference_locations_preference_id_fkey",
+            "type": "f",
+            "table": "job_alert_preference_locations",
+            "definition": "FOREIGN KEY (preference_id) REFERENCES job_alert_preferences(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_alert_preference_locations_state_check",
+            "type": "c",
+            "table": "job_alert_preference_locations",
+            "definition": "CHECK ((length(btrim(state)) > 0))"
+        },
+        {
+            "name": "job_alert_preference_specialties_pkey",
+            "type": "p",
+            "table": "job_alert_preference_specialties",
+            "definition": "PRIMARY KEY (preference_id, specialty_id)"
+        },
+        {
+            "name": "job_alert_preference_specialties_preference_id_fkey",
+            "type": "f",
+            "table": "job_alert_preference_specialties",
+            "definition": "FOREIGN KEY (preference_id) REFERENCES job_alert_preferences(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_alert_preference_specialties_specialty_id_fkey",
+            "type": "f",
+            "table": "job_alert_preference_specialties",
+            "definition": "FOREIGN KEY (specialty_id) REFERENCES job_specialties(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_alert_preferences_delivery_mode_check",
+            "type": "c",
+            "table": "job_alert_preferences",
+            "definition": "CHECK ((delivery_mode = ANY (ARRAY['instant'::text, 'daily'::text, 'both'::text])))"
+        },
+        {
+            "name": "job_alert_preferences_pkey",
+            "type": "p",
+            "table": "job_alert_preferences",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "job_alert_preferences_user_id_fkey",
+            "type": "f",
+            "table": "job_alert_preferences",
+            "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_alert_preferences_user_id_key",
+            "type": "u",
+            "table": "job_alert_preferences",
+            "definition": "UNIQUE (user_id)"
+        },
+        {
+            "name": "job_categories_pkey",
+            "type": "p",
+            "table": "job_categories",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "job_categories_slug_key",
+            "type": "u",
+            "table": "job_categories",
+            "definition": "UNIQUE (slug)"
+        },
+        {
+            "name": "job_messages_application_id_fkey",
+            "type": "f",
+            "table": "job_messages",
+            "definition": "FOREIGN KEY (application_id) REFERENCES applications(id)"
+        },
+        {
+            "name": "job_messages_body_check",
+            "type": "c",
+            "table": "job_messages",
+            "definition": "CHECK (((char_length(body) >= 1) AND (char_length(body) <= 3000)))"
+        },
+        {
+            "name": "job_messages_candidate_id_fkey",
+            "type": "f",
+            "table": "job_messages",
+            "definition": "FOREIGN KEY (candidate_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_messages_distinct_participants",
+            "type": "c",
+            "table": "job_messages",
+            "definition": "CHECK (((candidate_id <> poster_id) AND (sender_id <> recipient_id)))"
+        },
+        {
+            "name": "job_messages_job_id_fkey",
+            "type": "f",
+            "table": "job_messages",
+            "definition": "FOREIGN KEY (job_id) REFERENCES jobs(id)"
+        },
+        {
+            "name": "job_messages_pkey",
+            "type": "p",
+            "table": "job_messages",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "job_messages_poster_id_fkey",
+            "type": "f",
+            "table": "job_messages",
+            "definition": "FOREIGN KEY (poster_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_messages_recipient_id_fkey",
+            "type": "f",
+            "table": "job_messages",
+            "definition": "FOREIGN KEY (recipient_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_messages_sender_id_fkey",
+            "type": "f",
+            "table": "job_messages",
+            "definition": "FOREIGN KEY (sender_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "job_specialties_category_id_fkey",
+            "type": "f",
+            "table": "job_specialties",
+            "definition": "FOREIGN KEY (category_id) REFERENCES job_categories(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "job_specialties_id_category_unique",
+            "type": "u",
+            "table": "job_specialties",
+            "definition": "UNIQUE (id, category_id)"
+        },
+        {
+            "name": "job_specialties_pkey",
+            "type": "p",
+            "table": "job_specialties",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "job_specialties_slug_key",
+            "type": "u",
+            "table": "job_specialties",
+            "definition": "UNIQUE (slug)"
+        },
+        {
+            "name": "jobs_category_id_fkey",
+            "type": "f",
+            "table": "jobs",
+            "definition": "FOREIGN KEY (category_id) REFERENCES job_categories(id) ON DELETE SET NULL"
+        },
+        {
+            "name": "jobs_company_id_fkey",
+            "type": "f",
+            "table": "jobs",
+            "definition": "FOREIGN KEY (company_id) REFERENCES companies(id)"
+        },
+        {
+            "name": "jobs_pkey",
+            "type": "p",
+            "table": "jobs",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "jobs_posted_by_user_id_fkey",
+            "type": "f",
+            "table": "jobs",
+            "definition": "FOREIGN KEY (posted_by_user_id) REFERENCES profiles(id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "jobs_poster_type_check",
+            "type": "c",
+            "table": "jobs",
+            "definition": "CHECK ((poster_type = ANY (ARRAY['company'::text, 'individual'::text])))"
+        },
+        {
+            "name": "jobs_specialty_category_fkey",
+            "type": "f",
+            "table": "jobs",
+            "definition": "FOREIGN KEY (specialty_id, category_id) REFERENCES job_specialties(id, category_id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "jobs_status_check",
+            "type": "c",
+            "table": "jobs",
+            "definition": "CHECK ((status = ANY (ARRAY['pending'::text, 'published'::text, 'closed'::text, 'rejected'::text])))"
+        },
+        {
+            "name": "profiles_account_type_check",
+            "type": "c",
+            "table": "profiles",
+            "definition": "CHECK ((account_type = ANY (ARRAY['candidate'::text, 'employer'::text, 'admin'::text])))"
+        },
+        {
+            "name": "profiles_category_id_fkey",
+            "type": "f",
+            "table": "profiles",
+            "definition": "FOREIGN KEY (category_id) REFERENCES job_categories(id) ON DELETE SET NULL"
+        },
+        {
+            "name": "profiles_id_fkey",
+            "type": "f",
+            "table": "profiles",
+            "definition": "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "profiles_pkey",
+            "type": "p",
+            "table": "profiles",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "profiles_specialty_category_fkey",
+            "type": "f",
+            "table": "profiles",
+            "definition": "FOREIGN KEY (specialty_id, category_id) REFERENCES job_specialties(id, category_id) ON DELETE RESTRICT"
+        },
+        {
+            "name": "push_notification_events_application_id_fkey",
+            "type": "f",
+            "table": "push_notification_events",
+            "definition": "FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE"
+        },
+        {
+            "name": "push_notification_events_application_id_status_key",
+            "type": "u",
+            "table": "push_notification_events",
+            "definition": "UNIQUE (application_id, status)"
+        },
+        {
+            "name": "push_notification_events_pkey",
+            "type": "p",
+            "table": "push_notification_events",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "push_notification_events_status_check",
+            "type": "c",
+            "table": "push_notification_events",
+            "definition": "CHECK ((status = ANY (ARRAY['submitted'::text, 'reviewing'::text, 'shortlisted'::text, 'rejected'::text, 'accepted'::text])))"
+        },
+        {
+            "name": "push_subscriptions_endpoint_key",
+            "type": "u",
+            "table": "push_subscriptions",
+            "definition": "UNIQUE (endpoint)"
+        },
+        {
+            "name": "push_subscriptions_endpoint_length",
+            "type": "c",
+            "table": "push_subscriptions",
+            "definition": "CHECK (((char_length(endpoint) >= 1) AND (char_length(endpoint) <= 2048)))"
+        },
+        {
+            "name": "push_subscriptions_json_object",
+            "type": "c",
+            "table": "push_subscriptions",
+            "definition": "CHECK ((jsonb_typeof(subscription) = 'object'::text))"
+        },
+        {
+            "name": "push_subscriptions_pkey",
+            "type": "p",
+            "table": "push_subscriptions",
+            "definition": "PRIMARY KEY (id)"
+        },
+        {
+            "name": "push_subscriptions_user_id_fkey",
+            "type": "f",
+            "table": "push_subscriptions",
+            "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        }
+    ]
+}
