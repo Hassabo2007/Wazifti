@@ -8,6 +8,7 @@ on:
       - "docs/audits/supabase-production-runtime-catalog-2026-11-10.json"
       - "docs/audits/recovered-production-migration-history-2026-11-10.sql"
       - "scripts/reconcile_migration_history.py"
+      - "scripts/export_recovered_migrations.py"
       - ".github/workflows/migration-history-audit.yml"
   workflow_dispatch:
 permissions:
@@ -22,3 +23,12 @@ jobs:
           python-version: "3.x"
       - name: Compare repository migration SQL with captured production ledger
         run: python scripts/reconcile_migration_history.py
+      - name: Export all applied production migrations outside the active migration folder
+        run: python scripts/export_recovered_migrations.py --output-dir "$RUNNER_TEMP/wazifti-recovered-migrations"
+      - name: Preserve recovered SQL and manifest as a non-runnable audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wazifti-recovered-production-migrations
+          path: ${{ runner.temp }}/wazifti-recovered-migrations/
+          if-no-files-found: error
+          retention-days: 14
