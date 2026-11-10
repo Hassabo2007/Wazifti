@@ -102,14 +102,35 @@ A live read-only comparison against current `information_schema.columns` found:
 - `applications` adds `resume_id`; original `cv_url` remains.
 - `admin_users` still matches the recovered initial column set.
 
-The 26-entry production ledger starts on 2026-11-06, after the manual bootstrap. It can now be replay-tested against a recovered baseline, but a stock PostgreSQL 17 instance still needs local test doubles for Supabase Auth/roles/Vault and must exclude or separately stub Supabase-managed publication, `pg_cron`, and `pg_net` dependencies.
+The pre-ledger setup also includes `public.candidate_resumes`, RLS policies for CV ownership, `private.candidate_owns_resume(uuid, uuid)`, and `applications.resume_id`. These were recovered from query statistics and are preserved separately in `docs/audits/recovered-preledger-cv-prerequisites-2026-11-04.sql`. They are prerequisites for applied migration `20261107203156`, which references them but does not create them.
 
-## Safe next work
+The 26-entry production ledger starts on 2026-11-06, after this manual/pre-ledger setup.
 
-1. Run the recovered manual bootstrap fixture on free PostgreSQL 17 and assert its tables, RLS flags, policies, Auth trigger, admin function and unique application constraint.
-2. Once that baseline test passes, replay the captured 26 ledger SQL statements in version order in a disposable PostgreSQL 17 database, excluding only migrations whose Supabase-managed dependencies cannot be faithfully provided by stock PostgreSQL; list every exclusion.
-3. Compare each of the 13 applied entries without a repository content match against the captured SQL and current catalog; do not infer equivalence solely from migration names.
-4. For the 8 repository files without any exact/normalized applied-ledger match, identify whether they are pending, superseded, or partially consolidated.
-5. Keep recovered historical SQL outside `supabase/migrations` until canonical ordering and semantic equivalence are verified.
+## PostgreSQL 17 validation results
+
+A free GitHub-hosted PostgreSQL 17 workflow now builds the recovered manual baseline and pre-ledger CV prerequisites in a disposable database, then replays the captured production SQL in chronological version order.
+
+**Latest validated run:** `42805488079` — all three jobs passed.
+
+- Recovered manual bootstrap: passed. Assertions cover `profiles`, `companies`, `jobs`, `applications`, `admin_users`, `candidate_resumes`, the application resume link, RLS activation, recovered policies, Auth signup trigger, `is_admin()`, and `candidate_owns_resume()`.
+- Historical ledger replay: **24 of 26** captured applied migrations passed in order on PostgreSQL 17.
+- Final schema assertions passed for taxonomy/experience, push subscriptions, notifications, messaging, individual job posting, job-alert tables, key columns, functions and RLS policies.
+- The isolated V1.15 compatibility fixture also passed independently.
+
+Two migrations were intentionally excluded from the stock PostgreSQL 17 replay:
+
+1. `20261107110343_enable_jobs_realtime_publication` — requires the Supabase-managed `supabase_realtime` publication and matching WAL configuration.
+2. `20261109185459_job_alerts_daily_digest_scheduler` — requires Supabase-managed `pg_cron`, `pg_net`, Vault-backed cron configuration and scheduled jobs.
+
+The replay used only a local `auth.users` / `auth.uid()` / `auth.role()` test double, a minimal Storage `foldername()` helper, and an empty local Vault `decrypted_secrets` table. No Supabase credentials, secrets, production data or production connection were used. The two skipped migrations remain untested in this stock PostgreSQL environment.
+
+## Remaining reconciliation work
+
+1. Perform semantic comparison of the 13 applied ledger entries without an exact or normalized repository match, focusing on effects visible in the production catalog and adjacent migration statements.
+2. Resolve the 8 repository files without any exact/normalized applied-ledger match as pending, superseded, or consolidated; do not delete or promote them automatically.
+3. Compare the final PostgreSQL 17 test schema with the captured production catalog at the object level (constraints, indexes, policies, functions and triggers), noting differences caused by the two exclusions and Supabase-managed services.
+4. Keep recovered historical SQL outside `supabase/migrations` until canonical ordering and semantic equivalence are reviewed. The PR remains Draft.
+
+**Validation is substantial but partial:** 24/26 historical SQL statements replay on PostgreSQL 17 from the recovered manual/pre-ledger baseline; the two Supabase-managed migrations and full production equivalence are not certified.
 
 **No production SQL, migration-history rows, or data were changed during this comparison. Do not run `supabase db push`, replay the forensic archive on production, or repair the production migration ledger as part of this audit.**
