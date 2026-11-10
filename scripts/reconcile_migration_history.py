@@ -34,8 +34,7 @@ for path, sql in source.items():
 
 print("\nProduction ledger entries without an exact repository file:")
 for row in ledger:
-    if not any((row["version"], row["name"], (statement or "").strip()) in matched
-               for statement in row.get("statements", [])):
+    if (row["version"], row["name"]) not in matched:
         print(f"  {row['version']} {row['name']}")
 
 print("\nThis is a read-only content comparison. It does not repair migration history or execute SQL.")
