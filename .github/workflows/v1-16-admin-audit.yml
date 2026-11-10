@@ -17,7 +17,7 @@ on:
       - ".github/workflows/v1-16-admin-audit.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate-migration:
@@ -26,6 +26,8 @@ jobs:
       migration_file: ${{ steps.migration.outputs.file }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
       - uses: supabase/setup-cli@v1
         with:
           version: latest
@@ -49,6 +51,11 @@ jobs:
             fi
             cp tests/postgres17/v1_16_admin_audit_trail.sql "${generated[0]}"
             migration_file="${generated[0]}"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add "$migration_file"
+            git commit -m "chore(db): add CLI-generated V1.16 audit migration"
+            git push origin "HEAD:${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
           else
             migration_file="${existing[0]}"
             if ! cmp -s tests/postgres17/v1_16_admin_audit_trail.sql "$migration_file"; then
