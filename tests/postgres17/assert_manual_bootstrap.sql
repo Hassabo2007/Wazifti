@@ -100,7 +100,7 @@ VALUES ('00000000-0000-4000-8000-000000000001','cv.pdf',
         '00000000-0000-4000-8000-000000000001/cv.pdf',1024);
 SELECT set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',false);
 SET ROLE authenticated;
-DO $
+DO $test$
 DECLARE v_resume_id uuid;
 BEGIN
   SELECT id INTO v_resume_id FROM public.candidate_resumes
@@ -111,7 +111,7 @@ BEGIN
   IF private.candidate_owns_resume(v_resume_id,'00000000-0000-4000-8000-000000000002') THEN
     RAISE EXCEPTION 'candidate_owns_resume accepted a mismatched candidate';
   END IF;
-END $;
+END $test$;
 RESET ROLE;
 
 SELECT 'Recovered 2026-11-04 manual bootstrap passed PostgreSQL 17 checks' AS result;
