@@ -1,13 +1,24 @@
 -- Behavioral RLS tests using UUID keys and required columns matching live Supabase metadata.
 -- Runs only against the disposable PostgreSQL service in GitHub Actions.
 
-INSERT INTO public.companies (id, owner_id)
-VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '22222222-2222-4222-8222-222222222222');
+INSERT INTO auth.users (id) VALUES
+ ('11111111-1111-4111-8111-111111111111'),
+ ('22222222-2222-4222-8222-222222222222'),
+ ('33333333-3333-4333-8333-333333333333'),
+ ('44444444-4444-4444-8444-444444444444');
 
-INSERT INTO public.jobs (id, company_id, poster_type, posted_by_user_id)
+INSERT INTO public.profiles (id, full_name, account_type) VALUES
+ ('11111111-1111-4111-8111-111111111111','Candidate','candidate'),
+ ('22222222-2222-4222-8222-222222222222','Company owner','employer'),
+ ('33333333-3333-4333-8333-333333333333','Individual poster','candidate');
+
+INSERT INTO public.companies (id, owner_id, company_name, status)
+VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '22222222-2222-4222-8222-222222222222', 'Test Company', 'verified');
+
+INSERT INTO public.jobs (id, company_id, title, description, poster_type, posted_by_user_id)
 VALUES
-  ('10000000-0000-4000-8000-000000000010', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'company', NULL),
-  ('11000000-0000-4000-8000-000000000011', NULL, 'individual', '33333333-3333-4333-8333-333333333333');
+  ('10000000-0000-4000-8000-000000000010', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Company test role', 'Test description', 'company', NULL),
+  ('11000000-0000-4000-8000-000000000011', NULL, 'Individual test role', 'Test description', 'individual', '33333333-3333-4333-8333-333333333333');
 
 INSERT INTO public.applications (id, job_id, candidate_id)
 VALUES
