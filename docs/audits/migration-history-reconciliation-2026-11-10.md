@@ -10,15 +10,16 @@
 - `supabase-production-migration-ledger-2026-11-10.json`: complete 26-entry `supabase_migrations.schema_migrations` snapshot, including the SQL statements recorded by Supabase for each applied version.
 - `recovered-production-migration-history-2026-11-10.sql`: a readable forensic archive of all 26 applied SQL entries, kept under `docs/audits` so Supabase CLI will not treat it as pending migrations. It is explicitly marked DO NOT RUN.
 - `supabase-production-schema-snapshot-2026-11-10.json`: captured table/column metadata, public RLS policies, indexes, and constraints.
-- A separate runtime catalog snapshot is still desirable for views, functions, triggers, extensions, enum types, grants, and publications before claiming full schema equivalence.
+- A separate runtime catalog snapshot is included for views, functions, triggers, extensions, enum types, grants, and publications. It remains a point-in-time metadata export, not a restorable database dump.
 
 ## Findings
 
 - Production records **26 applied migrations**.
-- The current `main` branch contains **21 SQL files** in `supabase/migrations`.
+- The current repository branch contains **21 SQL files** in `supabase/migrations`.
 - The free CI content audit found **7 exact SQL-content matches** between repository files and production history: 3 with matching timestamps and 4 with filename timestamp drift. The other **19 applied ledger entries have no exact matching repository file**.
 - The current repository also contains 14 files without an exact applied-ledger match. Some are the intended unapplied V1.15 migration; others include the daily-digest, VAPID, and close/archive files whose content differs from production. They require semantic diffing, not automatic replacement.
 - The repository contains job-alert migration files whose exact SQL is not represented as a separate applied production ledger entry. They may be consolidated into the later complete job-alert migration, but that must be proven by content/DDL comparison before removing or retaining them as runnable migrations.
+- A live read-only comparison on 2026-11-10 found **22 public tables** in both the saved schema snapshot and current Supabase catalog, with no differences in column names, data types, defaults, or nullability.
 - V1.15 remains a proposed, unapplied migration. This reconciliation work does not apply it.
 
 ## Changes made in this branch
@@ -26,6 +27,7 @@
 1. Preserve the production migration ledger exactly as captured, including the SQL text Supabase says it executed.
 2. Preserve the current production catalog metadata snapshot as a comparison baseline.
 3. Add a free GitHub Actions audit that compares repository migration file contents against the captured production ledger. It uses GitHub-hosted runners only; it does not create a Supabase branch or incur Supabase compute charges.
+4. Add `scripts/export_recovered_migrations.py`, which exports all 26 ledger SQL entries to a temporary CI artifact outside `supabase/migrations`, with SHA-256 hashes and explicit classifications. The artifact is retained for 14 days and marked forensic-only / DO NOT RUN.
 
 ## Safety decisions
 
@@ -44,6 +46,6 @@ The exact comparison must be used to reconstruct an authoritative historical fil
 - repository-only files that are either genuinely pending or already consolidated into a later applied migration;
 - the intentionally pending V1.15 migration.
 
-Then compare the captured catalog against a clean, free PostgreSQL 17 baseline. Because the snapshots are catalog exports rather than a restorable full `pg_dump`, a faithful replay still requires generating a complete schema-only dump using authorized read-only database connection credentials or reconstructing every required Supabase-managed prerequisite. Do not treat the current snapshots as a full clone. The existing V1.15 fixture is a focused schema-faithful test slice, not a full Supabase clone.
+Then compare the captured catalog against a clean, free PostgreSQL 17 baseline. The 26-entry production ledger begins on 2026-11-06, after the application's base tables already existed; therefore these 26 migrations alone are not a complete from-empty bootstrap history. A true replay requires a verified pre-2026-11-06 baseline (or the original initial schema migrations) plus the Supabase-managed prerequisites. A current-state `pg_dump --schema-only` would help preserve the present schema, but cannot substitute for that pre-migration baseline. The existing V1.15 fixture is a focused schema-faithful test slice, not a full Supabase clone.
 
 **Current result: historical evidence is preserved and automated drift detection is in place; the migration history is not yet repaired, and full schema compatibility is not yet certified.**
