@@ -1,5 +1,14 @@
 name: Supabase migration history audit (free GitHub Actions)
 on:
+  push:
+    branches:
+      - "audit/migration-history-reconciliation"
+    paths:
+      - "supabase/migrations/**"
+      - "docs/audits/supabase-production-migration-ledger-2026-11-10.json"
+      - "scripts/reconcile_migration_history.py"
+      - "scripts/export_recovered_migrations.py"
+      - ".github/workflows/migration-history-audit.yml"
   pull_request:
     paths:
       - "supabase/migrations/**"
