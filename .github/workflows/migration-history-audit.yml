@@ -1,4 +1,4 @@
-name: Supabase migration history audit (free PostgreSQL-free check)
+name: Supabase migration history audit (free GitHub Actions)
 on:
   pull_request:
     paths:
