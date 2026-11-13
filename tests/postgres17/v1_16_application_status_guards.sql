@@ -11,9 +11,12 @@ declare
 begin
   -- Trusted maintenance, service-role jobs, and audited administrator actions
   -- retain their existing privileged path.
-  if current_user in ('postgres', 'supabase_admin')
+  -- PostgREST sessions use authenticator as session_user. SECURITY DEFINER
+  -- RPCs explicitly set a transaction-local context before their trusted update.
+  if session_user in ('postgres', 'supabase_admin')
      or coalesce(auth.role(), '') = 'service_role'
-     or public.is_admin() then
+     or public.is_admin()
+     or current_setting('wazifti.application_status_rpc', true) = 'on' then
     return new;
   end if;
 
@@ -118,6 +121,8 @@ begin
       using errcode = '42501';
   end if;
 
+  perform set_config('wazifti.application_status_rpc', 'on', true);
+
   update public.applications
   set status = p_new_status
   where id = p_application_id
@@ -187,6 +192,8 @@ begin
     raise exception 'An applicant has already been accepted for this job.'
       using errcode = '23505';
   end if;
+
+  perform set_config('wazifti.application_status_rpc', 'on', true);
 
   update public.applications
   set status = 'accepted'
