@@ -117,6 +117,12 @@ begin
   if public.is_admin() then
     raise exception 'The ordinary employer test identity unexpectedly has admin access';
   end if;
+  if coalesce(auth.role(), '') <> 'authenticated' then
+    raise exception 'Unexpected JWT role in direct-write test: %', auth.role();
+  end if;
+  if auth.uid() <> '00000000-0000-4000-8000-000000000011'::uuid then
+    raise exception 'Unexpected JWT user in direct-write test: %', auth.uid();
+  end if;
   if current_setting('wazifti.application_status_rpc', true) = 'on' then
     raise exception 'Trusted RPC context leaked beyond its transaction';
   end if;
