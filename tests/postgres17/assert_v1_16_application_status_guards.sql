@@ -8,6 +8,11 @@ values ('00000000-0000-4000-8000-000000000013',
         '{"full_name":"Status Guard Candidate Three"}')
 on conflict (id) do nothing;
 
+-- The recovered fixture intentionally does not reproduce every live Data API
+-- grant. Production grants authenticated UPDATE on applications; model that
+-- existing privilege here so the test reaches RLS and the BEFORE trigger.
+grant select, update on public.applications to authenticated;
+
 -- Seed disposable rows as the database owner. All writes under test below run
 -- with the authenticated JWT and the real employer RLS policies.
 insert into public.companies (id, owner_id, company_name, status)
