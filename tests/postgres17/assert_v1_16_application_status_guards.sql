@@ -107,6 +107,22 @@ $assert_rejected_application_cannot_be_accepted$;
 select public.finalize_job_hiring(
   '70000000-0000-4000-8000-000000000001');
 
+-- Confirm the test is still an ordinary authenticated session after the
+-- SECURITY DEFINER hiring RPC has returned; its trusted context is transaction-local.
+do $assert_untrusted_context_reset$
+begin
+  if session_user <> 'authenticated' or current_user <> 'authenticated' then
+    raise exception 'Direct-write test is not running as authenticated';
+  end if;
+  if public.is_admin() then
+    raise exception 'The ordinary employer test identity unexpectedly has admin access';
+  end if;
+  if current_setting('wazifti.application_status_rpc', true) = 'on' then
+    raise exception 'Trusted RPC context leaked beyond its transaction';
+  end if;
+end;
+$assert_untrusted_context_reset$;
+
 -- A non-admin company employer cannot bypass the finalization RPC by writing
 -- accepted directly through the Data API.
 do $assert_direct_acceptance_blocked$
