@@ -1,0 +1,27 @@
+name: Wazifti migration safety guard
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/**"
+      - "docs/development/SAFE_DATABASE_MIGRATIONS.md"
+      - ".github/workflows/migration-safety-guard.yml"
+      - "scripts/check_migration_safety.py"
+
+permissions:
+  contents: read
+
+jobs:
+  migration-safety:
+    name: migration-safety
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Validate changed migration naming, uniqueness, and archive separation
+        run: python scripts/check_migration_safety.py "origin/${{ github.base_ref }}" "${{ github.sha }}"
