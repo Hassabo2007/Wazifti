@@ -97,7 +97,7 @@ Therefore:
 - PR #38 adds a read-only, paginated, bilingual application overview; it does not write application statuses.
 - Existing admin access policies on applications, companies, and jobs were reviewed; no RLS expansion is proposed here.
 - No audit table exists in the reviewed production public schema.
-- No database changes are part of this document.
+- The original design proposal made no database changes; see the production rollout record in section 14.
 
 
 ## 10. Production readiness review (2026-11-10; read-only)
@@ -106,7 +106,7 @@ The following was verified against the live production database. No production o
 
 ### Confirmed schema and status constraints
 
-- No `public.audit_logs` or `public.admin_audit_logs` table exists.
+- At the time of the initial readiness review, no public audit table existed. The first private audit table was subsequently deployed on 2026-11-13 as `private.admin_audit_logs`.
 - `companies.status` is constrained to `pending`, `verified`, `rejected`, and `suspended`.
 - `jobs.status` is constrained to `pending`, `published`, `closed`, and `rejected`; there is no supported `paused` state. Do not implement `job.pause` as a status until the product state model is deliberately extended.
 - `applications.status` is constrained to `submitted`, `reviewing`, `shortlisted`, `rejected`, and `accepted`.
@@ -137,7 +137,7 @@ Production has permissive `ALL` policies named `Admins manage applications`, `Ad
 - Events related to an open complaint, investigation, legal hold, or unresolved dispute must be retained beyond 24 months until the hold is explicitly released by an authorized process.
 - Before enabling cleanup, implement and test: a verified backup/archive, a dry-run report of eligible rows, a documented approval step, bounded batch deletion, monitoring, and a recovery/rollback procedure. Never run a bulk delete directly as part of the initial audit-table migration.
 - Retention duration is therefore settled at 24 months; reason requirements and the first admin audit-viewer scope remain open product decisions.
-- The Supabase CLI-generated migration now exists on the V1.16 implementation branch as `supabase/migrations/20261110203144_v1_16_admin_audit_trail.sql`. It was generated in GitHub Actions without linking to production. No production DDL has been run; the migration remains pending PostgreSQL 17 test and review.
+- The audit migration was applied to production on 2026-11-13 and recorded by Supabase as version `20261113084653` (`v1_16_admin_audit_trail`). The repository migration filename is being aligned with that exact production version in PR #47. No historical migration was replayed.
 - The free PostgreSQL 17 GitHub Actions path is the intended test target. Do not create a paid Supabase branch or require a credit card.
 
 ### Implementation acceptance additions
@@ -179,3 +179,14 @@ The first end-to-end CI test attempted to perform the company status update as `
 This is a pre-existing admin company moderation access mismatch, separate from the audit migration. The audit migration does not change table grants or the UI. Its isolated trigger test creates/updates the product rows as the database owner while retaining an administrator JWT, so it can validate trigger capture, actor derivation, transaction correlation, and rollback without pretending the partial historical fixture reproduces every production grant/RLS dependency. Separate role-specific checks verify that anon/authenticated cannot read or forge audit rows.
 
 **Follow-up required:** replace the company admin direct Data API mutation (and confirm the admin read path) with a narrowly scoped `SECURITY DEFINER` admin RPC that validates `public.is_admin()`, or propose narrowly scoped grants with RLS after reviewing all company policies. Do not grant broad table privileges as a test workaround. Add positive admin and negative non-admin/anon tests before enabling the UI action.
+
+
+## 14. Production rollout record — 2026-11-13
+
+- PR #44 was merged to `main` as commit `939f336326b07119fec9f7cbeb110cb4a3ef8831`.
+- Supabase migration `v1_16_admin_audit_trail` was applied successfully and recorded as version `20261113084653`.
+- Read-only verification confirmed `private.admin_audit_logs` exists, RLS is enabled, and all three status-capture triggers are installed on `companies`, `jobs`, and `applications`.
+- Read-only privilege checks confirmed anon, authenticated, and service_role have no SELECT privilege on the audit table. Direct client table/sequence privileges remain revoked, and UPDATE/DELETE are blocked by the append-only trigger.
+- The table intentionally has no client read path or audit viewer yet. Administrative write-path RPC cutover remains a separate follow-up.
+- PR #47 aligns the repository migration filename with the production-generated version. Do not run a broad `supabase db push` until that migration-history correction is merged and verified.
+- Production deployment for the merged commit reached Vercel `READY` and retained the `wazifti.vercel.app` production alias.
