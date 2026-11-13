@@ -1582,12 +1582,27 @@ function filterJobs(){
         دخول
       </button>
 
-      <p id="loginMessage"></p>
+      <p id="loginMessage" role="status" aria-live="polite"></p>
+      <button type="button" class="btn outline" style="width:100%;margin-top:10px" onclick="requestPasswordReset()" id="forgotPasswordBtn">نسيت كلمة المرور؟</button>
     </form>
   </div>
 </div>
 
-
+<div id="passwordRecoveryModal" class="modal" style="display:none" onclick="if(event.target===this)closePasswordRecovery()">
+  <div class="modal-content">
+    <button type="button" class="close-btn" onclick="closePasswordRecovery()">×</button>
+    <h2 id="passwordRecoveryTitle">إعادة تعيين كلمة المرور</h2>
+    <p id="passwordRecoveryIntro">أدخل كلمة مرور جديدة لحسابك.</p>
+    <form id="passwordRecoveryForm">
+      <label id="newPasswordLabel" for="newAccountPassword">كلمة المرور الجديدة</label>
+      <input id="newAccountPassword" type="password" minlength="6" autocomplete="new-password" required>
+      <label id="confirmNewPasswordLabel" for="confirmNewAccountPassword">تأكيد كلمة المرور الجديدة</label>
+      <input id="confirmNewAccountPassword" type="password" minlength="6" autocomplete="new-password" required>
+      <button type="submit" class="btn primary" style="width:100%;margin-top:15px" id="saveNewPasswordBtn">حفظ كلمة المرور</button>
+      <p id="passwordRecoveryMessage" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</div>
 
 <div id="employerRegistrationModal" class="modalbg" onclick="if(event.target===this)closeEmployerRegistration()">
   <div class="modal employer-modal">
@@ -1788,7 +1803,9 @@ function applyAuthModalLanguage() {
     confirmPassword:"Confirm password", confirmPlaceholder:"Enter your password again",
     signupAction:"Create account", loginTitle:"Log in",
     loginIntro:"Welcome back to Wazifti", loginPasswordPlaceholder:"Enter your password",
-    loginAction:"Log in", close:"Close"
+    loginAction:"Log in", close:"Close", forgotPassword:"Forgot password?",
+    recoveryTitle:"Reset password", recoveryIntro:"Enter a new password for your account.",
+    newPassword:"New password", confirmNewPassword:"Confirm new password", savePassword:"Save password"
   } : {
     signupTitle:"إنشاء حساب جديد", signupIntro:"انضم إلى منصة وظيفتي",
     fullName:"الاسم الكامل", fullNamePlaceholder:"أدخل اسمك الكامل",
@@ -1796,7 +1813,9 @@ function applyAuthModalLanguage() {
     confirmPassword:"تأكيد كلمة المرور", confirmPlaceholder:"أعد كتابة كلمة المرور",
     signupAction:"إنشاء الحساب", loginTitle:"تسجيل الدخول",
     loginIntro:"مرحباً بعودتك إلى وظيفتي", loginPasswordPlaceholder:"أدخل كلمة المرور",
-    loginAction:"دخول", close:"إغلاق"
+    loginAction:"دخول", close:"إغلاق", forgotPassword:"نسيت كلمة المرور؟",
+    recoveryTitle:"إعادة تعيين كلمة المرور", recoveryIntro:"أدخل كلمة مرور جديدة لحسابك.",
+    newPassword:"كلمة المرور الجديدة", confirmNewPassword:"تأكيد كلمة المرور الجديدة", savePassword:"حفظ كلمة المرور"
   };
   const signup = document.getElementById("signupModal");
   const login = document.getElementById("loginModal");
@@ -1846,6 +1865,18 @@ function applyAuthModalLanguage() {
     if (password) password.placeholder = copy.loginPasswordPlaceholder;
     const submit = form && form.querySelector('button[type="submit"]');
     if (submit) submit.textContent = copy.loginAction;
+    const forgot = document.getElementById("forgotPasswordBtn");
+    if (forgot) forgot.textContent = copy.forgotPassword;
+  }
+  const recovery = document.getElementById("passwordRecoveryModal");
+  if (recovery) {
+    recovery.setAttribute("dir", isEn ? "ltr" : "rtl");
+    const setText = (id,value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
+    setText("passwordRecoveryTitle",copy.recoveryTitle);
+    setText("passwordRecoveryIntro",copy.recoveryIntro);
+    setText("newPasswordLabel",copy.newPassword);
+    setText("confirmNewPasswordLabel",copy.confirmNewPassword);
+    setText("saveNewPasswordBtn",copy.savePassword);
   }
 }
 
@@ -3725,6 +3756,9 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
       renderAuthUI(null);
       return;
     }
+    if (event === "PASSWORD_RECOVERY") {
+      openPasswordRecovery();
+    }
     if (session?.user) {
       renderAuthUI(session.user);
       return;
@@ -3817,6 +3851,65 @@ if (loginForm) {
     } finally {
       if (submitButton) submitButton.disabled = false;
     }
+  });
+}
+
+// Password recovery uses Supabase Auth; no password is stored in application tables.
+function openPasswordRecovery() {
+  applyAuthModalLanguage();
+  const modal=document.getElementById("passwordRecoveryModal");
+  const message=document.getElementById("passwordRecoveryMessage");
+  if(message) message.textContent="";
+  if(modal) modal.style.display="flex";
+}
+function closePasswordRecovery() {
+  const modal=document.getElementById("passwordRecoveryModal");
+  if(modal) modal.style.display="none";
+  const form=document.getElementById("passwordRecoveryForm");
+  if(form) form.reset();
+}
+async function requestPasswordReset() {
+  const email=document.getElementById("loginEmail")?.value.trim();
+  const message=document.getElementById("loginMessage");
+  if(!email) {
+    if(message) message.textContent=lang==="ar"?"أدخل بريدك الإلكتروني أولاً ثم اضغط نسيت كلمة المرور.":"Enter your email address first, then choose Forgot password.";
+    return;
+  }
+  const button=document.getElementById("forgotPasswordBtn");
+  if(button) button.disabled=true;
+  if(message) message.textContent=lang==="ar"?"جارٍ إرسال رابط الاستعادة...":"Sending password reset link...";
+  try {
+    const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+"/"});
+    if(error) throw error;
+    if(message) message.textContent=lang==="ar"
+      ?"إذا كان البريد مسجلاً، فستصلك رسالة تحتوي رابطاً آمناً لإعادة تعيين كلمة المرور. تحقق من الوارد والرسائل غير المرغوب فيها."
+      :"If the address is registered, you will receive a secure password reset link. Check your inbox and spam folder.";
+  } catch(error) {
+    console.error("Password reset request failed:",error);
+    if(message) message.textContent=(lang==="ar"?"تعذر إرسال رابط الاستعادة: ":"Could not send the reset link: ")+(error.message||"");
+  } finally { if(button) button.disabled=false; }
+}
+const passwordRecoveryForm=document.getElementById("passwordRecoveryForm");
+if(passwordRecoveryForm) {
+  passwordRecoveryForm.addEventListener("submit",async event=>{
+    event.preventDefault();
+    const password=document.getElementById("newAccountPassword").value;
+    const confirmation=document.getElementById("confirmNewAccountPassword").value;
+    const message=document.getElementById("passwordRecoveryMessage");
+    const button=document.getElementById("saveNewPasswordBtn");
+    if(password.length<6) { message.textContent=lang==="ar"?"يجب ألا تقل كلمة المرور عن 6 أحرف.":"Password must be at least 6 characters."; return; }
+    if(password!==confirmation) { message.textContent=lang==="ar"?"كلمتا المرور غير متطابقتين.":"The passwords do not match."; return; }
+    button.disabled=true; message.textContent=lang==="ar"?"جارٍ تحديث كلمة المرور...":"Updating password...";
+    try {
+      const {error}=await supabaseClient.auth.updateUser({password});
+      if(error) throw error;
+      message.textContent=lang==="ar"?"تم تحديث كلمة المرور بنجاح. يمكنك الآن استخدام كلمة المرور الجديدة.":"Password updated successfully. You can now use your new password.";
+      passwordRecoveryForm.reset();
+      setTimeout(closePasswordRecovery,1800);
+    } catch(error) {
+      console.error("Password update failed:",error);
+      message.textContent=(lang==="ar"?"تعذر تحديث كلمة المرور: ":"Could not update password: ")+(error.message||"");
+    } finally { button.disabled=false; }
   });
 }
 </script>
