@@ -213,11 +213,11 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/v1_16_application_status_guards.sql
-      - name: Verify application status transition protections and valid hiring flow
-        env:
-          PGPASSWORD: postgres
-        run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_v1_16_application_status_guards.sql
       - name: Verify admin audit capture, security, correlation, and rollback
         env:
           PGPASSWORD: postgres
         run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_v1_16_admin_audit_trail.sql
+      - name: Verify application status transition protections and valid hiring flow
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_v1_16_application_status_guards.sql
