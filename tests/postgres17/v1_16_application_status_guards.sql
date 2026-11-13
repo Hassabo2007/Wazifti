@@ -67,6 +67,22 @@ begin
 end;
 $function$;
 
+-- Keep the protection trigger attached even on databases restored from the
+-- recovered bootstrap, where its original trigger metadata may be absent.
+do $ensure_application_guard_trigger$
+begin
+  if not exists (
+    select 1
+    from pg_trigger
+    where tgrelid = 'public.applications'::regclass
+      and tgname = 'guard_application_updates'
+      and not tgisinternal
+  ) then
+    execute 'create trigger guard_application_updates before update on public.applications for each row execute function public.guard_application_updates()';
+  end if;
+end;
+$ensure_application_guard_trigger$;
+
 create or replace function public.update_individual_job_application_status(
   p_application_id uuid,
   p_new_status text
