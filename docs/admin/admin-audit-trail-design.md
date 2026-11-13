@@ -137,7 +137,7 @@ Production has permissive `ALL` policies named `Admins manage applications`, `Ad
 - Events related to an open complaint, investigation, legal hold, or unresolved dispute must be retained beyond 24 months until the hold is explicitly released by an authorized process.
 - Before enabling cleanup, implement and test: a verified backup/archive, a dry-run report of eligible rows, a documented approval step, bounded batch deletion, monitoring, and a recovery/rollback procedure. Never run a bulk delete directly as part of the initial audit-table migration.
 - Retention duration is therefore settled at 24 months; reason requirements and the first admin audit-viewer scope remain open product decisions.
-- The current execution environment has no installed Supabase CLI binary. No migration file has been generated, and no production DDL has been run. The implementation branch must be created using the documented `supabase migration new <name>` command in a real CLI environment; do not hand-invent a migration timestamp/name.
+- The Supabase CLI-generated migration now exists on the V1.16 implementation branch as `supabase/migrations/20261110203144_v1_16_admin_audit_trail.sql`. It was generated in GitHub Actions without linking to production. No production DDL has been run; the migration remains pending PostgreSQL 17 test and review.
 - The free PostgreSQL 17 GitHub Actions path is the intended test target. Do not create a paid Supabase branch or require a credit card.
 
 ### Implementation acceptance additions
@@ -147,3 +147,35 @@ Production has permissive `ALL` policies named `Admins manage applications`, `Ad
 - Prove an audit insert failure rolls back all business changes, including trigger side effects and notifications.
 - Prove one acceptance operation creates one correlated event for each affected application and the job closure, with no CV, resume URL, cover letter, phone, or credential fields.
 - Test concurrent attempts to accept two candidates for the same job and ensure only one succeeds with a consistent audit trail.
+
+## 12. First implementation slice — admin status audit capture
+
+The first implementation slice is deliberately narrower than the later RPC cutover:
+
+- Add a private, non-API-exposed `private.admin_audit_logs` table with only actor UUID, transaction ID, entity type/UUID, action, old/new status, and timestamp.
+- Capture status changes on companies, jobs, and applications only when `public.is_admin()` confirms the authenticated actor. Actor identity is always derived from `auth.uid()`; clients cannot supply it.
+- Use row triggers so direct admin Data API status updates and nested hiring side effects are captured in the same transaction. The hiring acceptance chain must record the accepted application, closed job, and rejected competing applications with one transaction ID.
+- Deny all client roles direct table/sequence access, enable RLS with no client policies, and add a mutation-blocking trigger for append-only protection.
+- An audit insert failure must abort the original status change and every nested side effect. The migration intentionally does not add a viewer or grant read access; the initial audit inspection remains a privileged database-operator task.
+- This slice does **not** yet narrow broad admin table policies or add RPC-only admin workflows. Those changes must follow separate tests to preserve employer, individual-poster, and candidate paths.
+
+### Free validation route
+
+The repository already contains the recovered production ledger, the nine-file forensic SQL archive with SHA-256 manifest, the pre-ledger bootstrap/CV prerequisites, and a PostgreSQL 17 partial replay test. The historical ledger replay covers 24 of 26 entries; the Realtime publication and pg_cron/pg_net scheduler migrations are excluded because they require Supabase-managed services. The production-applied V1.15 migration is then applied to the disposable PostgreSQL 17 database before the audit migration.
+
+The new CI workflow runs `supabase migration new v1_16_admin_audit_trail` using the official Supabase CLI setup action, tests the generated file against that disposable PostgreSQL 17 history, and verifies actor integrity, hiring correlation, private access, append-only behavior, and rollback on audit-write failure. No Supabase credentials, paid branch, or production database connection are required.
+
+## 13. Additional production grant mismatch found during PostgreSQL 17 testing
+
+The first end-to-end CI test attempted to perform the company status update as `authenticated` and failed before RLS evaluation with `permission denied for table companies`. A read-only production check confirmed:
+
+- `has_table_privilege('authenticated', 'public.companies', 'SELECT') = false`
+- `has_table_privilege('authenticated', 'public.companies', 'INSERT') = false`
+- `has_table_privilege('authenticated', 'public.companies', 'UPDATE') = false`
+- Authenticated does have UPDATE privileges on `jobs` and `applications`.
+- The `Admins manage companies` RLS ALL policy exists, but RLS policies do not grant table privileges by themselves.
+- The current `index.html` function `adminSetCompanyStatus` calls `supabaseClient.from("companies").update({status})` directly. Without an authenticated UPDATE grant, this browser Data API path cannot succeed as written.
+
+This is a pre-existing admin company moderation access mismatch, separate from the audit migration. The audit migration does not change table grants or the UI. Its isolated trigger test creates/updates the product rows as the database owner while retaining an administrator JWT, so it can validate trigger capture, actor derivation, transaction correlation, and rollback without pretending the partial historical fixture reproduces every production grant/RLS dependency. Separate role-specific checks verify that anon/authenticated cannot read or forge audit rows.
+
+**Follow-up required:** replace the company admin direct Data API mutation (and confirm the admin read path) with a narrowly scoped `SECURITY DEFINER` admin RPC that validates `public.is_admin()`, or propose narrowly scoped grants with RLS after reviewing all company policies. Do not grant broad table privileges as a test workaround. Add positive admin and negative non-admin/anon tests before enabling the UI action.
