@@ -41,6 +41,32 @@ values
    'Closed vacancy status guard test', 'Disposable test vacancy',
    'closed', 'company', '00000000-0000-4000-8000-000000000011');
 
+-- Reproduce the exact production employer UPDATE policy in the recovered
+-- fixture; the historic replay fixture may not include this policy revision.
+drop policy if exists "Employers update own application statuses" on public.applications;
+create policy "Employers update own application statuses"
+on public.applications
+for update
+to authenticated
+using (
+  exists (
+    select 1
+    from public.jobs j
+    join public.companies c on c.id = j.company_id
+    where j.id = applications.job_id
+      and c.owner_id = (select auth.uid())
+  )
+)
+with check (
+  exists (
+    select 1
+    from public.jobs j
+    join public.companies c on c.id = j.company_id
+    where j.id = applications.job_id
+      and c.owner_id = (select auth.uid())
+  )
+);
+
 insert into public.applications (id, job_id, candidate_id, status)
 values
   ('70000000-0000-4000-8000-000000000001',
