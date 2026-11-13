@@ -123,6 +123,17 @@ begin
 end;
 $assert_untrusted_context_reset$;
 
+-- Confirm the company owner can see the application row; the direct-update
+-- test must reach the BEFORE trigger rather than silently matching zero RLS rows.
+do $assert_company_application_visible$
+begin
+  if (select count(*) from public.applications
+      where id = '70000000-0000-4000-8000-000000000003') <> 1 then
+    raise exception 'Company owner cannot see the seeded application under RLS';
+  end if;
+end;
+$assert_company_application_visible$;
+
 -- A non-admin company employer cannot bypass the finalization RPC by writing
 -- accepted directly through the Data API.
 do $assert_direct_acceptance_blocked$
