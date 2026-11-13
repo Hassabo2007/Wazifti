@@ -14,6 +14,9 @@ on conflict (id) do nothing;
 grant select, update on public.applications to authenticated;
 grant select on public.jobs to authenticated;
 grant select (id, owner_id, status) on public.companies to authenticated;
+grant usage on schema auth to authenticated;
+grant execute on function auth.uid() to authenticated;
+grant execute on function auth.role() to authenticated;
 
 -- Seed disposable rows as the database owner. All writes under test below run
 -- with the authenticated JWT and the real employer RLS policies.
