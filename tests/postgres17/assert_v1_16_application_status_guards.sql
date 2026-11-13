@@ -10,6 +10,12 @@ on conflict (id) do nothing;
 
 -- Seed disposable rows as the database owner. All writes under test below run
 -- with the authenticated JWT and the real employer RLS policies.
+insert into public.companies (id, owner_id, company_name, status)
+values ('60000000-0000-4000-8000-000000000001',
+        '00000000-0000-4000-8000-000000000011',
+        'Status Guard Test Company', 'verified')
+on conflict (id) do nothing;
+
 insert into public.jobs
   (id, company_id, title, description, status, poster_type, posted_by_user_id)
 values
@@ -24,12 +30,6 @@ values
    '60000000-0000-4000-8000-000000000001',
    'Closed vacancy status guard test', 'Disposable test vacancy',
    'closed', 'company', '00000000-0000-4000-8000-000000000011');
-
-insert into public.companies (id, owner_id, company_name, status)
-values ('60000000-0000-4000-8000-000000000001',
-        '00000000-0000-4000-8000-000000000011',
-        'Status Guard Test Company', 'verified')
-on conflict (id) do nothing;
 
 insert into public.applications (id, job_id, candidate_id, status)
 values
