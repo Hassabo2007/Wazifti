@@ -108,13 +108,13 @@ begin
       using errcode = '42501';
   end if;
 
-  if v_job_status <> 'published' then
-    raise exception 'This job is no longer accepting application updates.'
+  if v_current_status in ('accepted', 'rejected') then
+    raise exception 'This application status is final and cannot be changed.'
       using errcode = '42501';
   end if;
 
-  if v_current_status in ('accepted', 'rejected') then
-    raise exception 'This application status is final and cannot be changed.'
+  if v_job_status <> 'published' then
+    raise exception 'This job is no longer accepting application updates.'
       using errcode = '42501';
   end if;
 
