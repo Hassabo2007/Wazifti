@@ -209,7 +209,15 @@ jobs:
           migration_file="$(find "$RUNNER_TEMP/v1-16-admin-audit-migration" -maxdepth 1 -type f -name '*_v1_16_admin_audit_trail.sql' -print -quit)"
           test -n "$migration_file"
           psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f "$migration_file"
+      - name: Apply application status transition guards
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261113090605_v1_16_application_status_guards.sql
       - name: Verify admin audit capture, security, correlation, and rollback
         env:
           PGPASSWORD: postgres
         run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_v1_16_admin_audit_trail.sql
+      - name: Verify application status transition protections and valid hiring flow
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d wazifti_bootstrap_test -v ON_ERROR_STOP=1 -f tests/postgres17/assert_v1_16_application_status_guards.sql

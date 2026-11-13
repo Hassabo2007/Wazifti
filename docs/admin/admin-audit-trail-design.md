@@ -190,3 +190,5 @@ This is a pre-existing admin company moderation access mismatch, separate from t
 - The table intentionally has no client read path or audit viewer yet. Administrative write-path RPC cutover remains a separate follow-up.
 - PR #47 aligns the repository migration filename with the production-generated version. Do not run a broad `supabase db push` until that migration-history correction is merged and verified.
 - Production deployment for the merged commit reached Vercel `READY` and retained the `wazifti.vercel.app` production alias.
+
+- Application status transition guards were deployed as Supabase migration `20261113090605` (`v1_16_application_status_guards`) after PostgreSQL 17 adversarial tests passed. The migration hardens the individual-employer RPC, the hiring finalization RPC, and the existing application update guard; accepted decisions must use the atomic hiring path.
