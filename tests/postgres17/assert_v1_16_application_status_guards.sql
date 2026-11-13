@@ -56,7 +56,15 @@ values
 select set_config('request.jwt.claim.sub',
                   '00000000-0000-4000-8000-000000000011', false);
 select set_config('request.jwt.claim.role', 'authenticated', false);
-set role authenticated;
+set session authorization authenticated;
+
+do $assert_authenticated_session$
+begin
+  if session_user <> 'authenticated' or current_user <> 'authenticated' then
+    raise exception 'Test session did not assume the authenticated role';
+  end if;
+end;
+$assert_authenticated_session$;
 
 -- A legitimate individual-employer status update continues to work.
 select public.update_individual_job_application_status(
@@ -122,14 +130,14 @@ update public.applications
 set status = 'reviewing'
 where id = '70000000-0000-4000-8000-000000000003';
 
-reset role;
+reset session authorization;
 
 -- Close the second company vacancy as a trusted database operation.
 update public.jobs
 set status = 'closed'
 where id = '50000000-0000-4000-8000-000000000002';
 
-set role authenticated;
+set session authorization authenticated;
 
 -- A company employer cannot change an application after the vacancy is closed.
 do $assert_closed_job_update_blocked$
@@ -183,7 +191,7 @@ begin
 end;
 $assert_non_owner_denied$;
 
-reset role;
+reset session authorization;
 
 do $assert_final_states$
 begin
