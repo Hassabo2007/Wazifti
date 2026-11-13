@@ -1551,10 +1551,10 @@ function filterJobs(){
       <input type="email" id="signupEmail" placeholder="example@email.com" required>
 
       <label>كلمة المرور</label>
-      <input type="password" id="signupPassword" placeholder="6 أحرف على الأقل" minlength="6" required>
+      <div class="password-field"><input type="password" id="signupPassword" placeholder="6 أحرف على الأقل" minlength="6" autocomplete="new-password" required><button type="button" class="password-visibility-toggle" onclick="togglePasswordVisibility('signupPassword',this)" aria-label="إظهار كلمة المرور">إظهار</button></div>
 
       <label>تأكيد كلمة المرور</label>
-      <input type="password" id="confirmPassword" placeholder="أعد كتابة كلمة المرور" required>
+      <div class="password-field"><input type="password" id="confirmPassword" placeholder="أعد كتابة كلمة المرور" autocomplete="new-password" required><button type="button" class="password-visibility-toggle" onclick="togglePasswordVisibility('confirmPassword',this)" aria-label="إظهار كلمة المرور">إظهار</button></div>
 
       <button type="submit" class="btn primary" style="width:100%;margin-top:15px;">
         إنشاء الحساب
@@ -1576,18 +1576,33 @@ function filterJobs(){
       <input type="email" id="loginEmail" placeholder="example@email.com" autocomplete="off" autocapitalize="none" required>
 
       <label>كلمة المرور</label>
-      <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور" autocomplete="new-password" required>
+      <div class="password-field"><input type="password" id="loginPassword" placeholder="أدخل كلمة المرور" autocomplete="current-password" required><button type="button" class="password-visibility-toggle" onclick="togglePasswordVisibility('loginPassword',this)" aria-label="إظهار كلمة المرور">إظهار</button></div>
 
       <button type="submit" class="btn primary" style="width:100%;margin-top:15px;">
         دخول
       </button>
 
-      <p id="loginMessage"></p>
+      <p id="loginMessage" role="status" aria-live="polite"></p>
+      <button type="button" class="btn outline" style="width:100%;margin-top:10px" onclick="requestPasswordReset()" id="forgotPasswordBtn">نسيت كلمة المرور؟</button>
     </form>
   </div>
 </div>
 
-
+<div id="passwordRecoveryModal" class="modal" style="display:none" onclick="if(event.target===this)closePasswordRecovery()">
+  <div class="modal-content">
+    <button type="button" class="close-btn" onclick="closePasswordRecovery()">×</button>
+    <h2 id="passwordRecoveryTitle">إعادة تعيين كلمة المرور</h2>
+    <p id="passwordRecoveryIntro">أدخل كلمة مرور جديدة لحسابك.</p>
+    <form id="passwordRecoveryForm">
+      <label id="newPasswordLabel" for="newAccountPassword">كلمة المرور الجديدة</label>
+      <div class="password-field"><input id="newAccountPassword" type="password" minlength="6" autocomplete="new-password" required><button type="button" class="password-visibility-toggle" onclick="togglePasswordVisibility('newAccountPassword',this)" aria-label="إظهار كلمة المرور">إظهار</button></div>
+      <label id="confirmNewPasswordLabel" for="confirmNewAccountPassword">تأكيد كلمة المرور الجديدة</label>
+      <div class="password-field"><input id="confirmNewAccountPassword" type="password" minlength="6" autocomplete="new-password" required><button type="button" class="password-visibility-toggle" onclick="togglePasswordVisibility('confirmNewAccountPassword',this)" aria-label="إظهار كلمة المرور">إظهار</button></div>
+      <button type="submit" class="btn primary" style="width:100%;margin-top:15px" id="saveNewPasswordBtn">حفظ كلمة المرور</button>
+      <p id="passwordRecoveryMessage" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</div>
 
 <div id="employerRegistrationModal" class="modalbg" onclick="if(event.target===this)closeEmployerRegistration()">
   <div class="modal employer-modal">
@@ -1702,6 +1717,73 @@ function filterJobs(){
   padding: 15px;
 }
 
+/* Password recovery must be a viewport overlay, not an inline .modal card. */
+#passwordRecoveryModal {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  background: rgba(0,0,0,.68);
+}
+#passwordRecoveryModal .modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 25px;
+  border-radius: 16px;
+  background: #fff;
+  color: #17372a;
+  box-shadow: 0 18px 55px rgba(0,0,0,.22);
+}
+#passwordRecoveryModal .close-btn {
+  position: absolute;
+  inset-inline-end: 12px;
+  top: 10px;
+  border: 0;
+  background: transparent;
+  font-size: 26px;
+  cursor: pointer;
+}
+.password-field { position: relative; width: 100%; }
+.password-field input { padding-inline-end: 82px !important; }
+.password-visibility-toggle {
+  position: absolute;
+  inset-inline-end: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  border: 1px solid #d7e4dc;
+  border-radius: 7px;
+  background: #f4faf6;
+  color: #087a4b;
+  padding: 6px 9px;
+  font: 600 12px Tahoma,Arial,sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#passwordRecoveryModal label { display:block; margin:12px 0 6px; font-weight:700; }
+#passwordRecoveryModal input {
+  display:block;
+  width:100%;
+  min-height:44px;
+  padding:11px 12px;
+  margin:8px 0 15px;
+  border:1px solid #d7e4dc;
+  border-radius:8px;
+  box-sizing:border-box;
+  font:inherit;
+}
+#passwordRecoveryModal .password-field input { padding-inline-end:82px; }
+@media(max-width:480px) {
+  #passwordRecoveryModal { padding:10px; }
+  #passwordRecoveryModal .modal-content { padding:20px 16px; }
+}
+
 #signupModal .modal-content,
 #loginModal .modal-content {
   background: white;
@@ -1788,7 +1870,9 @@ function applyAuthModalLanguage() {
     confirmPassword:"Confirm password", confirmPlaceholder:"Enter your password again",
     signupAction:"Create account", loginTitle:"Log in",
     loginIntro:"Welcome back to Wazifti", loginPasswordPlaceholder:"Enter your password",
-    loginAction:"Log in", close:"Close"
+    loginAction:"Log in", close:"Close", forgotPassword:"Forgot password?",
+    recoveryTitle:"Reset password", recoveryIntro:"Enter a new password for your account.",
+    newPassword:"New password", confirmNewPassword:"Confirm new password", savePassword:"Save password"
   } : {
     signupTitle:"إنشاء حساب جديد", signupIntro:"انضم إلى منصة وظيفتي",
     fullName:"الاسم الكامل", fullNamePlaceholder:"أدخل اسمك الكامل",
@@ -1796,7 +1880,9 @@ function applyAuthModalLanguage() {
     confirmPassword:"تأكيد كلمة المرور", confirmPlaceholder:"أعد كتابة كلمة المرور",
     signupAction:"إنشاء الحساب", loginTitle:"تسجيل الدخول",
     loginIntro:"مرحباً بعودتك إلى وظيفتي", loginPasswordPlaceholder:"أدخل كلمة المرور",
-    loginAction:"دخول", close:"إغلاق"
+    loginAction:"دخول", close:"إغلاق", forgotPassword:"نسيت كلمة المرور؟",
+    recoveryTitle:"إعادة تعيين كلمة المرور", recoveryIntro:"أدخل كلمة مرور جديدة لحسابك.",
+    newPassword:"كلمة المرور الجديدة", confirmNewPassword:"تأكيد كلمة المرور الجديدة", savePassword:"حفظ كلمة المرور"
   };
   const signup = document.getElementById("signupModal");
   const login = document.getElementById("loginModal");
@@ -1846,7 +1932,20 @@ function applyAuthModalLanguage() {
     if (password) password.placeholder = copy.loginPasswordPlaceholder;
     const submit = form && form.querySelector('button[type="submit"]');
     if (submit) submit.textContent = copy.loginAction;
+    const forgot = document.getElementById("forgotPasswordBtn");
+    if (forgot) forgot.textContent = copy.forgotPassword;
   }
+  const recovery = document.getElementById("passwordRecoveryModal");
+  if (recovery) {
+    recovery.setAttribute("dir", isEn ? "ltr" : "rtl");
+    const setText = (id,value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
+    setText("passwordRecoveryTitle",copy.recoveryTitle);
+    setText("passwordRecoveryIntro",copy.recoveryIntro);
+    setText("newPasswordLabel",copy.newPassword);
+    setText("confirmNewPasswordLabel",copy.confirmNewPassword);
+    setText("saveNewPasswordBtn",copy.savePassword);
+  }
+  updatePasswordVisibilityLabels();
 }
 
 
@@ -3727,10 +3826,13 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
     }
     if (session?.user) {
       renderAuthUI(session.user);
-      return;
-    }
-    if (event === "INITIAL_SESSION") {
+    } else if (event === "INITIAL_SESSION") {
       renderAuthUI(null);
+    }
+    // Open the recovery overlay after the session is restored so other auth UI
+    // updates cannot interfere with the recovery screen.
+    if (event === "PASSWORD_RECOVERY") {
+      openPasswordRecovery();
     }
   }, 0);
 });
@@ -3817,6 +3919,85 @@ if (loginForm) {
     } finally {
       if (submitButton) submitButton.disabled = false;
     }
+  });
+}
+
+// Password recovery uses Supabase Auth; no password is stored in application tables.
+function togglePasswordVisibility(inputId, button) {
+  const input=document.getElementById(inputId);
+  if(!input || !button) return;
+  const showing=input.type==="password";
+  input.type=showing?"text":"password";
+  const ar=lang!=="en";
+  button.textContent=showing?(ar?"إخفاء":"Hide"):(ar?"إظهار":"Show");
+  button.setAttribute("aria-label",showing?(ar?"إخفاء كلمة المرور":"Hide password"):(ar?"إظهار كلمة المرور":"Show password"));
+  input.focus();
+}
+function updatePasswordVisibilityLabels() {
+  const ar=lang!=="en";
+  document.querySelectorAll(".password-visibility-toggle").forEach(button=>{
+    const input=document.getElementById(button.getAttribute("onclick")?.match(/'([^']+)'/)?.[1]);
+    if(!input) return;
+    const showing=input.type==="text";
+    button.textContent=showing?(ar?"إخفاء":"Hide"):(ar?"إظهار":"Show");
+    button.setAttribute("aria-label",showing?(ar?"إخفاء كلمة المرور":"Hide password"):(ar?"إظهار كلمة المرور":"Show password"));
+  });
+}
+function openPasswordRecovery() {
+  applyAuthModalLanguage();
+  const modal=document.getElementById("passwordRecoveryModal");
+  const message=document.getElementById("passwordRecoveryMessage");
+  if(message) message.textContent="";
+  if(modal) modal.style.display="flex";
+}
+function closePasswordRecovery() {
+  const modal=document.getElementById("passwordRecoveryModal");
+  if(modal) modal.style.display="none";
+  const form=document.getElementById("passwordRecoveryForm");
+  if(form) form.reset();
+}
+async function requestPasswordReset() {
+  const email=document.getElementById("loginEmail")?.value.trim();
+  const message=document.getElementById("loginMessage");
+  if(!email) {
+    if(message) message.textContent=lang==="ar"?"أدخل بريدك الإلكتروني أولاً ثم اضغط نسيت كلمة المرور.":"Enter your email address first, then choose Forgot password.";
+    return;
+  }
+  const button=document.getElementById("forgotPasswordBtn");
+  if(button) button.disabled=true;
+  if(message) message.textContent=lang==="ar"?"جارٍ إرسال رابط الاستعادة...":"Sending password reset link...";
+  try {
+    const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+"/"});
+    if(error) throw error;
+    if(message) message.textContent=lang==="ar"
+      ?"إذا كان البريد مسجلاً، فستصلك رسالة تحتوي رابطاً آمناً لإعادة تعيين كلمة المرور. تحقق من الوارد والرسائل غير المرغوب فيها."
+      :"If the address is registered, you will receive a secure password reset link. Check your inbox and spam folder.";
+  } catch(error) {
+    console.error("Password reset request failed:",error);
+    if(message) message.textContent=(lang==="ar"?"تعذر إرسال رابط الاستعادة: ":"Could not send the reset link: ")+(error.message||"");
+  } finally { if(button) button.disabled=false; }
+}
+const passwordRecoveryForm=document.getElementById("passwordRecoveryForm");
+if(passwordRecoveryForm) {
+  passwordRecoveryForm.addEventListener("submit",async event=>{
+    event.preventDefault();
+    const password=document.getElementById("newAccountPassword").value;
+    const confirmation=document.getElementById("confirmNewAccountPassword").value;
+    const message=document.getElementById("passwordRecoveryMessage");
+    const button=document.getElementById("saveNewPasswordBtn");
+    if(password.length<6) { message.textContent=lang==="ar"?"يجب ألا تقل كلمة المرور عن 6 أحرف.":"Password must be at least 6 characters."; return; }
+    if(password!==confirmation) { message.textContent=lang==="ar"?"كلمتا المرور غير متطابقتين.":"The passwords do not match."; return; }
+    button.disabled=true; message.textContent=lang==="ar"?"جارٍ تحديث كلمة المرور...":"Updating password...";
+    try {
+      const {error}=await supabaseClient.auth.updateUser({password});
+      if(error) throw error;
+      message.textContent=lang==="ar"?"تم تحديث كلمة المرور بنجاح. يمكنك الآن استخدام كلمة المرور الجديدة.":"Password updated successfully. You can now use your new password.";
+      passwordRecoveryForm.reset();
+      setTimeout(closePasswordRecovery,1800);
+    } catch(error) {
+      console.error("Password update failed:",error);
+      message.textContent=(lang==="ar"?"تعذر تحديث كلمة المرور: ":"Could not update password: ")+(error.message||"");
+    } finally { button.disabled=false; }
   });
 }
 </script>
