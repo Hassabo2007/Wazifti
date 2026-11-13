@@ -142,7 +142,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  postgres17-recovered-bootstrap:
+  migration-safety:
     needs: [audit, generate-admin-audit-migration]
     runs-on: ubuntu-latest
     services:
