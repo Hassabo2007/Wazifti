@@ -146,12 +146,28 @@ $assert_company_application_visible$;
 -- A non-admin company employer cannot bypass the finalization RPC by writing
 -- accepted directly through the Data API.
 do $assert_direct_acceptance_blocked$
-declare v_message text;
+declare
+  v_message text;
+  v_rows integer;
 begin
+  if not exists (
+    select 1 from pg_trigger
+    where tgrelid = 'public.applications'::regclass
+      and tgname = 'guard_application_updates'
+      and not tgisinternal
+      and tgenabled = 'O'
+  ) then
+    raise exception 'Application guard trigger is missing or disabled';
+  end if;
+
   begin
     update public.applications
     set status = 'accepted'
     where id = '70000000-0000-4000-8000-000000000003';
+    get diagnostics v_rows = row_count;
+    if v_rows = 0 then
+      raise exception 'RLS filtered the company update before the guard trigger';
+    end if;
     raise exception 'TEST_EXPECTED_FAILURE_MISSING';
   exception when others then
     get stacked diagnostics v_message = message_text;
