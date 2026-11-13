@@ -12,6 +12,8 @@ on conflict (id) do nothing;
 -- grant. Production grants authenticated UPDATE on applications; model that
 -- existing privilege here so the test reaches RLS and the BEFORE trigger.
 grant select, update on public.applications to authenticated;
+grant select on public.jobs to authenticated;
+grant select (id, owner_id, status) on public.companies to authenticated;
 
 -- Seed disposable rows as the database owner. All writes under test below run
 -- with the authenticated JWT and the real employer RLS policies.
